@@ -13,7 +13,7 @@
 
 ### Шаг 1: Создать свою ветку
 ```bash
-git checkout -b programmer1  # замените на ваше имя (например: alibek, rustam)
+git checkout -b programmer1  # замените на ваше имя 
 ```
 
 ### Шаг 2: Работать и сохранять изменения
