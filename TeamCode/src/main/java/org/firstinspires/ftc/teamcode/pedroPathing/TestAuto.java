@@ -19,10 +19,10 @@ public class TestAuto extends OpMode {
     private int pathState;
 
     private final Pose startPose = new Pose(28.5, 128, Math.toRadians(180));
-    private final Pose scorePose = new Pose(60, 85, Math.toRadians(135));
-    private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0));
-    private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0));
-    private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0));
+    private final Pose scorePose = new Pose(55.38461538461539, 106.11692307692307, Math.toRadians(135));
+    private final Pose pickup1Pose = new Pose(24.59076923076923, 93.71076923076923, Math.toRadians(180));
+    private final Pose pickup2Pose = new Pose(24.59076923076923, 67.79076923076923, Math.toRadians(180));
+    private final Pose pickup3Pose = new Pose(24.81230769230769, 45.41538461538461, Math.toRadians(180));
 
     private Path scorePreload;
     private PathChain grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
