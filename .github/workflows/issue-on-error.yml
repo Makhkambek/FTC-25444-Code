@@ -1,0 +1,45 @@
+name: Create Issue on Error
+
+on:
+  push:
+    branches: [ dev, 'feature/**' ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  check-and-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Check for code issues
+      id: code_check
+      continue-on-error: true
+      run: |
+        echo "🔍 Scanning for issues..."
+        
+        # Check for incomplete code
+        if grep -rn "speedM$\|strafe" --include="*.java" . > issues.txt; then
+          echo "found_issues=true" >> $GITHUB_OUTPUT
+          cat issues.txt
+        else
+          echo "found_issues=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create issue if problems found
+      if: steps.code_check.outputs.found_issues == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const issues = fs.existsSync('issues.txt') ? fs.readFileSync('issues.txt', 'utf8') : 'No details';
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🐛 Automated Code Issue Detection',
+            body: `## Найдены потенциальные проблемы в коде\n\n**Branch:** ${context.ref}\n**Commit:** ${context.sha}\n\n### Детали:\n\`\`\`\n${issues}\n\`\`\`\n\n_Этот issue создан автоматически GitHub Actions_`,
+            labels: ['automated', 'bug']
+          })

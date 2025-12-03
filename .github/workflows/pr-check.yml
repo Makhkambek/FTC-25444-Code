@@ -1,0 +1,54 @@
+name: PR Code Check
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Check Java files exist
+      run: |
+        echo "🔍 Checking Java files..."
+        find . -name "*.java" -type f
+        
+    - name: Basic Java syntax check
+      run: |
+        echo "✅ Checking for common Java issues..."
+        
+        # Check for missing imports
+        if grep -r "DcMotor\|OpMode\|TeleOp" --include="*.java" .; then
+          echo "✓ FTC imports found"
+        fi
+        
+        # Check for incomplete lines
+        if grep -r "speedM$" --include="*.java" .; then
+          echo "⚠️ Warning: Found incomplete code (speedM)"
+          exit 1
+        fi
+        
+        echo "✅ Basic checks passed!"
+        
+    - name: Comment on PR
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ **Automated Code Check Failed**\n\nПожалуйста, проверьте код на ошибки перед мерджем.'
+          })

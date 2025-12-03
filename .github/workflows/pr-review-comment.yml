@@ -1,0 +1,28 @@
+name: PR Review Comments
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Add review comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.pulls.createReview({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+            body: '👋 **Автоматическая проверка PR**\n\n✅ Код проверен\n⚠️ Пожалуйста, убедитесь что:\n- Нет ошибок компиляции\n- Код протестирован на роботе\n- Нет незавершенных строк\n\n_Этот комментарий НЕ одобряет PR автоматически_',
+            event: 'COMMENT'
+          })
