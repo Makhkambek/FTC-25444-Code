@@ -1,0 +1,37 @@
+package org.firstinspires.ftc.teamcode.Subsystems;
+
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="TeleOp", group="Test")
+
+public class teleOp {
+  @Override
+  public void runOpMode() throws InterruptedException {
+      DriveSubsystem drive = new DriveSubsystem(hardwareMap);
+
+      waitForStart();
+
+      while (opModeIsActive()) {
+
+          double driveInput = -gamepad1.left_stick_y;
+
+          double turnInput  = gamepad1.right_stick_x;
+
+          boolean slowMode = gamepad1.right_bumper;
+
+          drive.drive(driveInput, turnInput, slowMode);
+
+          telemetry.addData("Drive", driveInput);
+          telemetry.addData("Turn", turnInput);
+          telemetry.addData("Slow", slowMode);
+          telemetry.update();
+      }
+
+  }
+
+
+  }
