@@ -1,37 +1,46 @@
-package org.firstinspires.ftc.teamcode.Subsystems;
+    package org.firstinspires.ftc.teamcode.Subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+    import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name="TeleOp", group="Test")
+    @TeleOp(name="DriveSubsystem_TeleOp", group="Test")
 
-public class teleOp {
-  @Override
-  public void runOpMode() throws InterruptedException {
-      DriveSubsystem drive = new DriveSubsystem(hardwareMap);
+    public class teleOp {
+      @Override
+      public void runOpMode() throws InterruptedException {
+          Drivetrain drive = new Drivetrain(hardwareMap);
 
-      waitForStart();
+          waitForStart();
 
-      while (opModeIsActive()) {
+          while (opModeIsActive()) {
 
-          double driveInput = -gamepad1.left_stick_y;
+              // forward/back
+              double driveInput = -gamepad1.left_stick_y;
 
-          double turnInput  = gamepad1.right_stick_x;
+              // turning
+              double turnInput  = gamepad1.right_stick_x;
 
-          boolean slowMode = gamepad1.right_bumper;
+              // slow mode with right bumper
+              boolean slowMode = gamepad1.right_bumper;
 
-          drive.drive(driveInput, turnInput, slowMode);
+              drive.drive(driveInput, turnInput, slowMode);
 
-          telemetry.addData("Drive", driveInput);
-          telemetry.addData("Turn", turnInput);
-          telemetry.addData("Slow", slowMode);
-          telemetry.update();
+              telemetry.addData("Drive", driveInput);
+              telemetry.addData("Turn", turnInput);
+              telemetry.addData("Slow", slowMode);
+              telemetry.update();
+          }
+
       }
 
-  }
+        private boolean opModeIsActive() {
+        }
+
+        private void waitForStart() {
+        }
 
 
-  }
+    }
