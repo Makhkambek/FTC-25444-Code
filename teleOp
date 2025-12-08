@@ -1,46 +1,57 @@
-    package org.firstinspires.ftc.teamcode.Subsystems;
+package org.firstinspires.ftc.teamcode.Subsystems;
 
-    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-    import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-    import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+@TeleOp(name="Full TeleOp", group="Test")
+public class TeleOpMain extends LinearOpMode {
 
-    @TeleOp(name="DriveSubsystem_TeleOp", group="Test")
+    private Drivetrain drivetrain;
+    private LiftPID lift;
+    private ServoSubsystem servo;
+    private Intake intake;
 
-    public class teleOp {
-      @Override
-      public void runOpMode() throws InterruptedException {
-          Drivetrain drive = new Drivetrain(hardwareMap);
+    @Override
+    public void runOpMode() throws InterruptedException {
 
-          waitForStart();
+        drivetrain = new Drivetrain(hardwareMap);
+        lift = new LiftPID(hardwareMap);
+        servo = new ServoSubsystem(hardwareMap);
+        intake = new Intake(hardwareMap);
 
-          while (opModeIsActive()) {
+        telemetry.addLine("Robot Ready");
+        telemetry.update();
 
-              // forward/back
-              double driveInput = -gamepad1.left_stick_y;
+        waitForStart();
 
-              // turning
-              double turnInput  = gamepad1.right_stick_x;
+        while (opModeIsActive()) {
 
-              // slow mode with right bumper
-              boolean slowMode = gamepad1.right_bumper;
+            double driveInput = -gamepad1.left_stick_y; // forward/back
+            double turnInput = gamepad1.right_stick_x;  // turning
+            boolean slowMode = gamepad1.right_bumper;   // slow mode
 
-              drive.drive(driveInput, turnInput, slowMode);
+            drivetrain.drive(driveInput, turnInput, slowMode);
 
-              telemetry.addData("Drive", driveInput);
-              telemetry.addData("Turn", turnInput);
-              telemetry.addData("Slow", slowMode);
-              telemetry.update();
-          }
+            if (gamepad1.a) lift.setTarget(LiftPID.LOW);
+            if (gamepad1.b) lift.setTarget(LiftPID.MID);
+            if (gamepad1.y) lift.setTarget(LiftPID.HIGH);
+            if (gamepad1.x) lift.setTarget(LiftPID.BOTTOM);
 
-      }
+            lift.update();
 
-        private boolean opModeIsActive() {
+            if (gamepad1.left_bumper) servo.open();
+            if (gamepad1.right_bumper) servo.close();
+
+            if (gamepad1.right_trigger > 0.1) intake.in();
+            else if (gamepad1.left_trigger > 0.1) intake.out();
+            else intake.stop();
+            
+            telemetry.addData("Drive", driveInput);
+            telemetry.addData("Turn", turnInput);
+            telemetry.addData("Slow", slowMode);
+            telemetry.addData("Lift Pos", lift.getPosition());
+            telemetry.addData("Lift Target", lift.getTargetPosition());
+            telemetry.update();
         }
-
-        private void waitForStart() {
-        }
-
-
     }
+}
