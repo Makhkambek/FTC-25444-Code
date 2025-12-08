@@ -1,31 +1,21 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class ServoSubsystem {
 
-   // public CRServo servo;
-    public Servo servo2;
+    private Servo servo2;
 
     public ServoSubsystem(HardwareMap hardwareMap) {
-       // servo = hardwareMap.get(CRServo.class, "servo");
         servo2 = hardwareMap.get(Servo.class, "servo2");
     }
-    public void setServostate {
-        if (gamepad1.a) {
-            servo2.setPosition(0);//setposition 0
-           // servo.setPower(1);
-        }
-        if (gamepad1.b){
-          //  servo.setPower(-1);
-            servo2.setPosition(1);//setposition 300
-        }
-       // servo.setPower(0);
 
+    public void open() {
+        servo2.setPosition(1.0);
+    }
+
+    public void close() {
+        servo2.setPosition(0.0);
     }
 }
-
