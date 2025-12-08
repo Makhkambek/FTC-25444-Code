@@ -1,0 +1,16 @@
+package org.firstinspires.ftc.teamcode.subsystems;
+
+import com.qualcomm.robotcore.hardware.*;
+
+public class Intake {
+
+    DcMotor intake;
+
+    public Intake(HardwareMap hw) {
+        intake = hw.get(DcMotor.class, "intake");
+    }
+
+    public void in()  { intake.setPower(1); }
+    public void out() { intake.setPower(-1); }
+    public void stop(){ intake.setPower(0); }
+}
