@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.OpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Subsystems.TailSubsystem;
@@ -12,20 +11,28 @@ public class Tail_TeleOp extends LinearOpMode {
 
         TailSubsystem tail = new TailSubsystem(hardwareMap);
 
+        final int TAIL_UP = 600;
+        final int TAIL_MID = 300;
+        final int TAIL_DOWN = 0;
+
         waitForStart();
 
         while (opModeIsActive()) {
-
-            if (gamepad1.dpad_right) {
-                tail.up();
-            } else if (gamepad1.dpad_left) {
-                tail.down();
-            } else {
-                tail.stop();
+            if (gamepad1.dpad_up) {
+                tail.setTargetPosition(TAIL_UP);
+            }
+            else if (gamepad1.dpad_right) {
+                tail.setTargetPosition(TAIL_MID);
+            }
+            else if (gamepad1.dpad_down) {
+                tail.setTargetPosition(TAIL_DOWN);
             }
 
-            telemetry.addData("Right", gamepad1.dpad_right);
-            telemetry.addData("Left", gamepad1.dpad_left);
+            // PID must update every loop
+            tail.updatePID();
+
+            telemetry.addData("Target Position", tail.getTargetPosition());
+            telemetry.addData("Current Position", tail.getCurrentPosition());
             telemetry.update();
         }
     }

@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -14,13 +13,11 @@ public class SuckSubsystem {
     }
 
     public void intake() {
-        suck.setPower(1.0);   // forward
+        suck.setPower(1.0);
     }
-
     public void outtake() {
-        suck.setPower(-1.0);  // reverse
+        suck.setPower(-1.0);
     }
-
     public void stop() {
         suck.setPower(0.0);
     }

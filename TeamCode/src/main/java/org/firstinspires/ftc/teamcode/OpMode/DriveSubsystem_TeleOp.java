@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
 import org.firstinspires.ftc.teamcode.Subsystems.DriveSubsystem;
 
 @TeleOp(name="DriveSubsystem_TeleOp", group="Main")
@@ -16,14 +14,9 @@ public class DriveSubsystem_TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
-            // LEFT STICK = holonomic movement
-            double y  = -gamepad1.left_stick_y;    // forward/backward
-            double x  =  gamepad1.left_stick_x;    // strafe left/right
-
-            // RIGHT STICK (X-axis) = rotation
+            double y  = -gamepad1.left_stick_y;
+            double x  =  gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
-
             boolean slow = gamepad1.left_bumper;
 
             drive.drive(y, x, rx, slow);

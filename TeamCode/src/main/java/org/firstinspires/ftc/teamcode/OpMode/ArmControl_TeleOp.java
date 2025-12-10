@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.OpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Subsystems.ArmSubsystem;
@@ -16,12 +15,9 @@ public class ArmControl_TeleOp extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // Triangle → up
             if (gamepad1.triangle) {
                 arm.up();
             }
-
-            // X → down
             if (gamepad1.cross) {
                 arm.down();
             }

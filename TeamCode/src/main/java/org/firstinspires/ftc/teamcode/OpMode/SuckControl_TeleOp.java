@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.OpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Subsystems.SuckSubsystem;
@@ -15,18 +14,12 @@ public class SuckControl_TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
-            // R2 hold → intake
             if (gamepad1.right_trigger > 0.3) {
                 suck.intake();
             }
-
-            // R1 hold → outtake
             else if (gamepad1.right_bumper) {
                 suck.outtake();
             }
-
-            // None → stop
             else {
                 suck.stop();
             }

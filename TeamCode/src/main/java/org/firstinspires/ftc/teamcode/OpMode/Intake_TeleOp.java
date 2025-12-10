@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.OpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Subsystems.IntakeSubsystem;
@@ -15,8 +14,6 @@ public class Intake_TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
-            // Hold L2 to run intake
             if (gamepad1.left_trigger > 0.2) {
                 intake.run();
             } else {

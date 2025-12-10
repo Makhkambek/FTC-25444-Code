@@ -1,0 +1,763 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:8:1-11:12
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:8:1-11:12
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:8:1-11:12
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:8:1-11:12
+MERGED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-78:12
+MERGED from [org.firstinspires.ftc:OnBotJava:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\a366fb1448cf11a19abb4d88c905acc9\transformed\OnBotJava-11.0.0\AndroidManifest.xml:34:1-41:12
+MERGED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:2:1-24:12
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:3:1-178:12
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:2:1-30:12
+MERGED from [org.firstinspires.ftc:RobotServer:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\2715651de736c52b1d11d41f7e601971\transformed\RobotServer-11.0.0\AndroidManifest.xml:2:1-9:12
+MERGED from [org.firstinspires.ftc:Hardware:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\36ba0336c6029daa02f60838d689f4ac\transformed\Hardware-11.0.0\AndroidManifest.xml:2:1-9:12
+MERGED from [org.firstinspires.ftc:Vision:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\67a1c55d7c7c8fa8a44f6526a62f2a34\transformed\Vision-11.0.0\AndroidManifest.xml:2:1-7:12
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:2:1-129:12
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\0e92de340482c7854f167f742d5a46e1\transformed\appcompat-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:17:1-56:12
+MERGED from [com.jakewharton.threetenabp:threetenabp:1.3.1] C:\Users\Администратор\.gradle\caches\transforms-3\67c1c7406c338d4cbb15dc045dd538ba\transformed\threetenabp-1.3.1\AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\8d40cc1d284c569a0a56adcad21eef76\transformed\fragment-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\4afdb5ccd2c345a579297828891af66b\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4f5dd96aab1e7c6b5c5a20a0e2e8f9\transformed\drawerlayout-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ecc01097548ca6b1d9bda4d78f8f9e78\transformed\viewpager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\00aa9a3069e0cde8b054557f0ce2818e\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\6eaf865498768626b4cb3138e7528729\transformed\activity-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\e6a92957c41119f7d421c0119c2e6f34\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4b43cde6ffa80bb85b5556796e260f\transformed\vectordrawable-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\59381a2ffc2e39e4a7ece10200fa7b0b\transformed\customview-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:17:1-26:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\cc5864e7246f1915b286166ab44dd839\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\7fd724372408497cd6e99dcc0818e208\transformed\versionedparcelable-1.1.0\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\b9fda1adec7eee22e3ff78f9e89c9dad\transformed\lifecycle-runtime-2.1.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e9f091c0044b4a4ea8852ff09816518\transformed\lifecycle-viewmodel-2.1.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\163bdd7d08d677abcac72bf7cf1aead6\transformed\savedstate-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\04b9300f1b6b6f317cfdfa2969044fa2\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\9279df1c191b69067fc9d12d0cdccaf6\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\db57022ec39ce337701f127700650617\transformed\lifecycle-livedata-core-2.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\13e16c835b6b8c1ec522f10a7ee8c500\transformed\core-runtime-2.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [org.openftc:easyopencv:1.7.3] C:\Users\Администратор\.gradle\caches\transforms-3\e8657e1b694376c438025f47b4116cdf\transformed\easyopencv-1.7.3\AndroidManifest.xml:2:1-9:12
+MERGED from [org.openftc:apriltag:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\38bc0a7f16c7882756e45a0462b5fcc5\transformed\apriltag-2.1.0\AndroidManifest.xml:2:1-9:12
+MERGED from [org.openftc:opencv-repackaged-bundled-dylibs:4.10.0-A] C:\Users\Администратор\.gradle\caches\transforms-3\4b37e8f6b8c446a0fb811a1ba213f190\transformed\opencv-repackaged-bundled-dylibs-4.10.0-A\AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:9:5-63
+application
+ADDED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:10:5-19
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml:10:5-19
+MERGED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:12:5-76:19
+MERGED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:12:5-76:19
+MERGED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:16:5-22:19
+MERGED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:16:5-22:19
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:21:5-176:19
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:21:5-176:19
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:17:5-28:19
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:17:5-28:19
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:85:5-127:19
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:85:5-127:19
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:46:5-54:19
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:46:5-54:19
+MERGED from [com.jakewharton.threetenabp:threetenabp:1.3.1] C:\Users\Администратор\.gradle\caches\transforms-3\67c1c7406c338d4cbb15dc045dd538ba\transformed\threetenabp-1.3.1\AndroidManifest.xml:7:5-20
+MERGED from [com.jakewharton.threetenabp:threetenabp:1.3.1] C:\Users\Администратор\.gradle\caches\transforms-3\67c1c7406c338d4cbb15dc045dd538ba\transformed\threetenabp-1.3.1\AndroidManifest.xml:7:5-20
+MERGED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:24:5-89
+MERGED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:24:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\7fd724372408497cd6e99dcc0818e208\transformed\versionedparcelable-1.1.0\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\7fd724372408497cd6e99dcc0818e208\transformed\versionedparcelable-1.1.0\AndroidManifest.xml:24:5-25:19
+	android:extractNativeLibs
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:24:18-86
+	android:label
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:15:9-41
+	android:largeHeap
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:16:9-33
+	android:icon
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:14:9-45
+	android:allowBackup
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:13:9-35
+	android:theme
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:17:9-45
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:85:18-97
+	android:usesCleartextTraffic
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:18:9-44
+uses-sdk
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+MERGED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:5-44
+MERGED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:5-44
+MERGED from [org.firstinspires.ftc:OnBotJava:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\a366fb1448cf11a19abb4d88c905acc9\transformed\OnBotJava-11.0.0\AndroidManifest.xml:39:5-44
+MERGED from [org.firstinspires.ftc:OnBotJava:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\a366fb1448cf11a19abb4d88c905acc9\transformed\OnBotJava-11.0.0\AndroidManifest.xml:39:5-44
+MERGED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:8:5-44
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:8:5-44
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:RobotServer:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\2715651de736c52b1d11d41f7e601971\transformed\RobotServer-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:RobotServer:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\2715651de736c52b1d11d41f7e601971\transformed\RobotServer-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:Hardware:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\36ba0336c6029daa02f60838d689f4ac\transformed\Hardware-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:Hardware:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\36ba0336c6029daa02f60838d689f4ac\transformed\Hardware-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:Vision:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\67a1c55d7c7c8fa8a44f6526a62f2a34\transformed\Vision-11.0.0\AndroidManifest.xml:5:5-44
+MERGED from [org.firstinspires.ftc:Vision:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\67a1c55d7c7c8fa8a44f6526a62f2a34\transformed\Vision-11.0.0\AndroidManifest.xml:5:5-44
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:7:5-44
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\0e92de340482c7854f167f742d5a46e1\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\0e92de340482c7854f167f742d5a46e1\transformed\appcompat-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:20:5-44
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:20:5-44
+MERGED from [com.jakewharton.threetenabp:threetenabp:1.3.1] C:\Users\Администратор\.gradle\caches\transforms-3\67c1c7406c338d4cbb15dc045dd538ba\transformed\threetenabp-1.3.1\AndroidManifest.xml:5:5-44
+MERGED from [com.jakewharton.threetenabp:threetenabp:1.3.1] C:\Users\Администратор\.gradle\caches\transforms-3\67c1c7406c338d4cbb15dc045dd538ba\transformed\threetenabp-1.3.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\8d40cc1d284c569a0a56adcad21eef76\transformed\fragment-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\8d40cc1d284c569a0a56adcad21eef76\transformed\fragment-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\4afdb5ccd2c345a579297828891af66b\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] C:\Users\Администратор\.gradle\caches\transforms-3\4afdb5ccd2c345a579297828891af66b\transformed\appcompat-resources-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4f5dd96aab1e7c6b5c5a20a0e2e8f9\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4f5dd96aab1e7c6b5c5a20a0e2e8f9\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ecc01097548ca6b1d9bda4d78f8f9e78\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ecc01097548ca6b1d9bda4d78f8f9e78\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\00aa9a3069e0cde8b054557f0ce2818e\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\00aa9a3069e0cde8b054557f0ce2818e\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\6eaf865498768626b4cb3138e7528729\transformed\activity-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\6eaf865498768626b4cb3138e7528729\transformed\activity-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\e6a92957c41119f7d421c0119c2e6f34\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\e6a92957c41119f7d421c0119c2e6f34\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4b43cde6ffa80bb85b5556796e260f\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\ef4b43cde6ffa80bb85b5556796e260f\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\59381a2ffc2e39e4a7ece10200fa7b0b\transformed\customview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\59381a2ffc2e39e4a7ece10200fa7b0b\transformed\customview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\e18f82c925b49ed0c4c5a20f76e89781\transformed\core-1.3.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\cc5864e7246f1915b286166ab44dd839\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\cc5864e7246f1915b286166ab44dd839\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\7fd724372408497cd6e99dcc0818e208\transformed\versionedparcelable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\7fd724372408497cd6e99dcc0818e208\transformed\versionedparcelable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\b9fda1adec7eee22e3ff78f9e89c9dad\transformed\lifecycle-runtime-2.1.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\b9fda1adec7eee22e3ff78f9e89c9dad\transformed\lifecycle-runtime-2.1.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e9f091c0044b4a4ea8852ff09816518\transformed\lifecycle-viewmodel-2.1.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e9f091c0044b4a4ea8852ff09816518\transformed\lifecycle-viewmodel-2.1.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\163bdd7d08d677abcac72bf7cf1aead6\transformed\savedstate-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\163bdd7d08d677abcac72bf7cf1aead6\transformed\savedstate-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\04b9300f1b6b6f317cfdfa2969044fa2\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\04b9300f1b6b6f317cfdfa2969044fa2\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\9279df1c191b69067fc9d12d0cdccaf6\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\9279df1c191b69067fc9d12d0cdccaf6\transformed\lifecycle-livedata-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\db57022ec39ce337701f127700650617\transformed\lifecycle-livedata-core-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\db57022ec39ce337701f127700650617\transformed\lifecycle-livedata-core-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\13e16c835b6b8c1ec522f10a7ee8c500\transformed\core-runtime-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\13e16c835b6b8c1ec522f10a7ee8c500\transformed\core-runtime-2.0.0\AndroidManifest.xml:20:5-44
+MERGED from [org.openftc:easyopencv:1.7.3] C:\Users\Администратор\.gradle\caches\transforms-3\e8657e1b694376c438025f47b4116cdf\transformed\easyopencv-1.7.3\AndroidManifest.xml:5:5-7:41
+MERGED from [org.openftc:easyopencv:1.7.3] C:\Users\Администратор\.gradle\caches\transforms-3\e8657e1b694376c438025f47b4116cdf\transformed\easyopencv-1.7.3\AndroidManifest.xml:5:5-7:41
+MERGED from [org.openftc:apriltag:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\38bc0a7f16c7882756e45a0462b5fcc5\transformed\apriltag-2.1.0\AndroidManifest.xml:5:5-7:41
+MERGED from [org.openftc:apriltag:2.1.0] C:\Users\Администратор\.gradle\caches\transforms-3\38bc0a7f16c7882756e45a0462b5fcc5\transformed\apriltag-2.1.0\AndroidManifest.xml:5:5-7:41
+MERGED from [org.openftc:opencv-repackaged-bundled-dylibs:4.10.0-A] C:\Users\Администратор\.gradle\caches\transforms-3\4b37e8f6b8c446a0fb811a1ba213f190\transformed\opencv-repackaged-bundled-dylibs-4.10.0-A\AndroidManifest.xml:5:5-7:41
+MERGED from [org.openftc:opencv-repackaged-bundled-dylibs:4.10.0-A] C:\Users\Администратор\.gradle\caches\transforms-3\4b37e8f6b8c446a0fb811a1ba213f190\transformed\opencv-repackaged-bundled-dylibs-4.10.0-A\AndroidManifest.xml:5:5-7:41
+	android:targetSdkVersion
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\FtcRobotController-master\TeamCode\src\main\AndroidManifest.xml
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:5-81
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:22-78
+meta-data#org.firstinspires.latestSupportedControlHubVersion
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:21:9-23:33
+	android:value
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:23:13-30
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:22:13-78
+activity#org.firstinspires.ftc.robotcontroller.internal.PermissionValidatorWrapper
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:26:9-37:20
+	android:screenOrientation
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:31:13-49
+	android:label
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:29:13-45
+	android:launchMode
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:30:13-44
+	android:configChanges
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:28:13-59
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:27:13-101
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:32:13-36:29
+category#android.intent.category.LAUNCHER
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:33:17-77
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:33:27-74
+action#android.intent.action.MAIN
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:35:17-69
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:35:25-66
+activity#org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:38:9-56:20
+	android:screenOrientation
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:43:13-49
+	android:label
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:41:13-45
+	android:launchMode
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:42:13-44
+	android:configChanges
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:40:13-59
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:39:13-101
+intent-filter#action:name:android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:44:13-46:29
+action#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:45:17-90
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:45:25-87
+meta-data#android.hardware.usb.action.USB_DEVICE_ATTACHED
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:48:13-50:57
+	android:resource
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:50:17-54
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:49:17-79
+meta-data#org.firstinspires.main.entry
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:53:13-55:40
+	android:value
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:55:17-37
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:54:17-60
+service#com.qualcomm.ftccommon.FtcRobotControllerService
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:59:9-61:38
+	android:enabled
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:61:13-35
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:60:13-76
+receiver#org.firstinspires.ftc.ftccommon.internal.RunOnBoot
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:64:9-75:20
+	android:enabled
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:66:13-35
+	android:exported
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:67:13-36
+	android:permission
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:68:13-75
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:65:13-78
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.QUICKBOOT_POWERON+category:name:android.intent.category.DEFAULT
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:69:13-74:29
+category#android.intent.category.DEFAULT
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:70:17-76
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:70:27-73
+action#android.intent.action.BOOT_COMPLETED
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:72:17-79
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:72:25-76
+action#android.intent.action.QUICKBOOT_POWERON
+ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:73:17-82
+	android:name
+		ADDED from [:FtcRobotController] C:\FtcRobotController-master\FtcRobotController\build\intermediates\merged_manifest\debug\AndroidManifest.xml:73:25-79
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:9:5-11:35
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:11:5-13:35
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:11:5-13:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:26:5-28:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:26:5-28:35
+	android:required
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:11:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:10:9-65
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:12:5-14:35
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:14:5-16:35
+MERGED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:14:5-16:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:30:5-32:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:30:5-32:35
+	android:required
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:14:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:13:9-64
+activity#org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity
+ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:17:9-21:20
+	android:label
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:20:13-64
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:19:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:Blocks:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\ec0e14cd590f554833d863008977f8ac\transformed\Blocks-11.0.0\AndroidManifest.xml:18:13-93
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:10:5-76
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:9:5-76
+MERGED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:9:5-76
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:9:5-11:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:9:5-11:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:11:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:10:22-73
+uses-permission#android.permission.WRITE_SETTINGS
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:17:5-19:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:35:5-37:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:35:5-37:35
+	android:required
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:19:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:18:9-57
+activity#com.qualcomm.ftccommon.StackTraceActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:24:9-28:47
+	android:launchMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:28:13-44
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:27:13-36
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:26:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:25:13-69
+activity#com.qualcomm.ftccommon.FtcRobotControllerSettingsActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:29:9-33:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:32:13-54
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:31:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:30:13-85
+activity#com.qualcomm.ftccommon.configuration.FtcLoadFileActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:34:9-39:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:38:13-55
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:37:13-36
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:36:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:35:13-84
+activity#com.qualcomm.ftccommon.configuration.ConfigureFromTemplateActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:40:9-45:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:44:13-70
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:43:13-36
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:42:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:41:13-94
+activity#com.qualcomm.ftccommon.ViewLogsActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:46:9-51:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:50:13-55
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:49:13-36
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:48:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:47:13-67
+activity#com.qualcomm.ftccommon.configuration.FtcConfigurationActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:52:9-56:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:55:13-45
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:54:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:53:13-89
+activity#com.qualcomm.ftccommon.configuration.FtcNewFileActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:57:9-61:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:60:13-45
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:59:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:58:13-83
+activity#com.qualcomm.ftccommon.FtcAdvancedRCSettingsActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:62:9-66:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:65:13-60
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:64:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:63:13-80
+activity#com.qualcomm.ftccommon.FtcLynxFirmwareUpdateActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:67:9-70:20
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:69:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:68:13-80
+activity#com.qualcomm.ftccommon.FtcLynxModuleAddressUpdateActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:71:9-74:20
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:73:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:72:13-85
+activity#com.qualcomm.ftccommon.FtcWifiDirectChannelSelectorActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:75:9-79:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:78:13-73
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:77:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:76:13-87
+activity#com.qualcomm.ftccommon.FtcWifiDirectRememberedGroupsActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:80:9-84:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:83:13-81
+	android:exported
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:82:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:81:13-88
+activity#com.qualcomm.ftccommon.AboutActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:85:9-88:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:87:13-51
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:86:13-64
+activity#com.qualcomm.ftccommon.FtcAboutActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:89:9-92:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:91:13-55
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:90:13-67
+activity#com.qualcomm.ftccommon.configuration.EditSwapUsbDevices
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:93:9-98:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:96:13-63
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:97:13-54
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:95:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:94:13-83
+activity#com.qualcomm.ftccommon.configuration.EditMotorListActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:99:9-104:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:102:13-67
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:103:13-54
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:101:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:100:13-86
+activity#com.qualcomm.ftccommon.configuration.EditServoListActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:105:9-110:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:108:13-67
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:109:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:107:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:106:13-86
+activity#com.qualcomm.ftccommon.configuration.EditLynxModuleActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:111:9-116:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:114:13-73
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:115:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:113:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:112:13-87
+activity#com.qualcomm.ftccommon.configuration.EditLynxUsbDeviceActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:117:9-122:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:120:13-66
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:121:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:119:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:118:13-90
+activity#com.qualcomm.ftccommon.configuration.EditWebcamActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:123:9-128:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:126:13-57
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:127:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:125:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:124:13-83
+activity#com.qualcomm.ftccommon.configuration.EditPWMDevicesActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:129:9-134:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:132:13-62
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:133:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:131:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:130:13-87
+activity#com.qualcomm.ftccommon.configuration.EditAnalogInputDevicesActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:135:9-140:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:138:13-71
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:139:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:137:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:136:13-95
+activity#com.qualcomm.ftccommon.configuration.EditDigitalDevicesActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:141:9-146:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:144:13-66
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:145:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:143:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:142:13-91
+activity#com.qualcomm.ftccommon.configuration.EditDigitalDevicesActivityLynx
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:147:9-152:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:150:13-71
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:151:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:149:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:148:13-95
+activity#com.qualcomm.ftccommon.configuration.EditI2cDevicesActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:153:9-158:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:156:13-62
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:157:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:155:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:154:13-87
+activity#com.qualcomm.ftccommon.configuration.EditI2cDevicesActivityLynx
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:159:9-164:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:162:13-62
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:163:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:161:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:160:13-91
+activity#com.qualcomm.ftccommon.configuration.EditEthernetOverUsbActivity
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:165:9-170:20
+	android:label
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:168:13-67
+	android:windowSoftInputMode
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:169:13-67
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:167:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:166:13-92
+service#org.firstinspires.ftc.ftccommon.internal.FtcRobotControllerWatchdogService
+ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:173:9-175:38
+	android:enabled
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:175:13-35
+	android:name
+		ADDED from [org.firstinspires.ftc:FtcCommon:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\1c57f8ee73063fa881ac1fbc002b401b\transformed\FtcCommon-11.0.0\AndroidManifest.xml:174:13-102
+uses-permission#android.permission.BLUETOOTH_ADMIN
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:10:5-74
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:63:5-74
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:63:5-74
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:10:22-71
+uses-permission#android.permission.CHANGE_WIFI_STATE
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:11:5-76
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:12:5-14:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:12:5-14:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:14:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:11:22-73
+uses-permission#android.permission.CHANGE_NETWORK_STATE
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:12:5-79
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:18:5-20:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:18:5-20:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:20:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:12:22-76
+uses-permission#android.permission.INTERNET
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:13:5-67
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:21:5-23:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:21:5-23:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:23:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:13:22-64
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:14:5-79
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:15:5-17:35
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:15:5-17:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:17:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:14:22-76
+uses-permission#android.permission.BLUETOOTH
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:15:5-68
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:62:5-68
+MERGED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:62:5-68
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:15:22-65
+activity#org.firstinspires.inspection.DsInspectionActivity
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:18:9-22:20
+	android:label
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:21:13-56
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:20:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:19:13-77
+activity#org.firstinspires.inspection.RcInspectionActivity
+ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:23:9-27:20
+	android:label
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:26:13-56
+	android:configChanges
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:25:13-59
+	android:name
+		ADDED from [org.firstinspires.ftc:Inspection:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\03e6e45a9be8dd51cf43d131eda24ca8\transformed\Inspection-11.0.0\AndroidManifest.xml:24:13-77
+uses-permission#android.permission.SET_TIME_ZONE
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:40:5-42:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:42:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:41:9-56
+uses-permission#android.permission.WAKE_LOCK
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:49:5-51:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:51:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:50:9-52
+uses-permission#android.permission.CAMERA
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:52:5-65
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:22:5-65
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:22:5-65
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:52:22-62
+uses-permission#android.permission.ACCESS_COARSE_LOCATION
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:53:5-55:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:55:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:54:9-65
+uses-permission#android.permission.ACCESS_FINE_LOCATION
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:56:5-58:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:58:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:57:9-63
+uses-permission#android.permission.READ_PHONE_STATE
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:59:5-61:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:61:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:60:9-59
+uses-permission#com.revrobotics.permission.UPDATE_CONTROL_HUB
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:64:5-66:35
+	android:required
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:66:9-32
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:65:9-69
+uses-feature#android.hardware.usb.accessory
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:68:5-67
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:68:19-64
+uses-feature#0x00020000
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:69:5-54
+	android:glEsVersion
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:69:19-51
+uses-feature#android.hardware.camera
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:83:5-60
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:25:5-27:36
+MERGED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:25:5-27:36
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:83:19-57
+provider#androidx.core.content.FileProvider
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:91:9-99:20
+	android:grantUriPermissions
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:95:13-47
+	android:authorities
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:93:13-60
+	android:exported
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:94:13-37
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:92:13-62
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:96:13-98:63
+	android:resource
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:98:17-60
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:97:17-67
+service#org.firstinspires.ftc.robotcore.internal.files.MediaTransferProtocolMonitorService
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:102:9-104:38
+	android:enabled
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:104:13-35
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:103:13-110
+meta-data#autoStartService.org.firstinspires.ftc.robotcore.internal.files.MediaTransferProtocolMonitorService
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:106:9-108:41
+	android:value
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:108:13-38
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:107:13-127
+service#org.firstinspires.ftc.onbotjava.OnBotJavaService
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:111:9-113:38
+	android:enabled
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:113:13-35
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:112:13-76
+meta-data#autoStartService.org.firstinspires.ftc.onbotjava.OnBotJavaService
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:115:9-117:39
+	android:value
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:117:13-36
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:116:13-93
+receiver#org.firstinspires.ftc.robotserver.internal.webserver.controlhubupdater.ChUpdaterCommManager$ChUpdaterBroadcastReceiver
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:119:9-126:20
+	android:exported
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:121:13-36
+	android:permission
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:122:13-69
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:120:13-146
+intent-filter#action:name:com.revrobotics.controlhubupdater.broadcast.RESULT_BROADCAST
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:123:13-125:29
+action#com.revrobotics.controlhubupdater.broadcast.RESULT_BROADCAST
+ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:124:17-103
+	android:name
+		ADDED from [org.firstinspires.ftc:RobotCore:11.0.0] C:\Users\Администратор\.gradle\caches\transforms-3\5e273c51ed0b013bfb4c2a03e823faf6\transformed\RobotCore-11.0.0\AndroidManifest.xml:124:25-100
+uses-feature#android.hardware.camera.front
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:28:5-30:36
+	android:required
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:30:9-33
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:29:9-53
+uses-feature#android.hardware.camera.autofocus
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:33:5-35:36
+	android:required
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:35:9-33
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:34:9-57
+uses-feature#android.hardware.camera.flash
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:36:5-38:36
+	android:required
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:38:9-33
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:37:9-53
+uses-feature#android.hardware.screen.landscape
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:39:5-41:36
+	android:required
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:41:9-33
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:40:9-57
+uses-feature#android.hardware.wifi
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:42:5-44:36
+	android:required
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:44:9-33
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:43:9-45
+activity#com.journeyapps.barcodescanner.CaptureActivity
+ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:47:9-53:63
+	android:screenOrientation
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:50:13-56
+	android:clearTaskOnLaunch
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:49:13-45
+	android:stateNotNeeded
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:51:13-42
+	android:windowSoftInputMode
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:53:13-60
+	android:theme
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:52:13-54
+	android:name
+		ADDED from [com.journeyapps:zxing-android-embedded:4.3.0] C:\Users\Администратор\.gradle\caches\transforms-3\f4e9f6d2ff5f6fbc299cfa8b8e13bddd\transformed\zxing-android-embedded-4.3.0\AndroidManifest.xml:48:13-74
