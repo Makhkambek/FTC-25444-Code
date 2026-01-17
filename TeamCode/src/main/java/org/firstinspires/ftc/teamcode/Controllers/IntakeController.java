@@ -1,0 +1,26 @@
+package org.firstinspires.ftc.teamcode.Controllers;
+
+import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.teamcode.SubSystems.Intake;
+
+public class IntakeController {
+    private Gamepad gamepad;
+    private Intake intake;
+
+    public IntakeController(Gamepad gamepad, Intake intake) {
+        this.gamepad = gamepad;
+        this.intake = intake;
+    }
+
+
+    public void update() {
+        if (gamepad.right_trigger > 0.1) {
+            intake.on();
+        } else if (gamepad.left_trigger > 0.1) {
+            intake.reverse();
+        } else {
+            intake.off();
+        }
+    }
+}
