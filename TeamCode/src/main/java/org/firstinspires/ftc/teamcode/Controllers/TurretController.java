@@ -8,7 +8,7 @@ public class TurretController {
     private Gamepad gamepad;
     private Turret turret;
 
-    private boolean autoAimEnabled = true;
+    public boolean autoAimEnabled = true;
 
     // Чувствительность ручного управления
     private static final double MANUAL_SENSITIVITY = 0.3;

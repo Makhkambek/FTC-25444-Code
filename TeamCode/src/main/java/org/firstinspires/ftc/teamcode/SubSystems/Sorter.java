@@ -140,9 +140,7 @@ public class Sorter {
         }
     }
 
-    /**
-     * Выталкивает мяч из конкретного слота
-     */
+
     public void pushBall(int slot) {
         switch (slot) {
             case 0:
@@ -157,9 +155,7 @@ public class Sorter {
         }
     }
 
-    /**
-     * Возвращает servo в исходное положение
-     */
+
     public void retractServo(int slot) {
         switch (slot) {
             case 0:
@@ -174,18 +170,14 @@ public class Sorter {
         }
     }
 
-    /**
-     * Возвращает все servo в исходное положение
-     */
+
     public void retractAll() {
         servo0.setPosition(SERVO_RETRACT);
         servo1.setPosition(SERVO_RETRACT);
         servo2.setPosition(SERVO_RETRACT);
     }
 
-    /**
-     * Получить текущую конфигурацию барабана (для телеметрии)
-     */
+
     public String getConfigurationString() {
         StringBuilder sb = new StringBuilder();
         for (BallColor color : drumConfiguration) {
@@ -196,9 +188,7 @@ public class Sorter {
         return sb.toString();
     }
 
-    /**
-     * Получить цвет в конкретном слоте
-     */
+   //telemetry for ball color
     public BallColor getColorAt(int slot) {
         if (slot >= 0 && slot < 3) {
             return drumConfiguration[slot];

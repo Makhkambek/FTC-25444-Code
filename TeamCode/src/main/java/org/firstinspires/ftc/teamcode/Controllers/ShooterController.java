@@ -3,44 +3,79 @@ package org.firstinspires.ftc.teamcode.Controllers;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
+import org.firstinspires.ftc.teamcode.SubSystems.Sorter;
+import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
 public class ShooterController {
-    private Gamepad gamepad;
+    public Gamepad gamepad;
     private Shooter shooter;
+    private Sorter sorter;
+    private Vision vision;
 
-    private boolean shooterRunning = true;
+    public boolean shooterRunning = true;
 
-    // Предыдущие состояния кнопок (для toggle)
     private boolean prevRightBumper = false;
     private boolean prevLeftBumper = false;
+    private boolean prevXButton = false;
 
-    public ShooterController(Gamepad gamepad, Shooter shooter) {
+    public ShooterController(Gamepad gamepad, Shooter shooter, Sorter sorter, Vision vision) {
         this.gamepad = gamepad;
         this.shooter = shooter;
+        this.sorter = sorter;
+        this.vision = vision;
     }
 
-
     public void update() {
-        // Toggle on
+        if (gamepad == null) return;
+
+        // === Shooter On/Off ===
         if (gamepad.right_bumper && !prevRightBumper) {
             shooterRunning = true;
         }
 
-        // Toggle off
         if (gamepad.left_bumper && !prevLeftBumper) {
             shooterRunning = false;
         }
 
-        // Применяем состояние
         if (shooterRunning) {
             shooter.on();
         } else {
             shooter.off();
         }
 
-        // Сохраняем предыдущие состояния
+        // === X Button - запуск стрельбы ===
+        if (gamepad.x && !prevXButton) {
+            startFiring();
+        }
+
+        // === Обновляем FSM Sorter ===
+        sorter.update();
+
+        // === Если закончил - сбрасываем в IDLE ===
+        if (sorter.isDone()) {
+            sorter.resetState();
+        }
+
+        // Сохраняем состояния
         prevRightBumper = gamepad.right_bumper;
         prevLeftBumper = gamepad.left_bumper;
+        prevXButton = gamepad.x;
+    }
+
+    private void startFiring() {
+        // Не стреляем если уже стреляем
+        if (sorter.isBusy()) {
+            return;
+        }
+
+        // Получаем последовательность от Vision
+        Sorter.ShootSequence sequence = vision.getShootSequence();
+
+        if (sequence != null) {
+            sorter.startSmartSequence(sequence);
+        } else {
+            sorter.startDefaultSequence();
+        }
     }
 
     public boolean isRunning() {
@@ -49,5 +84,9 @@ public class ShooterController {
 
     public void setRunning(boolean running) {
         this.shooterRunning = running;
+    }
+
+    public boolean isFiring() {
+        return sorter.isBusy();
     }
 }

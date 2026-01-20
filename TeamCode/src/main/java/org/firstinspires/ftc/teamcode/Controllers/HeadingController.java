@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.Controllers;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
@@ -14,23 +14,27 @@ public class HeadingController {
     private double targetHeading = 0;
     private boolean isHeadingLocked = false;
 
+    // PID коэффициенты (можно менять через Dashboard)
     public static double kP = 0.024;
     public static double kI = 0.0;
     public static double kD = 0.0003;
-    public static double kF = 0.005;    //should be good, but still check
+    public static double kF = 0.005;
 
-    private final PIDController controller;
+    // PID переменные
+    private double lastError = 0;
+    private double integralSum = 0;
+    private ElapsedTime timer = new ElapsedTime();
 
     public HeadingController(HardwareMap hardwareMap) {
         localizer = Localizer.getInstance(hardwareMap);
-        controller = new PIDController(kP, kI, kD);
+        timer.reset();
     }
 
     public void lockHeading() {
         if (!isHeadingLocked) {
             targetHeading = localizer.getHeading();
             isHeadingLocked = true;
-            controller.reset();
+            reset();
         }
     }
 
@@ -43,19 +47,25 @@ public class HeadingController {
             return 0;
         }
 
-        controller.setPID(kP, kI, kD);
         double currentHeading = localizer.getHeading();
-        double error = currentHeading - targetHeading;
+        double error = targetHeading - currentHeading;
 
-        double pidOutput = -controller.calculate(currentHeading, targetHeading);
-        double feedforward = kF * error;
+        double derivative = (error - lastError) / timer.seconds();
+        integralSum += error * timer.seconds();
 
-        return pidOutput + feedforward;
+        double output = (kP * error) + (kI * integralSum) + (kD * derivative) + (kF * error);
+
+        lastError = error;
+        timer.reset();
+
+        return output;
     }
 
     public void reset() {
         targetHeading = 0;
-        controller.reset();
+        lastError = 0;
+        integralSum = 0;
+        timer.reset();
     }
 
     public boolean isHeadingLocked() {
@@ -67,9 +77,9 @@ public class HeadingController {
     }
 
     public void debug(Telemetry telemetry) {
-        telemetry.addData("Target Heading", "%.2f°", targetHeading);
+//        telemetry.addData("Target Heading", "%.2f°", targetHeading);
         telemetry.addData("Current Heading", "%.2f°", localizer.getHeading());
         telemetry.addData("Is Locked", isHeadingLocked);
-        telemetry.addData("Turn Power", "%.3f", calculateTurnPower());
+//        telemetry.addData("Turn Power", "%.3f", calculateTurnPower());
     }
 }

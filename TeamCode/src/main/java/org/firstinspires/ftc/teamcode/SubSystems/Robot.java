@@ -3,11 +3,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import Controllers.HeadingController;
-import Controllers.IntakeController;
-import Controllers.ShooterController;
-import Controllers.TurretController;
-import Controllers.ResetController;
+import org.firstinspires.ftc.teamcode.Controllers.HeadingController;
+import org.firstinspires.ftc.teamcode.Controllers.IntakeController;
+import org.firstinspires.ftc.teamcode.Controllers.ShooterController;
+import org.firstinspires.ftc.teamcode.Controllers.TurretController;
+import org.firstinspires.ftc.teamcode.Controllers.ResetController;
 
 public class Robot {
     // SubSystems

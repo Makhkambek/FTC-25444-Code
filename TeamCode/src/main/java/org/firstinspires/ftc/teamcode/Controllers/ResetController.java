@@ -1,39 +1,57 @@
 package org.firstinspires.ftc.teamcode.Controllers;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-public class ResetController {
-    public Gamepad gamepad;
+import org.firstinspires.ftc.teamcode.SubSystems.Intake;
+import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
+import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 
+public class ResetController {
     private HeadingController headingController;
     private IntakeController intakeController;
     private ShooterController shooterController;
     private TurretController turretController;
 
-    private boolean prevOptionsPressed = false;
+    private Intake intake;
+    private Shooter shooter;
+    private Turret turret;
 
-    public ResetController(Gamepad gamepad, HeadingController headingController,
-                           IntakeController intakeController, ShooterController shooterController,
-                           TurretController turretController) {
-        this.gamepad = gamepad;
+    private boolean wasResetPressed = false;
+
+    public ResetController(HeadingController headingController,
+                           IntakeController intakeController,
+                           ShooterController shooterController,
+                           TurretController turretController,
+                           Intake intake,
+                           Shooter shooter,
+                           Turret turret) {
         this.headingController = headingController;
         this.intakeController = intakeController;
         this.shooterController = shooterController;
         this.turretController = turretController;
+        this.intake = intake;
+        this.shooter = shooter;
+        this.turret = turret;
     }
 
-    public void update() {
-        if (gamepad == null) return;
-
-        if (gamepad.options && !prevOptionsPressed) {
-            resetAll();
+    public void handleResetButton(Gamepad gamepad2) {
+        if (gamepad2.options && !wasResetPressed) {
+            wasResetPressed = true;
+            resetControls();
         }
-        prevOptionsPressed = gamepad.options;
+        if (!gamepad2.options) wasResetPressed = false;
     }
 
-    private void resetAll() {
-        if (headingController != null) headingController.reset();
-        if (intakeController != null) intakeController.reset();
-        if (shooterController != null) shooterController.reset();
-        if (turretController != null) turretController.reset();
+    private void resetControls() {
+        shooterController.shooterRunning = false;
+        turretController.autoAimEnabled = true;
+
+        headingController.reset();
+        intake.off();
+        shooter.off();  //добавить серво (щас работает ток моторы)
+        turret.stop(); //добавить не стоп а возвращение на 0 с PID
+//        turret.resetEncoder();
+
+        wasResetPressed = false;
     }
 }

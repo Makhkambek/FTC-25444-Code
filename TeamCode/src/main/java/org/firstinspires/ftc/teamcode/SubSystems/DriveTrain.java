@@ -3,13 +3,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Controllers.HeadingController;
 
 public class DriveTrain {
     private DcMotor leftFront, rightFront, leftRear, rightRear;
     private HeadingController headingController;
     private boolean wasLeftBumperPressed = false;
 
-    public DriveController(HardwareMap hardwareMap, Telemetry telemetry) {
+    public DriveTrain(HardwareMap hardwareMap, Telemetry telemetry) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
@@ -22,16 +23,16 @@ public class DriveTrain {
     }
 
     public void drive(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        headingController.update(telemetry);
+        headingController.debug(telemetry);
 
         if (gamepad1.left_bumper && !wasLeftBumperPressed) {
             headingController.lockHeading();
             wasLeftBumperPressed = true;
-            telemetry.addData("Heading Action", "Lock Heading");
+//            telemetry.addData("Heading Action", "Lock Heading");
         } else if (!gamepad1.left_bumper && wasLeftBumperPressed) {
             headingController.unlockHeading();
             wasLeftBumperPressed = false;
-            telemetry.addData("Heading Action", "Unlock Heading");
+//            telemetry.addData("Heading Action", "Unlock Heading");
         }
 
         double slowModeFactor = gamepad1.right_trigger > 0.1 ? 0.3 : 1.0;

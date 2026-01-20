@@ -1,10 +1,11 @@
-package OpModes;
-
+package org.firstinspires.ftc.teamcode.OpModes;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import SubSystems.Robot;
+import org.firstinspires.ftc.teamcode.SubSystems.Robot;
 
+@Disabled
 @TeleOp(name = "MainTeleOp", group = "TeleOp")
 public class MainTeleOp extends OpMode {
 
@@ -39,7 +40,7 @@ public class MainTeleOp extends OpMode {
     @Override
     public void loop() {
         robot.update(gamepad1, gamepad2, telemetry);
-        displayTelemetry();
+//        displayTelemetry();
     }
 
     @Override

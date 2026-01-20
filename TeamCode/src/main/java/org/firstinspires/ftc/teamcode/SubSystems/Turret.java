@@ -7,7 +7,6 @@ public class Turret {
     private DcMotor turretMotor;
     private Localizer localizer;
 
-    // PID коэффициенты - КАЛИБРОВАТЬ!
     private double kP = 0.03;
     private double kI = 0.0;
     private double kD = 0.01;
@@ -15,7 +14,7 @@ public class Turret {
     private double integral = 0;
     private double lastError = 0;
 
-    // Лимиты турели
+
     private static final double MAX_ANGLE = 90;
     private static final double MIN_ANGLE = -90;
 
@@ -26,7 +25,7 @@ public class Turret {
     private double targetX = 72.0;
     private double targetY = 144.0;
 
-    // Deadzone
+
     private static final double ANGLE_TOLERANCE = 2.0;
 
     public Turret(HardwareMap hardwareMap) {
@@ -35,13 +34,10 @@ public class Turret {
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Используем общий Localizer
         localizer = Localizer.getInstance(hardwareMap);
     }
 
-    /**
-     * Рассчитывает угол до цели
-     */
+
     private double calculateTargetAngle() {
         double robotX = localizer.getX();
         double robotY = localizer.getY();
