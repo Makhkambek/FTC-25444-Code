@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 
 public class IntakeController {
-    private Gamepad gamepad;
+    public Gamepad gamepad;
     private Intake intake;
 
     public IntakeController(Gamepad gamepad, Intake intake) {
@@ -15,6 +15,8 @@ public class IntakeController {
 
 
     public void update() {
+        if (gamepad == null) return;
+
         if (gamepad.right_trigger > 0.1) {
             intake.on();
         } else if (gamepad.left_trigger > 0.1) {

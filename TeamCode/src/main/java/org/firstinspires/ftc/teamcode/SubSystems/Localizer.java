@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
-import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Localizer {
     private static Localizer instance = null;
@@ -14,7 +16,6 @@ public class Localizer {
     private double rawHeading = 0;
     private double prevRawHeading = 0;
 
-    // Singleton - только один экземпляр
     public static Localizer getInstance(HardwareMap hardwareMap) {
         if (instance == null) {
             instance = new Localizer(hardwareMap);
@@ -28,7 +29,7 @@ public class Localizer {
 
     private Localizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(-107.95, -63.5); // Твои оффсеты
+        pinpoint.setOffsets(-107.95, -63.5, DistanceUnit.MM); // Твои оффсеты
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD); //change it
         pinpoint.setEncoderDirections(
                 GoBildaPinpointDriver.EncoderDirection.REVERSED,
@@ -43,10 +44,10 @@ public class Localizer {
     public void update() {
         pinpoint.update();
 
-        x = pinpoint.getPosX();
-        y = pinpoint.getPosY();
+        x = pinpoint.getPosX(DistanceUnit.MM);
+        y = pinpoint.getPosY(DistanceUnit.MM);
 
-        double newRawHeading = Math.toDegrees(pinpoint.getHeading());
+        double newRawHeading = pinpoint.getHeading(AngleUnit.DEGREES);
         double deltaHeading = newRawHeading - prevRawHeading;
         prevRawHeading = newRawHeading;
         rawHeading = newRawHeading;
@@ -64,9 +65,9 @@ public class Localizer {
      * Обновить только heading (для DriveController)
      */
     public void updateHeadingOnly() {
-        pinpoint.update(GoBildaPinpointDriver.readData.ONLY_UPDATE_HEADING);
+        pinpoint.update();
 
-        double newRawHeading = Math.toDegrees(pinpoint.getHeading());
+        double newRawHeading = pinpoint.getHeading(AngleUnit.DEGREES);
         double deltaHeading = newRawHeading - prevRawHeading;
         prevRawHeading = newRawHeading;
         rawHeading = newRawHeading;

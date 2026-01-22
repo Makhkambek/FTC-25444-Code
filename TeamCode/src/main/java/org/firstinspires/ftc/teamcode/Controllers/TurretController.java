@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 
 public class TurretController {
-    private Gamepad gamepad;
+    public Gamepad gamepad;
     private Turret turret;
 
     public boolean autoAimEnabled = true;
@@ -22,6 +22,8 @@ public class TurretController {
     }
 
     public void update() {
+        if (gamepad == null) return;
+
         double manualInput = gamepad.right_stick_x;
 
         if (Math.abs(manualInput) > JOYSTICK_DEADZONE) {

@@ -10,11 +10,12 @@ public class Shooter {
     private Servo hood;
 
     public enum HoodPosition {
-        CLOSE(0.0),   // Близкая цель - низкий угол
-        MIDDLE(0.5),  // Средняя дистанция
-        FAR(1.0);     // Далекая цель - высокий угол
+        CLOSE(0.0),
+        MIDDLE(0.5),
+        FAR(1.0);
 
         public final double position;
+
         HoodPosition(double position) {
             this.position = position;
         }
@@ -28,10 +29,10 @@ public class Shooter {
         shooterMotor2 = hardwareMap.get(DcMotor.class, "shooterMotor2");
         hood = hardwareMap.get(Servo.class, "shooterHood");
 
-//        shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-//        shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        // shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        // shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        // shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         setHoodPosition(HoodPosition.CLOSE);
     }
@@ -58,9 +59,6 @@ public class Shooter {
         }
     }
 
-    /**
-     * Автоматически устанавливает Hood по данным от Vision
-     */
     public void autoAdjustHood(Vision vision) {
         HoodPosition position = vision.getHoodPosition();
         if (position != null) {
@@ -71,7 +69,6 @@ public class Shooter {
     public HoodPosition getCurrentHoodPosition() {
         return currentHoodPosition;
     }
-
     public boolean isRunning() {
         return shooterMotor1.getPower() > 0;
     }

@@ -3,13 +3,11 @@ package org.firstinspires.ftc.teamcode.Controllers;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
-import org.firstinspires.ftc.teamcode.SubSystems.Sorter;
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
 public class ShooterController {
     public Gamepad gamepad;
     private Shooter shooter;
-    private Sorter sorter;
     private Vision vision;
 
     public boolean shooterRunning = true;
@@ -18,10 +16,9 @@ public class ShooterController {
     private boolean prevLeftBumper = false;
     private boolean prevXButton = false;
 
-    public ShooterController(Gamepad gamepad, Shooter shooter, Sorter sorter, Vision vision) {
+    public ShooterController(Gamepad gamepad, Shooter shooter,  Vision vision) {
         this.gamepad = gamepad;
         this.shooter = shooter;
-        this.sorter = sorter;
         this.vision = vision;
     }
 
@@ -44,17 +41,10 @@ public class ShooterController {
         }
 
         // === X Button - запуск стрельбы ===
-        if (gamepad.x && !prevXButton) {
-            startFiring();
-        }
+//        if (gamepad.x && !prevXButton) {
+//            startFiring();
+//        }
 
-        // === Обновляем FSM Sorter ===
-        sorter.update();
-
-        // === Если закончил - сбрасываем в IDLE ===
-        if (sorter.isDone()) {
-            sorter.resetState();
-        }
 
         // Сохраняем состояния
         prevRightBumper = gamepad.right_bumper;
@@ -62,21 +52,21 @@ public class ShooterController {
         prevXButton = gamepad.x;
     }
 
-    private void startFiring() {
-        // Не стреляем если уже стреляем
-        if (sorter.isBusy()) {
-            return;
-        }
-
-        // Получаем последовательность от Vision
-        Sorter.ShootSequence sequence = vision.getShootSequence();
-
-        if (sequence != null) {
-            sorter.startSmartSequence(sequence);
-        } else {
-            sorter.startDefaultSequence();
-        }
-    }
+//    private void startFiring() {
+//        // Не стреляем если уже стреляем
+//        if (sorter.isBusy()) {
+//            return;
+//        }
+//
+//        // Получаем последовательность от Vision
+//        Sorter.ShootSequence sequence = vision.getShootSequence();
+//
+//        if (sequence != null) {
+//            sorter.startSmartSequence(sequence);
+//        } else {
+//            sorter.startDefaultSequence();
+//        }
+//    }
 
     public boolean isRunning() {
         return shooterRunning;
@@ -86,7 +76,7 @@ public class ShooterController {
         this.shooterRunning = running;
     }
 
-    public boolean isFiring() {
-        return sorter.isBusy();
-    }
+//    public boolean isFiring() {
+//        return sorter.isBusy();
+//    }
 }

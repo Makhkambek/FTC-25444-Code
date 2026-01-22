@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
+import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -49,9 +50,9 @@ public class Robot {
 
         // Controllers (на gamepad2)
         intakeController = new IntakeController(null, intake); // gamepad передадим в update
-        shooterController = new ShooterController(null, shooter);
+        shooterController = new ShooterController(null, shooter, vision);
         turretController = new TurretController(null, turret);
-        resetController = new ResetController(null, intake, shooter, turret);
+        resetController = new ResetController(headingController, intakeController, shooterController, turretController, intake, shooter, turret);
     }
 
     public void start() {
@@ -81,7 +82,6 @@ public class Robot {
     }
 
     private void updateControllers(Gamepad gamepad2) {
-        intakeController.gamepad = gamepad2;
         intakeController.update();
 
         shooterController.gamepad = gamepad2;
@@ -90,8 +90,7 @@ public class Robot {
         turretController.gamepad = gamepad2;
         turretController.update();
 
-        resetController.gamepad = gamepad2;
-        resetController.update();
+        resetController.handleResetButton(gamepad2);
     }
 
     private void handleFireButton(Gamepad gamepad2, Telemetry telemetry) {

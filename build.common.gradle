@@ -21,7 +21,7 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdk 34
+    compileSdkVersion 30
 
     signingConfigs {
         release {
@@ -45,6 +45,10 @@ android {
             storeFile rootProject.file('libs/ftc.debug.keystore')
             storePassword 'android'
         }
+    }
+
+    aaptOptions {
+        noCompress "tflite"
     }
 
     defaultConfig {
@@ -113,5 +117,7 @@ android {
 }
 
 repositories {
+    mavenCentral()
 }
+
 
