@@ -13,15 +13,11 @@ public class Vision {
     private AprilTagProcessor aprilTag;
     private boolean active = false;
 
-    // ID тегов для последовательностей
-    public static final int TAG_PPG = 101;
-    public static final int TAG_PGP = 102;
-    public static final int TAG_GPP = 103;
+    // ID тегов для разных альянсов
+    public static final int RED_ALLIANCE_TAG = 11;   // AprilTag для красного альянса
+    public static final int BLUE_ALLIANCE_TAG = 12;  // AprilTag для синего альянса
 
-    // Пороги расстояния для Hood (в метрах) - КАЛИБРОВАТЬ!
-    public static final double RANGE_CLOSE = 1.0;   // < 1м = CLOSE
-    public static final double RANGE_FAR = 2.0;     // > 2м = FAR
-    // между ними = MIDDLE
+    private int targetTagId = RED_ALLIANCE_TAG; // По умолчанию красный
 
     public void init(HardwareMap hw) {
         aprilTag = new AprilTagProcessor.Builder().build();
@@ -46,6 +42,54 @@ public class Vision {
 
     public boolean isActive() {
         return active;
+    }
+
+    /**
+     * Устанавливает целевой tag для отслеживания
+     * @param isRedAlliance true для красного альянса, false для синего
+     */
+    public void setAlliance(boolean isRedAlliance) {
+        targetTagId = isRedAlliance ? RED_ALLIANCE_TAG : BLUE_ALLIANCE_TAG;
+    }
+
+    /**
+     * Получает целевой AprilTag (для текущего альянса)
+     */
+    public AprilTagDetection getTargetTag() {
+        if (!active) return null;
+
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+        for (AprilTagDetection d : detections) {
+            if (d.id == targetTagId && d.ftcPose != null) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Проверяет, виден ли целевой tag
+     */
+    public boolean hasTargetTag() {
+        return getTargetTag() != null;
+    }
+
+    /**
+     * Получает расстояние до целевого тега в сантиметрах
+     */
+    public double getTargetDistance() {
+        AprilTagDetection tag = getTargetTag();
+        if (tag == null || tag.ftcPose == null) return -1;
+        return tag.ftcPose.range * 2.54; // дюймы в см
+    }
+
+    /**
+     * Получает yaw ошибку для целевого тега (для turret)
+     */
+    public double getTargetYaw() {
+        AprilTagDetection tag = getTargetTag();
+        if (tag == null || tag.ftcPose == null) return Double.NaN;
+        return tag.ftcPose.yaw;
     }
 
     public AprilTagDetection getBestTag() {
@@ -86,50 +130,6 @@ public class Vision {
         return tag.ftcPose.range;
     }
 
-    /**
-     * Определяет последовательность стрельбы по ID тега
-     */
-    public Sorter.ShootSequence getShootSequence() {
-        int tagId = getBestTagId();
-
-        switch (tagId) {
-            case TAG_PPG:
-                return Sorter.ShootSequence.PPG;
-            case TAG_PGP:
-                return Sorter.ShootSequence.PGP;
-            case TAG_GPP:
-                return Sorter.ShootSequence.GPP;
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Определяет позицию Hood на основе расстояния до тега
-     */
-    public Shooter.HoodPosition getHoodPosition() {
-        double range = getBestTagRange();
-
-        if (range < 0) {
-            return null; // Тег не найден
-        }
-
-        if (range < RANGE_CLOSE) {
-            return Shooter.HoodPosition.CLOSE;
-        } else if (range > RANGE_FAR) {
-            return Shooter.HoodPosition.FAR;
-        } else {
-            return Shooter.HoodPosition.MIDDLE;
-        }
-    }
-
-    /**
-     * Проверяет, найден ли тег с известной последовательностью
-     */
-    public boolean hasValidSequenceTag() {
-        int tagId = getBestTagId();
-        return (tagId == TAG_PPG || tagId == TAG_PGP || tagId == TAG_GPP);
-    }
 
     public double getYawError() {
         AprilTagDetection tag = getBestTag();
@@ -139,5 +139,14 @@ public class Vision {
 
     public boolean hasTarget() {
         return getBestTag() != null;
+    }
+
+    // Геттеры для телеметрии
+    public int getTargetTagId() {
+        return targetTagId;
+    }
+
+    public String getAllianceColor() {
+        return (targetTagId == RED_ALLIANCE_TAG) ? "RED" : "BLUE";
     }
 }

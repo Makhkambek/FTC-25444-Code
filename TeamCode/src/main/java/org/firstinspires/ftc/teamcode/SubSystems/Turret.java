@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Turret {
     private DcMotor turretMotor;
     private Localizer localizer;
+    private Vision vision;
 
     private double kP = 0.03;
     private double kI = 0.0;
@@ -13,7 +14,6 @@ public class Turret {
 
     private double integral = 0;
     private double lastError = 0;
-
 
     private static final double MAX_ANGLE = 90;
     private static final double MIN_ANGLE = -90;
@@ -25,16 +25,29 @@ public class Turret {
     private double targetX = 72.0;
     private double targetY = 144.0;
 
-
     private static final double ANGLE_TOLERANCE = 2.0;
 
-    public Turret(HardwareMap hardwareMap) {
+    // Параметры сканирования
+    private static final double SCAN_SPEED = 0.3;
+    private boolean scanningRight = true;
+
+    // Manual control
+    private double manualTargetAngle = 0.0;
+    private static final double MANUAL_ANGLE_STEP = 30.0; // градусов на единицу джойстика
+
+    // Resetting state
+    private boolean isResetting = false;
+
+    public Turret(HardwareMap hardwareMap, Vision vision) {
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         localizer = Localizer.getInstance(hardwareMap);
+        this.vision = vision;
+        manualTargetAngle = 0.0;
+        isResetting = false;
     }
 
 
@@ -53,12 +66,82 @@ public class Turret {
     }
 
     /**
-     * Автоприцеливание
+     * Автоприцеливание с использованием Vision
      */
     public void autoAim() {
-        double targetAngle = calculateTargetAngle();
+        // Если идет resetting - продолжаем возврат в центр
+        if (isResetting) {
+            continueResetting();
+            return;
+        }
+
+        if (vision != null && vision.hasTargetTag()) {
+            // Tag виден - отслеживаем его
+            trackTarget();
+        } else {
+            // Tag не виден - сканируем
+            scanForTarget();
+        }
+    }
+
+    /**
+     * Продолжает возврат в центр
+     */
+    private void continueResetting() {
         double currentAngle = getCurrentAngle();
+
+        if (Math.abs(currentAngle) < ANGLE_TOLERANCE) {
+            // Достигли центра - завершаем resetting
+            isResetting = false;
+            turretMotor.setPower(0);
+            integral = 0;
+            lastError = 0;
+        } else {
+            // Продолжаем движение к центру
+            double power = calculatePID(0, currentAngle);
+            turretMotor.setPower(power);
+        }
+    }
+
+    /**
+     * Отслеживание видимого AprilTag
+     */
+    private void trackTarget() {
+        double yawError = vision.getTargetYaw();
+
+        if (Double.isNaN(yawError)) {
+            scanForTarget();
+            return;
+        }
+
+        // PID для отслеживания на основе yaw ошибки
+        double currentAngle = getCurrentAngle();
+        double targetAngle = currentAngle + yawError;
+
+        // Ограничение углов
+        targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, targetAngle));
+
         double power = calculatePID(targetAngle, currentAngle);
+        turretMotor.setPower(power);
+    }
+
+    /**
+     * Сканирование в поисках цели
+     */
+    private void scanForTarget() {
+        double currentAngle = getCurrentAngle();
+
+        // Достигли правой границы - меняем направление
+        if (currentAngle >= MAX_ANGLE - 5) {
+            scanningRight = false;
+        }
+        // Достигли левой границы - меняем направление
+        else if (currentAngle <= MIN_ANGLE + 5) {
+            scanningRight = true;
+        }
+
+        // Двигаемся в текущем направлении
+        double power = scanningRight ? SCAN_SPEED : -SCAN_SPEED;
         turretMotor.setPower(power);
     }
 
@@ -89,21 +172,49 @@ public class Turret {
         return angle;
     }
 
-    public void manualControl(double power) {
-        double currentAngle = getCurrentAngle();
+    public void manualControl(double joystickInput) {
+        if (Math.abs(joystickInput) > 0) {
+            // Обновляем целевой угол на основе джойстика
+            manualTargetAngle += joystickInput * MANUAL_ANGLE_STEP * 0.02; // 0.02 для плавности
 
-        if ((currentAngle >= MAX_ANGLE && power > 0) ||
-                (currentAngle <= MIN_ANGLE && power < 0)) {
-            turretMotor.setPower(0);
-            return;
+            // Ограничиваем целевой угол
+            manualTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, manualTargetAngle));
         }
 
+        // Используем PID для движения к целевому углу
+        double currentAngle = getCurrentAngle();
+        double power = calculatePID(manualTargetAngle, currentAngle);
         turretMotor.setPower(power);
+    }
+
+    public void syncManualTarget() {
+        // Синхронизируем manual target с текущим углом
+        manualTargetAngle = getCurrentAngle();
     }
 
     public void center() {
         double power = calculatePID(0, getCurrentAngle());
         turretMotor.setPower(power);
+    }
+
+    public void returnToCenter() {
+        // Начинаем возврат на нулевую позицию
+        isResetting = true;
+        manualTargetAngle = 0.0;
+        integral = 0;
+        lastError = 0;
+    }
+
+    public boolean isCentered() {
+        return Math.abs(getCurrentAngle()) < ANGLE_TOLERANCE;
+    }
+
+    public boolean isResettingToCenter() {
+        return isResetting;
+    }
+
+    public void cancelReset() {
+        isResetting = false;
     }
 
     public boolean isOnTarget() {
@@ -138,4 +249,12 @@ public class Turret {
     public double getRobotX() { return localizer.getX(); }
     public double getRobotY() { return localizer.getY(); }
     public double getRobotHeading() { return localizer.getHeading(); }
+
+    public boolean isTracking() {
+        return vision != null && vision.hasTargetTag();
+    }
+
+    public boolean isScanning() {
+        return !isTracking();
+    }
 }

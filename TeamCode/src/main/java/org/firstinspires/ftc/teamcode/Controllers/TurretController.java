@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode.Controllers;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
+import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
 public class TurretController {
     public Gamepad gamepad;
     private Turret turret;
+    private Vision vision;
 
     public boolean autoAimEnabled = true;
 
@@ -16,9 +18,10 @@ public class TurretController {
     // Deadzone для джойстика
     private static final double JOYSTICK_DEADZONE = 0.1;
 
-    public TurretController(Gamepad gamepad, Turret turret) {
+    public TurretController(Gamepad gamepad, Turret turret, Vision vision) {
         this.gamepad = gamepad;
         this.turret = turret;
+        this.vision = vision;
     }
 
     public void update() {
@@ -27,12 +30,20 @@ public class TurretController {
         double manualInput = gamepad.right_stick_x;
 
         if (Math.abs(manualInput) > JOYSTICK_DEADZONE) {
-            // Ручное управление
-            autoAimEnabled = false;
+            // Ручное управление - отменяем resetting и autoAim
+            turret.cancelReset();
+            if (autoAimEnabled) {
+                // Переключаемся с auto на manual - синхронизируем target
+                turret.syncManualTarget();
+                autoAimEnabled = false;
+            }
             turret.manualControl(manualInput * MANUAL_SENSITIVITY);
         } else {
             // Auto-aim
-            autoAimEnabled = true;
+            if (!autoAimEnabled) {
+                // Переключаемся с manual на auto
+                autoAimEnabled = true;
+            }
             turret.autoAim();
         }
     }

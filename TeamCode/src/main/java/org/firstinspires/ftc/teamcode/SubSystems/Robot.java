@@ -17,7 +17,6 @@ public class Robot {
     public Intake intake;
     public Shooter shooter;
     public Turret turret;
-    public Sorter sorter;
     public Vision vision;
 
     // Controllers
@@ -30,20 +29,21 @@ public class Robot {
     // Fire button state
     private boolean prevFireButton = false;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance) {
         // Localizer первым!
         localizer = Localizer.getInstance(hardwareMap);
+
+        // Vision (нужна для Turret)
+        vision = new Vision();
+        vision.init(hardwareMap);
+        vision.start();
+        vision.setAlliance(isRedAlliance); // Устанавливаем альянс
 
         // SubSystems
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap);
-        sorter = new Sorter(hardwareMap);
-        vision = new Vision();
-
-        vision.init(hardwareMap);
-        vision.start();
+        turret = new Turret(hardwareMap, vision);
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
@@ -51,30 +51,23 @@ public class Robot {
         // Controllers (на gamepad2)
         intakeController = new IntakeController(null, intake); // gamepad передадим в update
         shooterController = new ShooterController(null, shooter, vision);
-        turretController = new TurretController(null, turret);
+        turretController = new TurretController(null, turret, vision);
         resetController = new ResetController(headingController, intakeController, shooterController, turretController, intake, shooter, turret);
     }
 
     public void start() {
         // Начальная настройка
-        sorter.scanBalls();
-        shooter.autoAdjustHood(vision);
     }
 
     public void update(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         // Обновляем Localizer (один раз!)
         localizer.update();
 
-        // Sorter постоянно сканирует
-        sorter.scanBalls();
-
-        // Shooter автонастройка Hood
-        shooter.autoAdjustHood(vision);
-
         // DriveTrain
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
         // Контроллеры (передаем gamepad2)
+        // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
         updateControllers(gamepad2);
 
         // Fire button
@@ -85,7 +78,7 @@ public class Robot {
         intakeController.update();
 
         shooterController.gamepad = gamepad2;
-        shooterController.update();
+        shooterController.update(intake);
 
         turretController.gamepad = gamepad2;
         turretController.update();
@@ -95,27 +88,21 @@ public class Robot {
 
     private void handleFireButton(Gamepad gamepad2, Telemetry telemetry) {
         if (gamepad2.a && !prevFireButton) {
-            fireBalls(telemetry);
+//            fireBalls(telemetry);
         }
         prevFireButton = gamepad2.a;
     }
 
-    private void fireBalls(Telemetry telemetry) {
-        Sorter.ShootSequence sequence = vision.getShootSequence();
 
-        if (sequence != null && sorter.isValidConfiguration()) {
-            sorter.executeSmartSequence(sequence);
-            telemetry.addData("🔥 FIRING", sequence.toString());
-        } else {
-            sorter.executeDefaultSequence();
-            telemetry.addData("🔥 FIRING", "Default");
-        }
-    }
 
     public void stop() {
         intake.off();
         shooter.off();
         turret.stop();
         vision.stop();
+    }
+
+    public void setAlliance(boolean isRedAlliance) {
+        vision.setAlliance(isRedAlliance);
     }
 }

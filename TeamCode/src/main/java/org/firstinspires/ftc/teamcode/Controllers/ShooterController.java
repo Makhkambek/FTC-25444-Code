@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Controllers;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
@@ -10,11 +11,7 @@ public class ShooterController {
     private Shooter shooter;
     private Vision vision;
 
-    public boolean shooterRunning = true;
-
     private boolean prevRightBumper = false;
-    private boolean prevLeftBumper = false;
-    private boolean prevXButton = false;
 
     public ShooterController(Gamepad gamepad, Shooter shooter,  Vision vision) {
         this.gamepad = gamepad;
@@ -22,61 +19,34 @@ public class ShooterController {
         this.vision = vision;
     }
 
-    public void update() {
+    public void update(Intake intake) {
         if (gamepad == null) return;
 
-        // === Shooter On/Off ===
+        // === Right Bumper - запуск стрельбы ===
         if (gamepad.right_bumper && !prevRightBumper) {
-            shooterRunning = true;
+            shooter.startShoot();
         }
 
-        if (gamepad.left_bumper && !prevLeftBumper) {
-            shooterRunning = false;
+        // Автоматическая регулировка hood на основе расстояния от Vision
+        if (vision != null && vision.hasTargetTag()) {
+            double distance = vision.getTargetDistance();
+            if (distance > 0) {
+                shooter.updateHood(distance);
+            }
         }
 
-        if (shooterRunning) {
-            shooter.on();
-        } else {
-            shooter.off();
-        }
+        // Обновление FSM шутера
+        shooter.updateFSM(intake);
 
-        // === X Button - запуск стрельбы ===
-//        if (gamepad.x && !prevXButton) {
-//            startFiring();
-//        }
-
-
-        // Сохраняем состояния
+        // Сохраняем состояние кнопки
         prevRightBumper = gamepad.right_bumper;
-        prevLeftBumper = gamepad.left_bumper;
-        prevXButton = gamepad.x;
     }
 
-//    private void startFiring() {
-//        // Не стреляем если уже стреляем
-//        if (sorter.isBusy()) {
-//            return;
-//        }
-//
-//        // Получаем последовательность от Vision
-//        Sorter.ShootSequence sequence = vision.getShootSequence();
-//
-//        if (sequence != null) {
-//            sorter.startSmartSequence(sequence);
-//        } else {
-//            sorter.startDefaultSequence();
-//        }
-//    }
-
-    public boolean isRunning() {
-        return shooterRunning;
+    public boolean isShooting() {
+        return shooter.isShooting();
     }
 
-    public void setRunning(boolean running) {
-        this.shooterRunning = running;
+    public Shooter.ShooterState getCurrentState() {
+        return shooter.getCurrentState();
     }
-
-//    public boolean isFiring() {
-//        return sorter.isBusy();
-//    }
 }

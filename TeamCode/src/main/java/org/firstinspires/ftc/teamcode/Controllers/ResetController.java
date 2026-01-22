@@ -43,15 +43,21 @@ public class ResetController {
     }
 
     private void resetControls() {
-        shooterController.shooterRunning = false;
-        turretController.autoAimEnabled = true;
+        // Сброс контроллеров
+        turretController.enableAutoAim();
 
+        // Сброс heading контроллера
         headingController.reset();
+
+        // Сброс подсистем
         intake.off();
-        shooter.off();  //добавить серво (щас работает ток моторы)
-        turret.stop(); //добавить не стоп а возвращение на 0 с PID
-//        turret.resetEncoder();
+        shooter.reset(); // Полный сброс shooter (моторы, servos, FSM)
+        turret.returnToCenter(); // Возврат turret на 0 с PID
 
         wasResetPressed = false;
+    }
+
+    public boolean isResetting() {
+        return turret.isResettingToCenter();
     }
 }
