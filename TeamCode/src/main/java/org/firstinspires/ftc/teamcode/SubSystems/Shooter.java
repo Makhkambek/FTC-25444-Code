@@ -158,4 +158,21 @@ public class Shooter {
         currentState = ShooterState.IDLE; // Сбрасываем FSM
         stateTimer.reset();
     }
+
+    // Testing methods
+    public void setStopPosition(double position) {
+        shooterStop.setPosition(position);
+    }
+
+    public void openStop() {
+        shooterStop.setPosition(STOP_OPEN);
+    }
+
+    public void closeStop() {
+        shooterStop.setPosition(STOP_CLOSE);
+    }
+
+    public double getStopPosition() {
+        return shooterStop.getPosition();
+    }
 }
