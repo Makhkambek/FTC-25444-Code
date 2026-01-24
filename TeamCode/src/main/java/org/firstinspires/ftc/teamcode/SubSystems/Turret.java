@@ -4,6 +4,19 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Turret {
+    public static class Position {
+        public final double x;
+        public final double y;
+
+        public Position(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public static final Position blueGoal = new Position(12.0, 138.0);
+    public static final Position redGoal = new Position(132.0, 138.0);
+
     private DcMotor turretMotor;
     private Localizer localizer;
     private Vision vision;
@@ -18,10 +31,8 @@ public class Turret {
     private static final double MAX_ANGLE = 90;
     private static final double MIN_ANGLE = -90;
 
-    // Энкодер тики на градус - КАЛИБРОВАТЬ!
     private static final double TICKS_PER_DEGREE = 10.0;
 
-    // Координаты цели на поле (сохраняются когда видим AprilTag)
     private Double goalX = null;
     private Double goalY = null;
 
@@ -43,6 +54,11 @@ public class Turret {
     }
 
 
+    /**
+     * Вычисляет угол турели для наведения на цель
+     * Использует формулу: α = arctan2(Y_цели - Y_робота, X_цели - X_робота)
+     * Angle_turret = Heading - α
+     */
     private double calculateTargetAngle() {
         if (goalX == null || goalY == null) {
             return 0.0; // Нет цели - возвращаем центр
@@ -52,13 +68,34 @@ public class Turret {
         double robotY = localizer.getY();
         double robotHeading = localizer.getHeading();
 
+        // Разница координат
         double deltaX = goalX - robotX;
         double deltaY = goalY - robotY;
 
-        double absoluteAngle = Math.toDegrees(Math.atan2(deltaX, deltaY));
-        double turretAngle = normalizeAngle(absoluteAngle - robotHeading);
+        // Угол на цель α = arctan2(ΔY, ΔX) в градусах
+        double alpha = Math.toDegrees(Math.atan2(deltaY, deltaX));
+
+        // Угол турели = Heading - α
+        double turretAngle = normalizeAngle(robotHeading - alpha);
 
         return Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngle));
+    }
+
+    /**
+     * Вычисляет расстояние до цели в см
+     */
+    public double getDistanceToGoal() {
+        if (goalX == null || goalY == null) {
+            return 0.0;
+        }
+
+        double robotX = localizer.getX();
+        double robotY = localizer.getY();
+
+        double deltaX = goalX - robotX;
+        double deltaY = goalY - robotY;
+
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
 
     /**
@@ -174,7 +211,6 @@ public class Turret {
 
     public void manualControl(double joystickInput) {
         if (Math.abs(joystickInput) > 0) {
-            // Обновляем целевой угол на основе джойстика
             manualTargetAngle += joystickInput * MANUAL_ANGLE_STEP * 0.02; // 0.02 для плавности
 
             // Ограничиваем целевой угол
@@ -192,80 +228,52 @@ public class Turret {
         manualTargetAngle = getCurrentAngle();
     }
 
-    public void setTargetAngle(double angle) {
-        // Устанавливаем целевой угол (для автономки)
-        manualTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, angle));
+    public void setTargetPosition(double position) {
+        // Устанавливаем целевую позицию напрямую (для автономки)
+        // position - это обороты/тики энкодера (например, 100 или -100)
+        manualTargetAngle = position;
     }
 
-    public void holdTargetAngle() {
-        // Поддерживает установленный целевой угол
-        double power = calculatePID(manualTargetAngle, getCurrentAngle());
-        turretMotor.setPower(power);
-    }
-
-    public void center() {
-        double power = calculatePID(0, getCurrentAngle());
+    public void holdPosition() {
+        // Поддерживает установленную позицию через PID
+        double currentAngle = getCurrentAngle();
+        double power = calculatePID(manualTargetAngle, currentAngle);
         turretMotor.setPower(power);
     }
 
     public void returnToCenter() {
-        // Устанавливаем целевой угол на 0 (центр)
-        manualTargetAngle = 0.0;
-        integral = 0;
-        lastError = 0;
+        // Устанавливаем целевую позицию на 0 (центр)
+        setTargetPosition(0.0);
     }
 
     public boolean isCentered() {
         return Math.abs(getCurrentAngle()) < ANGLE_TOLERANCE;
     }
 
-    public boolean isOnTarget() {
-        if (!hasGoal()) {
-            return false;
-        }
-        double targetAngle = calculateTargetAngle();
-        double currentAngle = getCurrentAngle();
-        return Math.abs(targetAngle - currentAngle) < ANGLE_TOLERANCE;
-    }
-
+    /**
+     * Установить координаты цели вручную
+     */
     public void setGoalPosition(double x, double y) {
         this.goalX = x;
         this.goalY = y;
     }
 
-    public void clearGoal() {
-        this.goalX = null;
-        this.goalY = null;
+    /**
+     * Установить координаты цели на основе альянса
+     */
+    public void setGoalByAlliance(boolean isRedAlliance) {
+        Position goal = isRedAlliance ? redGoal : blueGoal;
+        setGoalPosition(goal.x, goal.y);
     }
 
     public boolean hasGoal() {
         return goalX != null && goalY != null;
     }
 
-    public double getGoalX() {
-        return goalX != null ? goalX : 0.0;
-    }
-
-    public double getGoalY() {
-        return goalY != null ? goalY : 0.0;
-    }
-
     public void setPID(double p, double i, double d) {
         this.kP = p;
         this.kI = i;
         this.kD = d;
-    }
-
-    public double getKP() {
-        return kP;
-    }
-
-    public double getKI() {
-        return kI;
-    }
-
-    public double getKD() {
-        return kD;
     }
 
     public void stop() {
@@ -278,11 +286,6 @@ public class Turret {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
-
-    // Геттеры для телеметрии
-    public double getRobotX() { return localizer.getX(); }
-    public double getRobotY() { return localizer.getY(); }
-    public double getRobotHeading() { return localizer.getHeading(); }
 
     public boolean isTracking() {
         return vision != null && vision.hasTargetTag();

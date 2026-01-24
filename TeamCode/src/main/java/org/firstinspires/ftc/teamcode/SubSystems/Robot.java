@@ -67,6 +67,9 @@ Robot {
         // DriveTrain
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
+        // Динамически обновляем Hood на основе расстояния до цели
+        shooter.updateHoodDynamic(turret);
+
         // Контроллеры (передаем gamepad2)
         // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
         updateControllers(gamepad2);

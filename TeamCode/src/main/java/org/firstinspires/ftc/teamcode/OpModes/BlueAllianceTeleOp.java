@@ -6,20 +6,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.SubSystems.Robot;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 
-@TeleOp(name="RED Alliance TeleOp", group="TeleOp")
-public class RedAllianceTeleOp extends LinearOpMode {
+@TeleOp(name="BLUE Alliance TeleOp", group="TeleOp")
+public class BlueAllianceTeleOp extends LinearOpMode {
 
     private Robot robot;
 
     @Override
     public void runOpMode() {
-        // RED Alliance
-        boolean isRedAlliance = true;
+        // BLUE Alliance
+        boolean isRedAlliance = false;
 
         // Инициализация робота
         telemetry.addData("Status", "Initializing...");
-        telemetry.addData("Alliance", "RED");
-        telemetry.addData("Target AprilTag ID", 11);
+        telemetry.addData("Alliance", "BLUE");
+        telemetry.addData("Target AprilTag ID", 12);
         telemetry.update();
 
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
@@ -31,8 +31,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
 
         robot.start();
 
-        // Устанавливаем координаты красной корзины для автонаведения
-        robot.turret.setGoalPosition(Turret.redGoal.x, Turret.redGoal.y);
+        // Устанавливаем координаты синей корзины для автонаведения
+        robot.turret.setGoalPosition(Turret.blueGoal.x, Turret.blueGoal.y);
 
         while (opModeIsActive()) {
             // Обновление робота
@@ -49,7 +49,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
 
     private void displayTelemetry() {
         // Vision
-        telemetry.addLine("=== VISION (RED) ===");
+        telemetry.addLine("=== VISION (BLUE) ===");
         telemetry.addData("Alliance", robot.vision.getAllianceColor());
         telemetry.addData("Target Tag ID", robot.vision.getTargetTagId());
         telemetry.addData("Target Visible", robot.vision.hasTargetTag() ? "YES" : "NO");

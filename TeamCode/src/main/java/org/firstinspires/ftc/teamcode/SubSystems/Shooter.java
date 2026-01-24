@@ -57,13 +57,31 @@ public class Shooter {
         shooterStop.setPosition(STOP_CLOSE);
     }
 
+    /**
+     * Обновляет позицию Hood на основе расстояния до цели
+     * Расстояние в см
+     */
     public void updateHood(double distance) {
-        if (distance < 30) {
-            setHoodPosition(HoodPosition.CLOSE);
-        } else if (distance < 50) {
+        if (distance <= 0) {
+            // Нет расстояния - используем позицию по умолчанию
             setHoodPosition(HoodPosition.MIDDLE);
-        } else if (distance < 100) {
+        } else if (distance < 30) {
+            setHoodPosition(HoodPosition.CLOSE);
+        } else if (distance < 60) {
+            setHoodPosition(HoodPosition.MIDDLE);
+        } else {
             setHoodPosition(HoodPosition.FAR);
+        }
+    }
+
+    /**
+     * Динамически обновляет Hood на основе расстояния от турели
+     * Вызывать в loop() для автоматической настройки
+     */
+    public void updateHoodDynamic(Turret turret) {
+        if (turret != null && turret.hasGoal()) {
+            double distance = turret.getDistanceToGoal();
+            updateHood(distance);
         }
     }
 
