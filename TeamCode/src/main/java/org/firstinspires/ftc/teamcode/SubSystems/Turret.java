@@ -99,50 +99,19 @@ public class Turret {
     }
 
     /**
-     * Автоприцеливание с использованием Vision
+     * Автоприцеливание с использованием Vision и одометров
      */
     public void autoAim() {
         if (vision != null && vision.hasTargetTag()) {
-            // Tag виден - сохраняем координаты и отслеживаем через камеру
-            saveGoalFromVision();
+            // Tag виден - наводимся напрямую на тег через камеру
             trackTarget();
         } else if (goalX != null && goalY != null) {
-            // Tag не виден, но есть сохраненная цель - используем одометры
+            // Tag не виден, но есть координаты корзины - используем одометры
             trackWithOdometry();
         } else {
             // Нет цели - останавливаемся
             turretMotor.setPower(0);
         }
-    }
-
-    /**
-     * Сохраняет координаты цели на основе AprilTag и одометров
-     */
-    private void saveGoalFromVision() {
-        if (vision == null || !vision.hasTargetTag()) {
-            return;
-        }
-
-        // Получаем данные от Vision
-        double distance = vision.getTargetDistance(); // в см
-        double yaw = vision.getTargetYaw(); // угол от центра камеры
-
-        if (distance <= 0 || Double.isNaN(yaw)) {
-            return;
-        }
-
-        // Получаем текущую позицию робота
-        double robotX = localizer.getX();
-        double robotY = localizer.getY();
-        double robotHeading = localizer.getHeading();
-        double currentTurretAngle = getCurrentAngle();
-
-        // Абсолютный угол к цели = heading робота + угол turret + yaw от камеры
-        double absoluteAngleToGoal = robotHeading + currentTurretAngle + yaw;
-
-        // Вычисляем координаты цели на поле
-        goalX = robotX + distance * Math.sin(Math.toRadians(absoluteAngleToGoal));
-        goalY = robotY + distance * Math.cos(Math.toRadians(absoluteAngleToGoal));
     }
 
     /**
@@ -231,14 +200,8 @@ public class Turret {
     public void setTargetPosition(double position) {
         // Устанавливаем целевую позицию напрямую (для автономки)
         // position - это обороты/тики энкодера (например, 100 или -100)
+        // PIDF мотора сам держит позицию
         manualTargetAngle = position;
-    }
-
-    public void holdPosition() {
-        // Поддерживает установленную позицию через PID
-        double currentAngle = getCurrentAngle();
-        double power = calculatePID(manualTargetAngle, currentAngle);
-        turretMotor.setPower(power);
     }
 
     public void returnToCenter() {

@@ -179,7 +179,6 @@ public class BlueAuto extends OpMode {
 
         turret.setGoalByAlliance(false);
 
-        // Устанавливаем позицию турели (зафиксирована на всю автономку)
         turret.setTargetPosition(100);
 
         setPathState(0);
@@ -190,8 +189,6 @@ public class BlueAuto extends OpMode {
         follower.update();
         localizer.update();
         shooter.updateFSM(intake);
-        shooter.updateHoodDynamic(turret);
-        turret.holdPosition(); // Держит турель на установленной позиции
         autonomousPathUpdate();
     }
 
