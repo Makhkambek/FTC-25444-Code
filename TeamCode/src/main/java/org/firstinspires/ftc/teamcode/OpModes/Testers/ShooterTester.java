@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.OpModes.Testers;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -7,8 +10,16 @@ import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 // import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
+@Config
 @TeleOp(name="[TEST] Shooter Tester", group="Testers")
 public class ShooterTester extends LinearOpMode {
+
+    // PID коэффициенты для настройки через Dashboard
+    public static double KP = 0.005;
+    public static double KI = 0.0;
+    public static double KD = 0.0;
+    public static double KF = 0.0;
+    public static double TARGET_VELOCITY = 2200; // ticks/sec (78% от max 2800)
 
     private Shooter shooter;
     private Intake intake;
@@ -35,6 +46,9 @@ public class ShooterTester extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Настройка телеметрии для Dashboard
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         telemetry.addData("Status", "Initializing Shooter...");
         telemetry.update();
 
@@ -53,6 +67,15 @@ public class ShooterTester extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            // Обновляем PID коэффициенты из Dashboard
+            shooter.kP = KP;
+            shooter.kI = KI;
+            shooter.kD = KD;
+            shooter.kF = KF;
+
+            // Обновляем PID для моторов
+            shooter.updatePID();
+
             handleControls();
             displayTelemetry();
             telemetry.update();
@@ -81,7 +104,7 @@ public class ShooterTester extends LinearOpMode {
             if (gamepad1.a && !prevA) {
                 motorsRunning = !motorsRunning;
                 if (motorsRunning) {
-                    shooter.on();
+                    shooter.setTargetVelocity(TARGET_VELOCITY);
                 } else {
                     shooter.off();
                 }
@@ -154,6 +177,19 @@ public class ShooterTester extends LinearOpMode {
         telemetry.addData("Motors Running", shooter.isRunning() ? "YES" : "NO");
         telemetry.addData("Shooter State", shooter.getCurrentState());
         telemetry.addData("Is Shooting", shooter.isShooting() ? "YES" : "NO");
+
+        telemetry.addLine();
+
+        // PID Status
+        telemetry.addLine("--- PID ---");
+        telemetry.addData("Target Velocity", "%.0f ticks/sec", shooter.getTargetVelocity());
+        telemetry.addData("Current Velocity", "%.0f ticks/sec", shooter.getCurrentVelocity());
+        double error = shooter.getTargetVelocity() - shooter.getCurrentVelocity();
+        telemetry.addData("Error", "%.0f ticks/sec", error);
+        telemetry.addData("kP", "%.4f", shooter.kP);
+        telemetry.addData("kI", "%.4f", shooter.kI);
+        telemetry.addData("kD", "%.4f", shooter.kD);
+        telemetry.addData("kF", "%.4f", shooter.kF);
 
         telemetry.addLine();
 

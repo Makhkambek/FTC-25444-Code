@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Shooter {
-    private DcMotor shooterMotor1, shooterMotor2;
+    private DcMotorEx shooterMotor1, shooterMotor2;
     private Servo hood;
     private Servo shooterStop;
 
@@ -38,23 +39,40 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
 
+    // PID коэффициенты для shooter моторов
+    public double kP = 0.005;
+    public double kI = 0.0;
+    public double kD = 0.0;
+    public double kF = 0.0;
+
+    private double lastError = 0;
+    private double integralSum = 0;
+    private double targetVelocity = 0; // Целевая скорость в ticks/sec
+    private ElapsedTime pidTimer = new ElapsedTime();
+
     private HoodPosition currentHoodPosition = HoodPosition.MIDDLE;
     private ShooterState currentState = ShooterState.IDLE;
     private ElapsedTime stateTimer = new ElapsedTime();
 
     public Shooter(HardwareMap hardwareMap) {
-        shooterMotor1 = hardwareMap.get(DcMotor.class, "shooterMotor1");
-        shooterMotor2 = hardwareMap.get(DcMotor.class, "shooterMotor2");
+        shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
+        shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
         hood = hardwareMap.get(Servo.class, "shooterHood");
         shooterStop = hardwareMap.get(Servo.class, "shooterStop");
 
-        // shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        // shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        // Настройка моторов для PID
+        shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        // shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         setHoodPosition(HoodPosition.CLOSE);
         shooterStop.setPosition(STOP_CLOSE);
+
+        pidTimer.reset();
     }
 
     /**
@@ -130,19 +148,76 @@ public class Shooter {
         }
     }
 
+    /**
+     * Обновляет PID для shooter моторов
+     * Вызывать в каждом loop()
+     */
+    public void updatePID() {
+        if (targetVelocity == 0) {
+            shooterMotor1.setPower(0);
+            shooterMotor2.setPower(0);
+            return;
+        }
+
+        double currentVelocity = shooterMotor1.getVelocity();
+
+        double error = targetVelocity - currentVelocity;
+
+        double deltaTime = pidTimer.seconds();
+        pidTimer.reset();
+
+        if (deltaTime > 0) {
+            double derivative = (error - lastError) / deltaTime;
+            integralSum += error * deltaTime;
+
+            double output = (kP * error) + (kI * integralSum) + (kD * derivative) + kF;
+
+            // Ограничение выхода
+            output = Math.max(-1.0, Math.min(1.0, output));
+
+            // Устанавливаем мощность обоим моторам
+            shooterMotor1.setPower(output);
+            shooterMotor2.setPower(output); // Второй мотор просто повторяет первый
+
+            lastError = error;
+        }
+    }
+
     public void on() {
-        shooterMotor1.setPower(SHOOTER_POWER);
-        shooterMotor2.setPower(SHOOTER_POWER);
+        // Устанавливаем целевую скорость (например, максимальная)
+        targetVelocity = 2200; // ticks/sec - настройте под ваши моторы
+        lastError = 0;
+        integralSum = 0;
+        pidTimer.reset();
     }
 
     public void off() {
+        targetVelocity = 0;
         shooterMotor1.setPower(0.0);
         shooterMotor2.setPower(0.0);
+        lastError = 0;
+        integralSum = 0;
     }
 
     public void setPower(double power) {
+        // Прямое управление мощностью (без PID)
         shooterMotor1.setPower(power);
         shooterMotor2.setPower(power);
+    }
+
+    public void setTargetVelocity(double velocity) {
+        targetVelocity = velocity;
+        lastError = 0;
+        integralSum = 0;
+        pidTimer.reset();
+    }
+
+    public double getCurrentVelocity() {
+        return shooterMotor1.getVelocity();
+    }
+
+    public double getTargetVelocity() {
+        return targetVelocity;
     }
 
     public void setHoodPosition(HoodPosition position) {

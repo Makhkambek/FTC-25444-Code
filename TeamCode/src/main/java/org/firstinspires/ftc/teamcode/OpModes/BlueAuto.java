@@ -188,6 +188,7 @@ public class BlueAuto extends OpMode {
     public void loop() {
         follower.update();
         localizer.update();
+        shooter.updatePID();
         shooter.updateFSM(intake);
         autonomousPathUpdate();
     }

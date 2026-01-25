@@ -70,6 +70,9 @@ Robot {
         // Динамически обновляем Hood на основе расстояния до цели
         shooter.updateHoodDynamic(turret);
 
+        // Обновляем PID для shooter моторов
+        shooter.updatePID();
+
         // Контроллеры (передаем gamepad2)
         // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
         updateControllers(gamepad2);
