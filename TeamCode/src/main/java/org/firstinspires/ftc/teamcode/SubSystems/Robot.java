@@ -61,20 +61,16 @@ Robot {
     }
 
     public void update(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        // Обновляем Localizer (один раз!)
         localizer.update();
 
-        // DriveTrain
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
         // Динамически обновляем Hood на основе расстояния до цели
         // Приоритет: Vision -> Odometry
         shooter.updateHoodDynamic(turret, vision);
 
-        // Обновляем PID для shooter моторов
         shooter.updatePID();
 
-        // Контроллеры (передаем gamepad2)
         // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
         updateControllers(gamepad2);
 

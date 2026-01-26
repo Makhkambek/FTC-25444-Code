@@ -1,21 +1,12 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
+import android.graphics.PointF;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Turret {
-    public static class Position {
-        public final double x;
-        public final double y;
-
-        public Position(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    public static final Position blueGoal = new Position(12.0, 138.0);
-    public static final Position redGoal = new Position(132.0, 138.0);
+    public static final PointF blueGoal = new PointF(12.0f, 138.0f);
+    public static final PointF redGoal = new PointF(132.0f, 138.0f);
 
     private DcMotor turretMotor;
     private Localizer localizer;
@@ -240,7 +231,7 @@ public class Turret {
      * Установить координаты цели на основе альянса
      */
     public void setGoalByAlliance(boolean isRedAlliance) {
-        Position goal = isRedAlliance ? redGoal : blueGoal;
+        PointF goal = isRedAlliance ? redGoal : blueGoal;
         setGoalPosition(goal.x, goal.y);
     }
 
