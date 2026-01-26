@@ -37,10 +37,14 @@ public class Turret {
     private Double goalY = null;
 
     private static final double ANGLE_TOLERANCE = 2.0;
+    private static final double MOVEMENT_DEADZONE = 3.0; // градусов - минимальное изменение для реакции
 
     // Manual control
     private double manualTargetAngle = 0.0;
     private static final double MANUAL_ANGLE_STEP = 30.0; // градусов на единицу джойстика
+
+    // Для отслеживания последнего целевого угла
+    private double lastTargetAngle = 0.0;
 
     public Turret(HardwareMap hardwareMap, Vision vision) {
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
@@ -124,6 +128,17 @@ public class Turret {
         }
 
         double targetAngle = calculateTargetAngle();
+
+        // Deadzone: игнорируем маленькие изменения
+        double angleDifference = Math.abs(targetAngle - lastTargetAngle);
+        if (angleDifference < MOVEMENT_DEADZONE && lastTargetAngle != 0.0) {
+            // Используем предыдущий целевой угол
+            targetAngle = lastTargetAngle;
+        } else {
+            // Обновляем последний целевой угол
+            lastTargetAngle = targetAngle;
+        }
+
         double currentAngle = getCurrentAngle();
         double power = calculatePID(targetAngle, currentAngle);
         turretMotor.setPower(power);

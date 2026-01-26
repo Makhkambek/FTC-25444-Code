@@ -68,7 +68,8 @@ Robot {
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
         // Динамически обновляем Hood на основе расстояния до цели
-        shooter.updateHoodDynamic(turret);
+        // Приоритет: Vision -> Odometry
+        shooter.updateHoodDynamic(turret, vision);
 
         // Обновляем PID для shooter моторов
         shooter.updatePID();

@@ -39,7 +39,6 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
 
-    // PID коэффициенты для shooter моторов
     public double kP = 0.005;
     public double kI = 0.0;
     public double kD = 0.0;
@@ -76,29 +75,64 @@ public class Shooter {
     }
 
     /**
-     * Обновляет позицию Hood на основе расстояния до цели
-     * Расстояние в см
+     * Вычисляет динамическую позицию Hood на основе расстояния
+     * Расстояние в см, возвращает servo позицию (0.0 - 1.0)
+     * 0.0 = близко (низкий угол)
+     * 1.0 = далеко (высокий угол)
      */
-    public void updateHood(double distance) {
-        if (distance <= 0) {
-            // Нет расстояния - используем позицию по умолчанию
-            setHoodPosition(HoodPosition.MIDDLE);
-        } else if (distance < 30) {
-            setHoodPosition(HoodPosition.CLOSE);
-        } else if (distance < 60) {
-            setHoodPosition(HoodPosition.MIDDLE);
+    private double calculateHoodPosition(double distance) {
+        // Маппинг расстояния на позицию servo
+        final double MIN_DISTANCE = 20.0;  // см - минимальная дистанция
+        final double MAX_DISTANCE = 80.0;  // см - максимальная дистанция
+
+        if (distance <= MIN_DISTANCE) {
+            return 0.0; // Очень близко - минимальный угол
+        } else if (distance >= MAX_DISTANCE) {
+            return 1.0; // Далеко - максимальный угол
         } else {
-            setHoodPosition(HoodPosition.FAR);
+            // Линейная интерполяция между MIN и MAX
+            return (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
         }
     }
 
     /**
-     * Динамически обновляет Hood на основе расстояния от турели
+     * Обновляет позицию Hood на основе расстояния до цели
+     * Расстояние в см
+     */
+    public void updateHood(double distance) {
+        if (distance > 0) {
+            double position = calculateHoodPosition(distance);
+            hood.setPosition(position);
+            // Обновляем currentHoodPosition для телеметрии
+            if (position < 0.33) {
+                currentHoodPosition = HoodPosition.CLOSE;
+            } else if (position < 0.66) {
+                currentHoodPosition = HoodPosition.MIDDLE;
+            } else {
+                currentHoodPosition = HoodPosition.FAR;
+            }
+        }
+    }
+
+    /**
+     * Динамически обновляет Hood на основе расстояния
+     * Приоритет: Vision (если видит AprilTag), затем Odometry
      * Вызывать в loop() для автоматической настройки
      */
-    public void updateHoodDynamic(Turret turret) {
-        if (turret != null && turret.hasGoal()) {
-            double distance = turret.getDistanceToGoal();
+    public void updateHoodDynamic(Turret turret, Vision vision) {
+        double distance = 0;
+
+        // Приоритет 1: Vision - если камера видит AprilTag
+        if (vision != null && vision.hasTargetTag()) {
+            distance = vision.getTargetDistance();
+        }
+        // Приоритет 2: Odometry - расстояние до goal из турели
+        else if (turret != null && turret.hasGoal()) {
+            distance = turret.getDistanceToGoal();
+        }
+
+        // Обновляем Hood если есть валидное расстояние
+        if (distance > 0) {
             updateHood(distance);
         }
     }
