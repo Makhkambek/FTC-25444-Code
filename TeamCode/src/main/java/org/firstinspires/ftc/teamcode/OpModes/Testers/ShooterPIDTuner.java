@@ -60,17 +60,17 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
 
-        // Сброс энкодеров
-        // Motor1 БЕЗ REVERSE - используется для чтения velocity в PID
-        shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        // Motor2 в REVERSE - для синхронного вращения
+        // ТЕСТ: Motor2 теперь главный с энкодером
+        // Если толчки переместятся на motor1 - значит проблема в отсутствии PID контроля
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Motor1 в REVERSE (теперь он без энкодера для PID)
+        shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
@@ -139,7 +139,7 @@ public class ShooterPIDTuner extends LinearOpMode {
             return;
         }
 
-        double currentVelocity = shooterMotor1.getVelocity();
+        double currentVelocity = shooterMotor2.getVelocity(); // ТЕСТ: читаем с motor2
         double error = targetVelocity - currentVelocity;
 
         double deltaTime = pidTimer.seconds();
@@ -200,11 +200,12 @@ public class ShooterPIDTuner extends LinearOpMode {
     }
 
     private void displayTelemetry() {
-        double currentVel = shooterMotor1.getVelocity();
+        double currentVel = shooterMotor2.getVelocity(); // ТЕСТ: читаем с motor2
         double error = targetVelocity - currentVel;
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
-        telemetry.addData("Motors", "shooterMotor1, shooterMotor2");
+        telemetry.addData("ENCODER", "motor2 (SWAPPED FOR TEST)");
+        telemetry.addData("NO ENCODER", "motor1");
         telemetry.addLine();
 
         // Status
