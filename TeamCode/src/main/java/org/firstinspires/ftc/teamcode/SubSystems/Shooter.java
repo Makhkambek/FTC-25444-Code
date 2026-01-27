@@ -39,10 +39,10 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
 
-    public double kP = 0.005;
+    public double kP = 0.011;
     public double kI = 0.0;
     public double kD = 0.0;
-    public double kF = 0.0;
+    public double kF = 0.00041;
 
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
@@ -65,7 +65,7 @@ public class Shooter {
 
     // Сглаживание output для уменьшения дергания motor2
     private double smoothedOutput = 0;
-    private static final double SMOOTHING_FACTOR = 0.8; // 0.0 = нет сглаживания, 1.0 = максимальное
+    private static final double SMOOTHING_FACTOR = 0.9; // 0.0 = нет сглаживания, 1.0 = максимальное
 
     private HoodPosition currentHoodPosition = HoodPosition.MIDDLE;
     private ShooterState currentState = ShooterState.IDLE;

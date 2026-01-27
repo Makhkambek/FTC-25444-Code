@@ -15,10 +15,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ShooterPIDTuner extends LinearOpMode {
 
     // PID коэффициенты (настраиваются через Dashboard)
-    public static double KP = 0.015; //checked
+    public static double KP = 0.011; //checked
     public static double KI = 0.0;
     public static double KD = 0.0;
-    public static double KF = 0.0004;  //checked
+    public static double KF = 0.00041;  //checked
 
     // Настройки
     public static double TARGET_VELOCITY = 1700; // ticks/sec
@@ -43,7 +43,7 @@ public class ShooterPIDTuner extends LinearOpMode {
 
     // Сглаживание output для уменьшения дергания motor2
     private double smoothedOutput = 0;
-    private static final double SMOOTHING_FACTOR = 0.8; // 0.0 = нет сглаживания, 1.0 = максимальное
+    private static final double SMOOTHING_FACTOR = 0.9; // 0.0 = нет сглаживания, 1.0 = максимальное
 
     // Button states
     private boolean prevA = false;
@@ -60,17 +60,16 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
 
-        // ТЕСТ: Motor2 теперь главный с энкодером
-        // Если толчки переместятся на motor1 - значит проблема в отсутствии PID контроля
-        shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        // Motor1 в REVERSE (теперь он без энкодера для PID)
+        // Motor1 БЕЗ REVERSE - используется для чтения velocity в PID
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Motor2 в REVERSE - для синхронного вращения
+        shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
@@ -139,7 +138,7 @@ public class ShooterPIDTuner extends LinearOpMode {
             return;
         }
 
-        double currentVelocity = shooterMotor2.getVelocity(); // ТЕСТ: читаем с motor2
+        double currentVelocity = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVelocity;
 
         double deltaTime = pidTimer.seconds();
@@ -200,12 +199,11 @@ public class ShooterPIDTuner extends LinearOpMode {
     }
 
     private void displayTelemetry() {
-        double currentVel = shooterMotor2.getVelocity(); // ТЕСТ: читаем с motor2
+        double currentVel = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVel;
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
-        telemetry.addData("ENCODER", "motor2 (SWAPPED FOR TEST)");
-        telemetry.addData("NO ENCODER", "motor1");
+        telemetry.addData("Motors", "shooterMotor1, shooterMotor2");
         telemetry.addLine();
 
         // Status
