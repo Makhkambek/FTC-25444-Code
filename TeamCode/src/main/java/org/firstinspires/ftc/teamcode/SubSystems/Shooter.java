@@ -47,6 +47,14 @@ public class Shooter {
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
 
+    // PID защита от спайков
+    private static final double MIN_DELTA_TIME = 0.010; // минимум 10 мс между обновлениями
+    private static final double MAX_DERIVATIVE = 500.0; // максимальное значение derivative
+
+    // Защита от толчков
+    private static final double OUTPUT_DEADBAND = 0.005; // минимальное изменение output для применения
+    private static final double MAX_OUTPUT_CHANGE = 0.05; // максимальное изменение за один цикл (rate limiter)
+
     // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
     private static final double HOOD_DEADZONE = 3.0;
 
@@ -54,6 +62,10 @@ public class Shooter {
     private double integralSum = 0;
     private double targetVelocity = 0; // Целевая скорость в ticks/sec
     private ElapsedTime pidTimer = new ElapsedTime();
+
+    // Сглаживание output для уменьшения дергания motor2
+    private double smoothedOutput = 0;
+    private static final double SMOOTHING_FACTOR = 0.8; // 0.0 = нет сглаживания, 1.0 = максимальное
 
     private HoodPosition currentHoodPosition = HoodPosition.MIDDLE;
     private ShooterState currentState = ShooterState.IDLE;
@@ -67,15 +79,16 @@ public class Shooter {
         shooterStop = hardwareMap.get(Servo.class, "shooterStop");
 
         // Настройка моторов для PID
+        // Motor1 БЕЗ REVERSE - для корректного чтения velocity
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        // ИСПРАВЛЕНО: Сбрасываем encoder для motor2
+        // Motor2 в REVERSE направлении (для синхронного вращения)
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         setHoodPosition(HoodPosition.CLOSE);
         shooterStop.setPosition(STOP_CLOSE);
 
@@ -216,31 +229,54 @@ public class Shooter {
         }
 
         double currentVelocity = shooterMotor1.getVelocity();
-
         double error = targetVelocity - currentVelocity;
 
         double deltaTime = pidTimer.seconds();
         pidTimer.reset();
 
-        if (deltaTime > 0) {
-            double derivative = (error - lastError) / deltaTime;
-            integralSum += error * deltaTime;
-
-            // Anti-windup: ограничиваем integral для предотвращения overshoot
-            integralSum = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integralSum));
-
-            // ИСПРАВЛЕНО: Feedforward должен умножаться на targetVelocity, а не быть константой
-            double output = (kP * error) + (kI * integralSum) + (kD * derivative) + (kF * targetVelocity);
-
-            // Ограничение выхода
-            output = Math.max(-1.0, Math.min(1.0, output));
-
-            // Устанавливаем мощность обоим моторам
-            shooterMotor1.setPower(output);
-            shooterMotor2.setPower(output); // Второй мотор просто повторяет первый
-
-            lastError = error;
+        // Защита от слишком маленького deltaTime (предотвращает derivative spike)
+        if (deltaTime < MIN_DELTA_TIME) {
+            return; // Пропускаем этот цикл, слишком быстро
         }
+
+        // Вычисляем derivative
+        double derivative = (error - lastError) / deltaTime;
+
+        // Ограничиваем derivative для предотвращения спайков
+        derivative = Math.max(-MAX_DERIVATIVE, Math.min(MAX_DERIVATIVE, derivative));
+
+        // Обновляем integral
+        integralSum += error * deltaTime;
+
+        // Anti-windup: ограничиваем integral для предотвращения overshoot
+        integralSum = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integralSum));
+
+        // PID calculation + Feedforward
+        double output = (kP * error) + (kI * integralSum) + (kD * derivative) + (kF * targetVelocity);
+
+        // Ограничение выхода
+        output = Math.max(-1.0, Math.min(1.0, output));
+
+        // Сглаживание output через EMA (Exponential Moving Average)
+        double newSmoothedOutput = (SMOOTHING_FACTOR * smoothedOutput) + ((1.0 - SMOOTHING_FACTOR) * output);
+
+        // Rate limiter - ограничиваем скорость изменения мощности
+        double outputChange = newSmoothedOutput - smoothedOutput;
+        if (Math.abs(outputChange) > MAX_OUTPUT_CHANGE) {
+            outputChange = Math.signum(outputChange) * MAX_OUTPUT_CHANGE;
+            newSmoothedOutput = smoothedOutput + outputChange;
+        }
+
+        // Deadband - применяем изменение только если оно достаточно большое
+        if (Math.abs(outputChange) > OUTPUT_DEADBAND) {
+            smoothedOutput = newSmoothedOutput;
+        }
+
+        // Устанавливаем мощность обоим моторам (используем сглаженный output)
+        shooterMotor1.setPower(smoothedOutput);
+        shooterMotor2.setPower(smoothedOutput);
+
+        lastError = error;
     }
 
     public void on() {
@@ -248,6 +284,7 @@ public class Shooter {
         targetVelocity = 2200; // ticks/sec - настройте под ваши моторы
         lastError = 0;
         integralSum = 0;
+        smoothedOutput = 0;
         pidTimer.reset();
     }
 
@@ -257,6 +294,7 @@ public class Shooter {
         shooterMotor2.setPower(0.0);
         lastError = 0;
         integralSum = 0;
+        smoothedOutput = 0;
     }
 
     public void setPower(double power) {
@@ -269,6 +307,7 @@ public class Shooter {
         targetVelocity = velocity;
         lastError = 0;
         integralSum = 0;
+        smoothedOutput = 0;
         pidTimer.reset();
     }
 

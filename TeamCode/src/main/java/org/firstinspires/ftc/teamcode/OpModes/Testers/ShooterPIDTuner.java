@@ -24,6 +24,14 @@ public class ShooterPIDTuner extends LinearOpMode {
     public static double TARGET_VELOCITY = 1700; // ticks/sec
     public static double INTEGRAL_LIMIT = 100.0; // Anti-windup
 
+    // PID защита от спайков
+    private static final double MIN_DELTA_TIME = 0.010; // минимум 10 мс
+    private static final double MAX_DERIVATIVE = 500.0; // максимальное значение derivative
+
+    // Защита от толчков
+    private static final double OUTPUT_DEADBAND = 0.005; // минимальное изменение output для применения
+    private static final double MAX_OUTPUT_CHANGE = 0.05; // максимальное изменение за один цикл (rate limiter)
+
     // Моторы
     private DcMotorEx shooterMotor1, shooterMotor2;
 
@@ -32,6 +40,10 @@ public class ShooterPIDTuner extends LinearOpMode {
     private double integralSum = 0;
     private double targetVelocity = 0;
     private ElapsedTime pidTimer = new ElapsedTime();
+
+    // Сглаживание output для уменьшения дергания motor2
+    private double smoothedOutput = 0;
+    private static final double SMOOTHING_FACTOR = 0.8; // 0.0 = нет сглаживания, 1.0 = максимальное
 
     // Button states
     private boolean prevA = false;
@@ -49,14 +61,16 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
 
         // Сброс энкодеров
+        // Motor1 БЕЗ REVERSE - используется для чтения velocity в PID
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
+        // Motor2 в REVERSE - для синхронного вращения
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
@@ -91,6 +105,7 @@ public class ShooterPIDTuner extends LinearOpMode {
             targetVelocity = TARGET_VELOCITY;
             lastError = 0;
             integralSum = 0;
+            smoothedOutput = 0;
             pidTimer.reset();
         }
 
@@ -130,25 +145,49 @@ public class ShooterPIDTuner extends LinearOpMode {
         double deltaTime = pidTimer.seconds();
         pidTimer.reset();
 
-        if (deltaTime > 0) {
-            double derivative = (error - lastError) / deltaTime;
-            integralSum += error * deltaTime;
-
-            // Anti-windup
-            integralSum = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integralSum));
-
-            // PID calculation (feedforward умножается на targetVelocity)
-            double output = (KP * error) + (KI * integralSum) + (KD * derivative) + (KF * targetVelocity);
-
-            // Clamp output
-            output = Math.max(-1.0, Math.min(1.0, output));
-
-            // Set power to both motors
-            shooterMotor1.setPower(output);
-            shooterMotor2.setPower(output);
-
-            lastError = error;
+        // Защита от слишком маленького deltaTime (предотвращает derivative spike)
+        if (deltaTime < MIN_DELTA_TIME) {
+            return; // Пропускаем этот цикл, слишком быстро
         }
+
+        // Вычисляем derivative
+        double derivative = (error - lastError) / deltaTime;
+
+        // Ограничиваем derivative для предотвращения спайков
+        derivative = Math.max(-MAX_DERIVATIVE, Math.min(MAX_DERIVATIVE, derivative));
+
+        // Обновляем integral
+        integralSum += error * deltaTime;
+
+        // Anti-windup
+        integralSum = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integralSum));
+
+        // PID calculation + Feedforward
+        double output = (KP * error) + (KI * integralSum) + (KD * derivative) + (KF * targetVelocity);
+
+        // Clamp output
+        output = Math.max(-1.0, Math.min(1.0, output));
+
+        // Сглаживание output через EMA (Exponential Moving Average)
+        double newSmoothedOutput = (SMOOTHING_FACTOR * smoothedOutput) + ((1.0 - SMOOTHING_FACTOR) * output);
+
+        // Rate limiter - ограничиваем скорость изменения мощности
+        double outputChange = newSmoothedOutput - smoothedOutput;
+        if (Math.abs(outputChange) > MAX_OUTPUT_CHANGE) {
+            outputChange = Math.signum(outputChange) * MAX_OUTPUT_CHANGE;
+            newSmoothedOutput = smoothedOutput + outputChange;
+        }
+
+        // Deadband - применяем изменение только если оно достаточно большое
+        if (Math.abs(outputChange) > OUTPUT_DEADBAND) {
+            smoothedOutput = newSmoothedOutput;
+        }
+
+        // Set power to both motors (используем сглаженный output)
+        shooterMotor1.setPower(smoothedOutput);
+        shooterMotor2.setPower(smoothedOutput);
+
+        lastError = error;
     }
 
     private void stopMotors() {
@@ -157,6 +196,7 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor2.setPower(0);
         lastError = 0;
         integralSum = 0;
+        smoothedOutput = 0;
     }
 
     private void displayTelemetry() {
@@ -191,6 +231,13 @@ public class ShooterPIDTuner extends LinearOpMode {
         telemetry.addData("kD", "%.5f", KD);
         telemetry.addData("kF", "%.5f", KF);
         telemetry.addData("Integral Sum", "%.2f", integralSum);
+        telemetry.addLine();
+
+        // Motor Power
+        telemetry.addLine("--- MOTOR POWER ---");
+        telemetry.addData("Smoothed Output", "%.3f", smoothedOutput);
+        telemetry.addData("Motor1 Power", "%.3f", shooterMotor1.getPower());
+        telemetry.addData("Motor2 Power", "%.3f", shooterMotor2.getPower());
         telemetry.addLine();
 
         // Controls
