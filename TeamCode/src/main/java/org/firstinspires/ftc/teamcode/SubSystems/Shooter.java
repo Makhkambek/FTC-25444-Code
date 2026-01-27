@@ -44,6 +44,9 @@ public class Shooter {
     public double kD = 0.0;
     public double kF = 0.0;
 
+    // Anti-windup limit для integral
+    private static final double INTEGRAL_LIMIT = 100.0;
+
     private double lastError = 0;
     private double integralSum = 0;
     private double targetVelocity = 0; // Целевая скорость в ticks/sec
@@ -64,10 +67,11 @@ public class Shooter {
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
+        // ИСПРАВЛЕНО: Сбрасываем encoder для motor2
+        shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         setHoodPosition(HoodPosition.CLOSE);
         shooterStop.setPosition(STOP_CLOSE);
 
@@ -204,7 +208,11 @@ public class Shooter {
             double derivative = (error - lastError) / deltaTime;
             integralSum += error * deltaTime;
 
-            double output = (kP * error) + (kI * integralSum) + (kD * derivative) + kF;
+            // Anti-windup: ограничиваем integral для предотвращения overshoot
+            integralSum = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integralSum));
+
+            // ИСПРАВЛЕНО: Feedforward должен умножаться на targetVelocity, а не быть константой
+            double output = (kP * error) + (kI * integralSum) + (kD * derivative) + (kF * targetVelocity);
 
             // Ограничение выхода
             output = Math.max(-1.0, Math.min(1.0, output));
@@ -281,7 +289,7 @@ public class Shooter {
         // Полный сброс shooter в начальное состояние
         off(); // Выключаем моторы
         shooterStop.setPosition(STOP_CLOSE); // Закрываем stop
-        setHoodPosition(HoodPosition.CLOSE); // Hood в начальную позицию
+        setHoodPosition(HoodPosition.CLOSE);
         currentState = ShooterState.IDLE; // Сбрасываем FSM
         stateTimer.reset();
     }

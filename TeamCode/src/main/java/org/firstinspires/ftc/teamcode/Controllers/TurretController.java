@@ -30,8 +30,7 @@ public class TurretController {
         double manualInput = gamepad.right_stick_x;
 
         if (Math.abs(manualInput) > JOYSTICK_DEADZONE) {
-            // Ручное управление - отменяем resetting и autoAim
-            turret.cancelReset();
+            // Ручное управление - отменяем autoAim
             if (autoAimEnabled) {
                 // Переключаемся с auto на manual - синхронизируем target
                 turret.syncManualTarget();

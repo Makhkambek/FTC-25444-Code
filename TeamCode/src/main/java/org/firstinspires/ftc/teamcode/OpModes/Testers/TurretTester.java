@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 // import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
 @Config
-
 @TeleOp(name="[TEST] Turret Tester", group="Testers")
 public class TurretTester extends LinearOpMode {
 
