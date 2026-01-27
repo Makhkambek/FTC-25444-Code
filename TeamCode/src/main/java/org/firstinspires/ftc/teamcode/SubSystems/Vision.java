@@ -14,8 +14,8 @@ public class Vision {
     private boolean active = false;
 
     // ID тегов для разных альянсов
-    public static final int RED_ALLIANCE_TAG = 11;   // AprilTag для красного альянса
-    public static final int BLUE_ALLIANCE_TAG = 12;  // AprilTag для синего альянса
+    public static final int RED_ALLIANCE_TAG = 24;   // AprilTag для красного альянса
+    public static final int BLUE_ALLIANCE_TAG = 21;  // AprilTag для синего альянса
 
     private int targetTagId = RED_ALLIANCE_TAG; // По умолчанию красный
 

@@ -59,6 +59,27 @@ public class VisionTester extends LinearOpMode {
         vision.stop();
     }
 
+    private double calculateHoodPosition(double distance) {
+        // Диапазоны: 30-150 см → 0.0-0.4, 150-300 см → 0.4-0.5
+        final double MIN_DISTANCE = 30.0;
+        final double MID_DISTANCE = 150.0;
+        final double MAX_DISTANCE = 300.0;
+
+        if (distance <= MIN_DISTANCE) {
+            return 0.0; // Минимум
+        } else if (distance <= MID_DISTANCE) {
+            // 30-150: интерполяция 0.0 → 0.4
+            double ratio = (distance - MIN_DISTANCE) / (MID_DISTANCE - MIN_DISTANCE);
+            return ratio * 0.4;
+        } else if (distance <= MAX_DISTANCE) {
+            // 150-300: интерполяция 0.4 → 0.5
+            double ratio = (distance - MID_DISTANCE) / (MAX_DISTANCE - MID_DISTANCE);
+            return 0.4 + (ratio * 0.1);
+        } else {
+            return 0.5; // Максимум
+        }
+    }
+
     private void displayTelemetry() {
         telemetry.addLine("=== VISION TESTER ===");
         telemetry.addData("Alliance", vision.getAllianceColor());
@@ -77,18 +98,22 @@ public class VisionTester extends LinearOpMode {
             telemetry.addData("Distance (cm)", "%.2f", distance);
             telemetry.addData("Yaw (degrees)", "%.2f", yaw);
 
-            // Hood calculation based on distance
-            String hoodPos;
+            // Hood calculation based on distance (servo position 0.0-0.5)
+            double hoodServoPos = calculateHoodPosition(distance);
+            telemetry.addData("Hood Servo Position", "%.3f", hoodServoPos);
+
+            // Range indicator
+            String rangeIndicator;
             if (distance < 30) {
-                hoodPos = "CLOSE";
-            } else if (distance < 50) {
-                hoodPos = "MIDDLE";
-            } else if (distance < 100) {
-                hoodPos = "FAR";
+                rangeIndicator = "TOO CLOSE";
+            } else if (distance <= 150) {
+                rangeIndicator = "CLOSE-MID (30-150cm)";
+            } else if (distance <= 300) {
+                rangeIndicator = "MID-FAR (150-300cm)";
             } else {
-                hoodPos = "OUT OF RANGE";
+                rangeIndicator = "OUT OF RANGE";
             }
-            telemetry.addData("Suggested Hood", hoodPos);
+            telemetry.addData("Range", rangeIndicator);
         } else {
             telemetry.addData("Distance", "---");
             telemetry.addData("Yaw", "---");

@@ -14,8 +14,8 @@ public class Shooter {
 
     public enum HoodPosition {
         CLOSE(0.0),
-        MIDDLE(0.5),
-        FAR(1.0);
+        MIDDLE(0.25),
+        FAR(0.5);
 
         public final double position;
 
@@ -47,6 +47,9 @@ public class Shooter {
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
 
+    // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
+    private static final double HOOD_DEADZONE = 3.0;
+
     private double lastError = 0;
     private double integralSum = 0;
     private double targetVelocity = 0; // Целевая скорость в ticks/sec
@@ -55,6 +58,7 @@ public class Shooter {
     private HoodPosition currentHoodPosition = HoodPosition.MIDDLE;
     private ShooterState currentState = ShooterState.IDLE;
     private ElapsedTime stateTimer = new ElapsedTime();
+    private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
 
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
@@ -80,40 +84,54 @@ public class Shooter {
 
     /**
      * Вычисляет динамическую позицию Hood на основе расстояния
-     * Расстояние в см, возвращает servo позицию (0.0 - 1.0)
-     * 0.0 = близко (низкий угол)
-     * 1.0 = далеко (высокий угол)
+     * Расстояние в см, возвращает servo позицию (0.0 - 0.5)
+     * 30 см → 0.0 (низкий угол)
+     * 150 см → 0.4
+     * 300 см → 0.5 (высокий угол)
      */
     private double calculateHoodPosition(double distance) {
-        // Маппинг расстояния на позицию servo
-        final double MIN_DISTANCE = 20.0;  // см - минимальная дистанция
-        final double MAX_DISTANCE = 80.0;  // см - максимальная дистанция
+        final double MIN_DISTANCE = 30.0;   // см
+        final double MID_DISTANCE = 150.0;  // см
+        final double MAX_DISTANCE = 300.0;  // см
 
         if (distance <= MIN_DISTANCE) {
-            return 0.0; // Очень близко - минимальный угол
-        } else if (distance >= MAX_DISTANCE) {
-            return 1.0; // Далеко - максимальный угол
+            return 0.0; // Минимум
+        } else if (distance <= MID_DISTANCE) {
+            // 30-150: интерполяция 0.0 → 0.4
+            double ratio = (distance - MIN_DISTANCE) / (MID_DISTANCE - MIN_DISTANCE);
+            return ratio * 0.4;
+        } else if (distance <= MAX_DISTANCE) {
+            // 150-300: интерполяция 0.4 → 0.5
+            double ratio = (distance - MID_DISTANCE) / (MAX_DISTANCE - MID_DISTANCE);
+            return 0.4 + (ratio * 0.1);
         } else {
-            // Линейная интерполяция между MIN и MAX
-            return (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
+            return 0.5; // Максимум
         }
     }
 
     /**
      * Обновляет позицию Hood на основе расстояния до цели
      * Расстояние в см
+     * Использует deadzone 3 см для предотвращения лишних движений
      */
     public void updateHood(double distance) {
         if (distance > 0) {
-            double position = calculateHoodPosition(distance);
-            hood.setPosition(position);
-            // Обновляем currentHoodPosition для телеметрии
-            if (position < 0.33) {
-                currentHoodPosition = HoodPosition.CLOSE;
-            } else if (position < 0.66) {
-                currentHoodPosition = HoodPosition.MIDDLE;
-            } else {
-                currentHoodPosition = HoodPosition.FAR;
+            // Проверяем deadzone - обновляем только если изменение > 3 см
+            if (lastHoodDistance < 0 || Math.abs(distance - lastHoodDistance) > HOOD_DEADZONE) {
+                double position = calculateHoodPosition(distance);
+                hood.setPosition(position);
+
+                // Обновляем currentHoodPosition для телеметрии
+                if (position < 0.2) {
+                    currentHoodPosition = HoodPosition.CLOSE;
+                } else if (position < 0.45) {
+                    currentHoodPosition = HoodPosition.MIDDLE;
+                } else {
+                    currentHoodPosition = HoodPosition.FAR;
+                }
+
+                // Сохраняем последнее расстояние
+                lastHoodDistance = distance;
             }
         }
     }
@@ -273,6 +291,10 @@ public class Shooter {
         return currentHoodPosition;
     }
 
+    public double getHoodServoPosition() {
+        return hood.getPosition();
+    }
+
     public ShooterState getCurrentState() {
         return currentState;
     }
@@ -292,6 +314,7 @@ public class Shooter {
         setHoodPosition(HoodPosition.CLOSE);
         currentState = ShooterState.IDLE; // Сбрасываем FSM
         stateTimer.reset();
+        lastHoodDistance = -1; // Сбрасываем deadzone tracking
     }
 
     // Testing methods
