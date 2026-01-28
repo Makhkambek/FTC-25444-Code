@@ -31,8 +31,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
 
         robot.start();
 
-        // Устанавливаем координаты красной корзины для автонаведения
-        robot.turret.setGoalPosition(Turret.redGoal.x, Turret.redGoal.y);
+        // Устанавливаем красную корзину для автонаведения
+        robot.turret.setAutoTargetByAlliance(true); // Red alliance
 
         while (opModeIsActive()) {
             // Обновление робота
@@ -71,15 +71,14 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Turret
         telemetry.addLine();
         telemetry.addLine("=== TURRET ===");
-        telemetry.addData("Current Angle", "%.1f°", robot.turret.getCurrentAngle());
+        telemetry.addData("Current Position", "%.0f ticks", robot.turret.getCurrentPosition());
+        telemetry.addData("Target Position", "%.0f ticks", robot.turret.getTargetPosition());
 
         String turretMode;
-        if (robot.turret.isTracking()) {
-            turretMode = "TRACKING";
-        } else if (robot.turret.hasGoal()) {
-            turretMode = "ODOMETRY";
+        if (robot.turret.atTarget()) {
+            turretMode = "AT TARGET";
         } else {
-            turretMode = "IDLE";
+            turretMode = "MOVING";
         }
         telemetry.addData("Mode", turretMode);
         telemetry.addData("Auto Aim", robot.turretController.isAutoAimEnabled() ? "ON" : "MANUAL");

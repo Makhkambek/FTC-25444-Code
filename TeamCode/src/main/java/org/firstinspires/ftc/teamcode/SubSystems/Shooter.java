@@ -150,20 +150,15 @@ public class Shooter {
     }
 
     /**
-     * Динамически обновляет Hood на основе расстояния
-     * Приоритет: Vision (если видит AprilTag), затем Odometry
+     * Динамически обновляет Hood на основе расстояния от Vision
      * Вызывать в loop() для автоматической настройки
      */
-    public void updateHoodDynamic(Turret turret, Vision vision) {
+    public void updateHoodDynamic(Vision vision) {
         double distance = 0;
 
-        // Приоритет 1: Vision - если камера видит AprilTag
+        // Vision - если камера видит AprilTag
         if (vision != null && vision.hasTargetTag()) {
             distance = vision.getTargetDistance();
-        }
-        // Приоритет 2: Odometry - расстояние до goal из турели
-        else if (turret != null && turret.hasGoal()) {
-            distance = turret.getDistanceToGoal();
         }
 
         // Обновляем Hood если есть валидное расстояние

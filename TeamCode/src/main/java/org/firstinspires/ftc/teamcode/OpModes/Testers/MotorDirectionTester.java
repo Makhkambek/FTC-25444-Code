@@ -34,15 +34,15 @@ public class MotorDirectionTester extends LinearOpMode {
 
         while (opModeIsActive()) {
             if (gamepad1.dpad_up) {
-                shooterMotor1.setPower(1.0);
+//                shooterMotor1.setPower(1.0);
                 shooterMotor2.setPower(1.0);
                 telemetry.addData("Status", "FORWARD");
             } else if (gamepad1.dpad_down) {
-                shooterMotor1.setPower(-1.0);
+//                shooterMotor1.setPower(-1.0);
                 shooterMotor2.setPower(-1.0);
                 telemetry.addData("Status", "BACKWARD");
             } else {
-                shooterMotor1.setPower(0.0);
+//                shooterMotor1.setPower(0.0);
                 shooterMotor2.setPower(0.0);
                 telemetry.addData("Status", "STOPPED");
             }

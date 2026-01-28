@@ -44,7 +44,7 @@ Robot {
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap, vision);
+        turret = new Turret(hardwareMap);
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
@@ -65,9 +65,8 @@ Robot {
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
-        // Динамически обновляем Hood на основе расстояния до цели
-        // Приоритет: Vision -> Odometry
-        shooter.updateHoodDynamic(turret, vision);
+        // Динамически обновляем Hood на основе расстояния до цели (Vision)
+        shooter.updateHoodDynamic(vision);
 
         shooter.updatePID();
 

@@ -1,16 +1,10 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
-import android.graphics.PointF;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Turret {
-    public static final PointF blueGoal = new PointF(12.0f, 138.0f);
-    public static final PointF redGoal = new PointF(132.0f, 138.0f);
-
     private DcMotor turretMotor;
-    private Localizer localizer;
-    private Vision vision;
 
     public double kP = 0.03;
     public double kI = 0.0;
@@ -19,152 +13,58 @@ public class Turret {
     private double integral = 0;
     private double lastError = 0;
 
-    private static final double MAX_ANGLE = 90;
-    private static final double MIN_ANGLE = -90;
+    // Позиции турели в тиках энкодера
+    public static final double RED_TARGET = 100;    // Позиция для красной корзины
+    public static final double BLUE_TARGET = -100;  // Позиция для синей корзины
+    public static final double ZERO = 0;            // Центр
 
-    private static final double TICKS_PER_DEGREE = 10.0;
+    private static final double MAX_POSITION = 200;  // Максимальная позиция (тики)
+    private static final double MIN_POSITION = -200; // Минимальная позиция (тики)
 
-    private Double goalX = null;
-    private Double goalY = null;
-
-    private static final double ANGLE_TOLERANCE = 2.0;
-    private static final double MOVEMENT_DEADZONE = 3.0; // градусов - минимальное изменение для реакции
+    private static final double POSITION_TOLERANCE = 20.0; // Допустимая ошибка в тиках
 
     // Manual control
-    private double manualTargetAngle = 0.0;
-    private static final double MANUAL_ANGLE_STEP = 30.0; // градусов на единицу джойстика
+    private double targetPosition = 0.0;
+    private static final double MANUAL_STEP = 15.0; // Тиков за цикл при ручном управлении
 
-    // Для отслеживания последнего целевого угла
-    private double lastTargetAngle = 0.0;
+    // Manual override (прямое управление без PID)
+    private static final double OVERRIDE_POWER = 0.4; // Фиксированная мощность для аварийного режима
 
-    public Turret(HardwareMap hardwareMap, Vision vision) {
+    public Turret(HardwareMap hardwareMap) {
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        localizer = Localizer.getInstance(hardwareMap);
-        this.vision = vision;
-        manualTargetAngle = 0.0;
+        targetPosition = ZERO;
     }
 
 
     /**
-     * Вычисляет угол турели для наведения на цель
-     * Использует формулу: α = arctan2(Y_цели - Y_робота, X_цели - X_робота)
-     * Angle_turret = Heading - α
-     */
-    private double calculateTargetAngle() {
-        if (goalX == null || goalY == null) {
-            return 0.0; // Нет цели - возвращаем центр
-        }
-
-        double robotX = localizer.getX();
-        double robotY = localizer.getY();
-        double robotHeading = localizer.getHeading();
-
-        // Разница координат
-        double deltaX = goalX - robotX;
-        double deltaY = goalY - robotY;
-
-        // Угол на цель α = arctan2(ΔY, ΔX) в градусах
-        double alpha = Math.toDegrees(Math.atan2(deltaY, deltaX));
-
-        // Угол турели = Heading - α
-        double turretAngle = normalizeAngle(robotHeading - alpha);
-
-        return Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngle));
-    }
-
-    /**
-     * Вычисляет расстояние до цели в см
-     */
-    public double getDistanceToGoal() {
-        if (goalX == null || goalY == null) {
-            return 0.0;
-        }
-
-        double robotX = localizer.getX();
-        double robotY = localizer.getY();
-
-        double deltaX = goalX - robotX;
-        double deltaY = goalY - robotY;
-
-        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    }
-
-    /**
-     * Автоприцеливание с использованием Vision и одометров
+     * Автоприцеливание на заданную позицию (RED_TARGET или BLUE_TARGET)
      */
     public void autoAim() {
-        if (vision != null && vision.hasTargetTag()) {
-            // Tag виден - наводимся напрямую на тег через камеру
-            trackTarget();
-        } else if (goalX != null && goalY != null) {
-            // Tag не виден, но есть координаты корзины - используем одометры
-            trackWithOdometry();
-        } else {
-            // Нет цели - останавливаемся
-            turretMotor.setPower(0);
-        }
-    }
-
-    /**
-     * Отслеживание цели с использованием одометров (когда камера не видит)
-     */
-    private void trackWithOdometry() {
-        if (goalX == null || goalY == null) {
-            turretMotor.setPower(0);
-            return;
-        }
-
-        double targetAngle = calculateTargetAngle();
-
-        // Deadzone: игнорируем маленькие изменения
-        double angleDifference = Math.abs(targetAngle - lastTargetAngle);
-        if (angleDifference < MOVEMENT_DEADZONE && lastTargetAngle != 0.0) {
-            // Используем предыдущий целевой угол
-            targetAngle = lastTargetAngle;
-        } else {
-            // Обновляем последний целевой угол
-            lastTargetAngle = targetAngle;
-        }
-
-        double currentAngle = getCurrentAngle();
-        double power = calculatePID(targetAngle, currentAngle);
+        double currentPosition = getCurrentPosition();
+        double power = calculatePID(targetPosition, currentPosition);
         turretMotor.setPower(power);
     }
 
     /**
-     * Отслеживание видимого AprilTag
+     * Установить цель для автоприцеливания (RED_TARGET, BLUE_TARGET, или ZERO)
      */
-    private void trackTarget() {
-        double yawError = vision.getTargetYaw();
+    public void setAutoTarget(double target) {
+        targetPosition = Math.max(MIN_POSITION, Math.min(MAX_POSITION, target));
+    }
 
-        if (Double.isNaN(yawError)) {
-            turretMotor.setPower(0);
-            return;
-        }
-
-        // PID для отслеживания на основе yaw ошибки
-        double currentAngle = getCurrentAngle();
-        double targetAngle = currentAngle + yawError;
-
-        // Ограничение углов
-        targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, targetAngle));
-
-        double power = calculatePID(targetAngle, currentAngle);
-        turretMotor.setPower(power);
+    /**
+     * Установить цель на основе альянса
+     */
+    public void setAutoTargetByAlliance(boolean isRedAlliance) {
+        targetPosition = isRedAlliance ? RED_TARGET : BLUE_TARGET;
     }
 
     private double calculatePID(double target, double current) {
         double error = target - current;
-
-        if (Math.abs(error) < ANGLE_TOLERANCE) {
-            integral = 0;
-            lastError = 0;
-            return 0;
-        }
 
         integral += error;
         double derivative = error - lastError;
@@ -174,69 +74,101 @@ public class Turret {
         return Math.max(-1.0, Math.min(1.0, power));
     }
 
-    public double getCurrentAngle() {
-        return turretMotor.getCurrentPosition() / TICKS_PER_DEGREE;
+    public double getCurrentPosition() {
+        return turretMotor.getCurrentPosition();
     }
 
-    private double normalizeAngle(double angle) {
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
-        return angle;
-    }
-
+    /**
+     * Ручное управление турелью через джойстик (с PID)
+     * Джойстик меняет целевую позицию, PID держит турель
+     */
     public void manualControl(double joystickInput) {
-        if (Math.abs(joystickInput) > 0) {
-            manualTargetAngle += joystickInput * MANUAL_ANGLE_STEP * 0.02; // 0.02 для плавности
+        if (Math.abs(joystickInput) > 0.1) { // Deadzone
+            targetPosition += joystickInput * MANUAL_STEP;
 
-            // Ограничиваем целевой угол
-            manualTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, manualTargetAngle));
+            // Ограничиваем позицию
+            targetPosition = Math.max(MIN_POSITION, Math.min(MAX_POSITION, targetPosition));
         }
 
-        // Используем PID для движения к целевому углу
-        double currentAngle = getCurrentAngle();
-        double power = calculatePID(manualTargetAngle, currentAngle);
+        // PID держит турель в targetPosition
+        double currentPosition = getCurrentPosition();
+        double power = calculatePID(targetPosition, currentPosition);
         turretMotor.setPower(power);
     }
 
+    /**
+     * АВАРИЙНЫЙ режим: прямое управление мощностью БЕЗ PID
+     * Используй если автоматика даст сбой
+     *
+     * @param direction: -1 = влево, 0 = стоп, +1 = вправо
+     */
+    public void manualOverride(double direction) {
+        // Сбрасываем PID состояние чтобы не было "борьбы"
+        integral = 0;
+        lastError = 0;
+
+        // Синхронизируем targetPosition с текущей позицией
+        // Чтобы когда вернемся к PID - турель не дернулась
+        targetPosition = getCurrentPosition();
+
+        // Прямое управление мощностью
+        if (Math.abs(direction) > 0.1) {
+            double power = Math.signum(direction) * OVERRIDE_POWER;
+
+            // Защита от выхода за пределы
+            double currentPos = getCurrentPosition();
+            if ((power > 0 && currentPos >= MAX_POSITION) ||
+                (power < 0 && currentPos <= MIN_POSITION)) {
+                turretMotor.setPower(0);
+            } else {
+                turretMotor.setPower(power);
+            }
+        } else {
+            turretMotor.setPower(0);
+        }
+    }
+
+    /**
+     * Синхронизировать targetPosition с текущей позицией
+     * Вызывай перед переходом на manual control чтобы не было резкого движения
+     */
     public void syncManualTarget() {
-        // Синхронизируем manual target с текущим углом
-        manualTargetAngle = getCurrentAngle();
+        targetPosition = getCurrentPosition();
     }
 
+    /**
+     * Установить целевую позицию напрямую (в тиках)
+     */
     public void setTargetPosition(double position) {
-        // Устанавливаем целевую позицию напрямую (для автономки)
-        // position - это обороты/тики энкодера (например, 100 или -100)
-        // PIDF мотора сам держит позицию
-        manualTargetAngle = position;
+        targetPosition = Math.max(MIN_POSITION, Math.min(MAX_POSITION, position));
     }
 
+    /**
+     * Вернуть турель в центр (0)
+     */
     public void returnToCenter() {
-        // Устанавливаем целевую позицию на 0 (центр)
-        setTargetPosition(0.0);
+        setTargetPosition(ZERO);
     }
 
+    /**
+     * Турель в центральной позиции?
+     */
     public boolean isCentered() {
-        return Math.abs(getCurrentAngle()) < ANGLE_TOLERANCE;
+        return Math.abs(getCurrentPosition()) < POSITION_TOLERANCE;
     }
 
     /**
-     * Установить координаты цели вручную
+     * Получить текущую целевую позицию
      */
-    public void setGoalPosition(double x, double y) {
-        this.goalX = x;
-        this.goalY = y;
+    public double getTargetPosition() {
+        return targetPosition;
     }
 
     /**
-     * Установить координаты цели на основе альянса
+     * Турель достигла целевой позиции?
      */
-    public void setGoalByAlliance(boolean isRedAlliance) {
-        PointF goal = isRedAlliance ? redGoal : blueGoal;
-        setGoalPosition(goal.x, goal.y);
-    }
-
-    public boolean hasGoal() {
-        return goalX != null && goalY != null;
+    public boolean atTarget() {
+        return Math.abs(targetPosition - getCurrentPosition()) < POSITION_TOLERANCE;
     }
 
     public void setPID(double p, double i, double d) {
@@ -254,9 +186,6 @@ public class Turret {
     public void resetEncoder() {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-
-    public boolean isTracking() {
-        return vision != null && vision.hasTargetTag();
+        targetPosition = ZERO;
     }
 }
