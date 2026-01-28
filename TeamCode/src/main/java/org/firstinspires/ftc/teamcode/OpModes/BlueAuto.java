@@ -162,7 +162,7 @@ public class BlueAuto extends OpMode {
         vision = new Vision();
         vision.init(hardwareMap);
         vision.setAlliance(false); // Blue alliance
-        turret = new Turret(hardwareMap);
+        turret = new Turret(hardwareMap, vision, localizer);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
@@ -179,7 +179,7 @@ public class BlueAuto extends OpMode {
 
         turret.setAutoTargetByAlliance(false); // Blue alliance
 
-        turret.setTargetPosition(100);
+        turret.setTargetAngle(45.0); // Или используй setAutoTargetByAlliance выше
 
         setPathState(0);
     }

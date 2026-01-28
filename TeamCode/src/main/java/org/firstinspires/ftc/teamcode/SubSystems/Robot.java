@@ -44,7 +44,7 @@ Robot {
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap);
+        turret = new Turret(hardwareMap, vision, localizer);
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);

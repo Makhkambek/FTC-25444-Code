@@ -71,8 +71,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Turret
         telemetry.addLine();
         telemetry.addLine("=== TURRET ===");
-        telemetry.addData("Current Position", "%.0f ticks", robot.turret.getCurrentPosition());
-        telemetry.addData("Target Position", "%.0f ticks", robot.turret.getTargetPosition());
+        telemetry.addData("Current Angle", "%.1f°", robot.turret.getCurrentAngle());
+        telemetry.addData("Target Angle", "%.1f°", robot.turret.getTargetAngle());
 
         String turretMode;
         if (robot.turret.atTarget()) {
