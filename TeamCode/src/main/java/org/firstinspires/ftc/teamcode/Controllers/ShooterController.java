@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Controllers;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Intake;

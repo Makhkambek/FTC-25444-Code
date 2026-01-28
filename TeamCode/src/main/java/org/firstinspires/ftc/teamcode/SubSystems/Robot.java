@@ -44,7 +44,7 @@ Robot {
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap, vision);
+        turret = new Turret(hardwareMap, vision, localizer);
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
@@ -61,13 +61,15 @@ Robot {
     }
 
     public void update(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        // Обновляем Localizer (один раз!)
         localizer.update();
 
-        // DriveTrain
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
-        // Контроллеры (передаем gamepad2)
+        // Динамически обновляем Hood на основе расстояния до цели (Vision)
+        shooter.updateHoodDynamic(vision);
+
+        shooter.updatePID();
+
         // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
         updateControllers(gamepad2);
 

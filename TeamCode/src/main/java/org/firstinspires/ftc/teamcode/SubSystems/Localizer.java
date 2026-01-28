@@ -9,7 +9,6 @@ public class Localizer {
     private static Localizer instance = null;
     private GoBildaPinpointDriver pinpoint;
 
-    // Позиция робота
     private double x = 0;
     private double y = 0;
     private double heading = 0;
@@ -84,6 +83,19 @@ public class Localizer {
         heading = 0;
         rawHeading = 0;
         prevRawHeading = 0;
+    }
+
+    /**
+     * Установить позицию робота (для передачи из Auto в TeleOp)
+     * x, y - в MM, heading - в градусах
+     * Localizer сохраняет координаты через Singleton между Auto и TeleOp
+     */
+    public void setPosition(double x, double y, double heading) {
+        this.x = x;
+        this.y = y;
+        this.heading = heading;
+        this.rawHeading = heading;
+        this.prevRawHeading = heading;
     }
 
     // === GETTERS ===

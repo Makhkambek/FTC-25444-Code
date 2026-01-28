@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
+import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name="Blue Auto", group="Autonomous")
@@ -28,6 +29,7 @@ public class BlueAuto extends OpMode {
     private Shooter shooter;
     private Turret turret;
     private Vision vision;
+    private Localizer localizer;
 
     public void buildPaths() {
         // Path 1: BezierLine (39.945, 135.779) -> (60.0, 84.0)
@@ -132,6 +134,11 @@ public class BlueAuto extends OpMode {
             case 8: // Ожидание завершения Path 4 - завершение
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.1) {
                     intake.off();
+
+                    // Сохраняем финальную позицию робота для передачи в TeleOp
+                    // Измените на фактические координаты конца автономки
+                    localizer.setPosition(16.503, 58.841, 150);
+
                     setPathState(9);
                 }
                 break;
@@ -148,15 +155,15 @@ public class BlueAuto extends OpMode {
 
     @Override
     public void init() {
-        // Инициализация subsystems
+        localizer = Localizer.getInstance(hardwareMap);
+
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
         vision = new Vision();
         vision.init(hardwareMap);
         vision.setAlliance(false); // Blue alliance
-        turret = new Turret(hardwareMap, vision);
+        turret = new Turret(hardwareMap, vision, localizer);
 
-        // Инициализация follower
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
 
@@ -169,12 +176,19 @@ public class BlueAuto extends OpMode {
     public void start() {
         vision.start();
         pathTimer.resetTimer();
+
+        turret.setAutoTargetByAlliance(false); // Blue alliance
+
+        turret.setTargetAngle(45.0); // Или используй setAutoTargetByAlliance выше
+
         setPathState(0);
     }
 
     @Override
     public void loop() {
         follower.update();
+        localizer.update();
+        shooter.updatePID();
         shooter.updateFSM(intake);
         autonomousPathUpdate();
     }
