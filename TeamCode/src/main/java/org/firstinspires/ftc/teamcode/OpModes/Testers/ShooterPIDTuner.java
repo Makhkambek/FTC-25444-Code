@@ -10,15 +10,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.SubSystems.Intake;
+
 @Config
 @TeleOp(name="[PID] Shooter Motors Only", group="Testers")
 public class ShooterPIDTuner extends LinearOpMode {
 
     // PID коэффициенты (настраиваются через Dashboard)
-    public static double KP = 0.011; //checked
-    public static double KI = 0.0;
-    public static double KD = 0.0;
-    public static double KF = 0.00041;  //checked
+    public static double KP = 0.013; //checked
+    public static double KI = 0.00015;
+    public static double KD = 0.005;
+    public static double KF = 0.00048;  //checked
 
     // Настройки
     public static double TARGET_VELOCITY = 1700; // ticks/sec
@@ -34,6 +36,9 @@ public class ShooterPIDTuner extends LinearOpMode {
 
     // Моторы
     private DcMotorEx shooterMotor1, shooterMotor2;
+
+    // Intake subsystem
+    private Intake intake;
 
     // PID переменные
     private double lastError = 0;
@@ -69,15 +74,20 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
+        // Инициализация Intake
+        intake = new Intake(hardwareMap);
+
         telemetry.addLine("=== SHOOTER PID TUNER ===");
-        telemetry.addLine("Motors Only - No Servos");
+        telemetry.addLine("Motors + Intake Test");
         telemetry.addLine();
         telemetry.addLine("CONTROLS:");
         telemetry.addLine("A: Start Motors");
         telemetry.addLine("B: Stop Motors");
+        telemetry.addLine("Right Trigger: Intake ON");
         telemetry.addLine("Dpad Up: +100 velocity");
         telemetry.addLine("Dpad Down: -100 velocity");
         telemetry.addLine();
@@ -96,6 +106,7 @@ public class ShooterPIDTuner extends LinearOpMode {
 
         // Cleanup
         stopMotors();
+        intake.off();
     }
 
     private void handleControls() {
@@ -111,6 +122,13 @@ public class ShooterPIDTuner extends LinearOpMode {
         // B: Stop motors
         if (gamepad1.b && !prevB) {
             stopMotors();
+        }
+
+        // Right Trigger: Intake control
+        if (gamepad1.right_trigger > 0.1) {
+            intake.on();
+        } else {
+            intake.off();
         }
 
         // Dpad Up: Increase velocity
@@ -138,7 +156,8 @@ public class ShooterPIDTuner extends LinearOpMode {
             return;
         }
 
-        double currentVelocity = shooterMotor1.getVelocity();
+        // Инвертируем velocity т.к. motor1 в REVERSE (encoder считает в минус)
+        double currentVelocity = -shooterMotor1.getVelocity();
         double error = targetVelocity - currentVelocity;
 
         double deltaTime = pidTimer.seconds();
@@ -193,13 +212,15 @@ public class ShooterPIDTuner extends LinearOpMode {
         targetVelocity = 0;
         shooterMotor1.setPower(0);
         shooterMotor2.setPower(0);
+        intake.off();
         lastError = 0;
         integralSum = 0;
         smoothedOutput = 0;
     }
 
     private void displayTelemetry() {
-        double currentVel = shooterMotor1.getVelocity();
+        // Инвертируем velocity т.к. motor1 в REVERSE
+        double currentVel = -shooterMotor1.getVelocity();
         double error = targetVelocity - currentVel;
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");
@@ -208,7 +229,8 @@ public class ShooterPIDTuner extends LinearOpMode {
 
         // Status
         telemetry.addLine("--- STATUS ---");
-        telemetry.addData("Running", targetVelocity > 0 ? "YES" : "NO");
+        telemetry.addData("Shooter Running", targetVelocity > 0 ? "YES" : "NO");
+        telemetry.addData("Intake", gamepad1.right_trigger > 0.1 ? "ON" : "OFF");
         telemetry.addLine();
 
         // Velocity
@@ -243,6 +265,7 @@ public class ShooterPIDTuner extends LinearOpMode {
         telemetry.addLine("--- CONTROLS ---");
         telemetry.addData("A", "Start motors");
         telemetry.addData("B", "Stop motors");
+        telemetry.addData("Right Trigger", "Intake ON");
         telemetry.addData("Dpad Up", "+100 velocity");
         telemetry.addData("Dpad Down", "-100 velocity");
         telemetry.addLine();

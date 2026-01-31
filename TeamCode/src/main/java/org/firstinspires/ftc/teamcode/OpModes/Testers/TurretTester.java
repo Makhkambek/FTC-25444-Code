@@ -220,6 +220,11 @@ public class TurretTester extends LinearOpMode {
         telemetry.addData("At Target", turret.atTarget() ? "YES" : "NO");
         telemetry.addLine();
 
+        // Motor Power
+        telemetry.addLine("--- MOTOR ---");
+        telemetry.addData("Motor Power", "%.3f", turret.getMotorPower());
+        telemetry.addLine();
+
         // PIDF коэффициенты (только в NORMAL режиме)
         if (currentMode == ControlMode.NORMAL) {
             telemetry.addLine("--- PIDF (Dashboard) ---");

@@ -385,6 +385,13 @@ public class Turret {
     }
 
     /**
+     * Получить текущую мощность мотора
+     */
+    public double getMotorPower() {
+        return turretMotor.getPower();
+    }
+
+    /**
      * Турель отслеживает цель? (Vision или Odometry работают)
      */
     public boolean isTracking() {

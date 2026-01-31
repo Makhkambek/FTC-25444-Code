@@ -39,10 +39,10 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
 
-    public double kP = 0.011;
-    public double kI = 0.0;
-    public double kD = 0.0;
-    public double kF = 0.00041;
+    public double kP = 0.013;
+    public double kI = 0.00015;
+    public double kD = 0.005;
+    public double kF = 0.00048;
 
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
@@ -88,7 +88,8 @@ public class Shooter {
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         setHoodPosition(HoodPosition.CLOSE);
         shooterStop.setPosition(STOP_CLOSE);
 
