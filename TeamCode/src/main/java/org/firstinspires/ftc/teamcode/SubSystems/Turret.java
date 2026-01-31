@@ -8,10 +8,11 @@ public class Turret {
     private Vision vision;
     private Localizer localizer;
 
-    public double kP = 0.018;
+    // PIDF коэффициенты (настроены для плавного tracking)
+    public double kP = 0.035;   // Уменьшен для плавности
     public double kI = 0.0;
-    public double kD = 0.0013;
-    public double kF = 0.002; // Feedforward для преодоления трения
+    public double kD = 0.008;   // Увеличен для демпфирования
+    public double kF = 0.0015;  // Feedforward для преодоления трения
 
     private double integral = 0;
     private double lastError = 0;
@@ -21,10 +22,15 @@ public class Turret {
     public static final double BLUE_TARGET = -45.0;  // Позиция для синей корзины
     public static final double ZERO = 0.0;           // Центр
 
-    private static final double MAX_ANGLE = 90.0;    // Максимальный угол (градусы)
-    private static final double MIN_ANGLE = -90.0;   // Минимальный угол (градусы)
+    // 270° диапазон: от -135° до +135°
+    private static final double MAX_ANGLE = 135.0;   // Максимальный угол (градусы)
+    private static final double MIN_ANGLE = -135.0;  // Минимальный угол (градусы)
 
     private static final double ANGLE_TOLERANCE = 2.0; // Допустимая ошибка в градусах
+
+    // Сглаживание для плавного tracking
+    private static final double SMOOTHING_FACTOR = 0.15; // 0.0-1.0, меньше = плавнее
+    private double smoothedTargetAngle = 0.0;
 
     // Конвертация: тики ↔ градусы
     // ЭТУ КОНСТАНТУ настроишь экспериментально:
@@ -32,7 +38,7 @@ public class Turret {
     // 2. Поверни турель на 90°
     // 3. Посмотри тики (например, 900)
     // 4. TICKS_PER_DEGREE = 900 / 90 = 10.0
-    public static double TICKS_PER_DEGREE = 1.2; // Откалибровано: 108 ticks / 90° = 1.2
+    public static double TICKS_PER_DEGREE  = 3.2; // Откалибровано: 108 ticks / 90° = 1.2
 
     // Manual control
     private double targetAngle = 0.0;
@@ -121,27 +127,37 @@ public class Turret {
 
     /**
      * Рассчитать угол турели для наведения на цель через одометрию
+     *
+     * Формула:
+     * 1. targetDirection = atan2(yTarget - y, xTarget - x) — направление на цель в field coordinates
+     * 2. turretAngle = targetDirection - robotHeading — угол турели относительно робота
      */
     private double calculateTargetAngle() {
-        if (goalX == null || goalY == null) {
-            return 0.0; // Нет цели - возвращаем центр
+        if (goalX == null || goalY == null || localizer == null) {
+            return 0.0; // Нет цели или локалайзера - возвращаем центр
         }
 
         double robotX = localizer.getX();
         double robotY = localizer.getY();
-        double robotHeading = localizer.getHeading();
+        double robotHeadingRad = Math.toRadians(localizer.getHeading());
 
-        // Разница координат
-        double deltaX = goalX - robotX;
-        double deltaY = goalY - robotY;
+        // Направление на цель в field coordinates (радианы)
+        double targetDirection = Math.atan2(goalY - robotY, goalX - robotX);
 
-        // Угол на цель α = arctan2(ΔY, ΔX) в градусах
-        double alpha = Math.toDegrees(Math.atan2(deltaY, deltaX));
-
-        // Угол турели = Heading - α
-        double turretAngle = normalizeAngle(robotHeading - alpha);
+        // Угол турели = направление на цель - heading робота
+        double turretAngleRad = normalizeRadians(targetDirection - robotHeadingRad);
+        double turretAngle = Math.toDegrees(turretAngleRad);
 
         return Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngle));
+    }
+
+    /**
+     * Нормализация угла в радианах в диапазон [-π, π]
+     */
+    private double normalizeRadians(double angleRad) {
+        while (angleRad > Math.PI) angleRad -= 2 * Math.PI;
+        while (angleRad < -Math.PI) angleRad += 2 * Math.PI;
+        return angleRad;
     }
 
     /**
@@ -154,24 +170,36 @@ public class Turret {
     }
 
     /**
-     * Автоприцеливание:
-     * 1. Если Vision видит AprilTag - используем yaw
-     * 2. Если нет - используем одометрию (calculateTargetAngle)
+     * Автоприцеливание с плавным сглаживанием:
+     * 1. Если есть одометрия и установлена цель - используем calculateTargetAngle
+     * 2. Если нет - используем Vision (yaw от AprilTag)
+     *
+     * Использует EMA (Exponential Moving Average) для плавного движения
      */
     public void autoAim() {
-        // Приоритет 1: Vision
-        if (vision != null && vision.hasTargetTag()) {
+        double rawTarget = targetAngle; // Сохраняем текущий target как fallback
+
+        // Приоритет 1: Odometry
+        if (hasGoal() && localizer != null) {
+            rawTarget = calculateTargetAngle();
+        }
+        // Приоритет 2: Vision
+        else if (vision != null && vision.hasTargetTag()) {
             double yaw = vision.getTargetYaw();
             if (!Double.isNaN(yaw)) {
-                targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
+                rawTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
             }
         }
-        // Приоритет 2: Odometry
-        else if (hasGoal()) {
-            targetAngle = calculateTargetAngle();
-        }
 
-        // Применяем PID
+        // Плавное сглаживание через EMA (Exponential Moving Average)
+        // smoothedTarget = smoothedTarget + factor * (rawTarget - smoothedTarget)
+        smoothedTargetAngle += SMOOTHING_FACTOR * (rawTarget - smoothedTargetAngle);
+
+        // Ограничиваем диапазон
+        smoothedTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, smoothedTargetAngle));
+        targetAngle = smoothedTargetAngle;
+
+        // Применяем PIDF
         double currentAngle = getCurrentAngle();
         double power = calculatePIDF(targetAngle, currentAngle);
         turretMotor.setPower(power);
@@ -191,19 +219,43 @@ public class Turret {
         targetAngle = isRedAlliance ? RED_TARGET : BLUE_TARGET;
     }
 
+    // Для сглаживания выходной мощности
+    private static final double POWER_SMOOTHING = 0.3; // 0.0-1.0
+    private double lastPower = 0.0;
+
+    // Anti-windup лимит для интеграла
+    private static final double INTEGRAL_LIMIT = 50.0;
+
     private double calculatePIDF(double target, double current) {
         double error = target - current;
 
+        // Anti-windup: ограничиваем накопление интеграла
         integral += error;
+        integral = Math.max(-INTEGRAL_LIMIT, Math.min(INTEGRAL_LIMIT, integral));
+
+        // Сброс интеграла когда пересекаем ноль (помогает убрать overshoot)
+        if (Math.signum(error) != Math.signum(lastError) && lastError != 0) {
+            integral = 0;
+        }
+
         double derivative = error - lastError;
         lastError = error;
 
         // PIDF = PID + Feedforward
         // kF помогает преодолеть статическое трение
-        double feedforward = kF * Math.signum(error);
-        double power = (kP * error) + (kI * integral) + (kD * derivative) + feedforward;
+        double feedforward = (Math.abs(error) > 1.0) ? kF * Math.signum(error) : 0;
+        double rawPower = (kP * error) + (kI * integral) + (kD * derivative) + feedforward;
 
-        return Math.max(-1.0, Math.min(1.0, power));
+        // Сглаживание выходной мощности (убирает рывки)
+        double smoothedPower = lastPower + POWER_SMOOTHING * (rawPower - lastPower);
+        lastPower = smoothedPower;
+
+        // Deadzone - если ошибка маленькая и мощность маленькая, не дёргаем мотор
+        if (Math.abs(error) < 1.0 && Math.abs(smoothedPower) < 0.05) {
+            return 0.0;
+        }
+
+        return Math.max(-0.8, Math.min(0.8, smoothedPower)); // Ограничиваем макс мощность
     }
 
     /**
@@ -289,7 +341,12 @@ public class Turret {
      * Вызывай перед переходом на manual control чтобы не было резкого движения
      */
     public void syncManualTarget() {
-        targetAngle = getCurrentAngle();
+        double currentAngle = getCurrentAngle();
+        targetAngle = currentAngle;
+        smoothedTargetAngle = currentAngle;
+        integral = 0;
+        lastError = 0;
+        lastPower = 0;
     }
 
     /**
@@ -350,11 +407,16 @@ public class Turret {
         turretMotor.setPower(0);
         integral = 0;
         lastError = 0;
+        lastPower = 0;
     }
 
     public void resetEncoder() {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         targetAngle = ZERO;
+        smoothedTargetAngle = ZERO;
+        integral = 0;
+        lastError = 0;
+        lastPower = 0;
     }
 }

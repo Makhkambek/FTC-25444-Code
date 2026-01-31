@@ -8,23 +8,27 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
+import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
+import org.firstinspires.ftc.teamcode.SubSystems.DriveTrain;
 
 @Config
 @TeleOp(name="[TEST] Turret Tester", group="Testers")
 public class TurretTester extends LinearOpMode {
 
-    // PIDF коэффициенты для настройки через Dashboard
-    public static double KP = 0.02;
+    // PIDF коэффициенты для настройки через Dashboard (оптимизированы для плавности)
+    public static double KP = 0.035;
     public static double KI = 0.0;
-    public static double KD = 0.009;
-    public static double KF = 0.0007; // Feedforward для преодоления трения
+    public static double KD = 0.008;
+    public static double KF = 0.0015; // Feedforward для преодоления трения
 
-    // Test positions (в градусах)
-    public static double RED_POSITION = 45.0;   // Красная корзина
-    public static double BLUE_POSITION = -45.0; // Синяя корзина
+    // Test positions (в градусах) - теперь 270° диапазон (-135 до +135)
+    public static double RED_POSITION = 90.0;   // Тест правая сторона
+    public static double BLUE_POSITION = -90.0; // Тест левая сторона
 
     private Turret turret;
     private Vision vision;
+    private Localizer localizer;
+    private DriveTrain driveTrain;
 
     private boolean prevDpadUp = false;
     private boolean prevA = false;
@@ -47,17 +51,34 @@ public class TurretTester extends LinearOpMode {
         // Настройка телеметрии для Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
+        // Инициализация Localizer (ПЕРВЫМ!)
+        localizer = Localizer.getInstance(hardwareMap);
+
+        // Устанавливаем начальную позицию робота (твои координаты)
+        localizer.setPosition(39.29196050775742, 135.56276445698165, 0.0);
+
         // Инициализация Vision
         vision = new Vision();
         vision.init(hardwareMap);
-        vision.setAlliance(true); // По умолчанию RED (можно поменять на false для BLUE)
+        vision.setAlliance(false); // BLUE alliance (tag 21)
 
-        // Создаем Turret с Vision (БЕЗ Localizer - он не нужен для Vision tracking)
-        turret = new Turret(hardwareMap, vision);
+        // Создаем DriveTrain для передвижения
+        driveTrain = new DriveTrain(hardwareMap, localizer);
 
-        telemetry.addLine("=== TURRET TESTER ===");
+        // Создаем Turret с Vision и Localizer
+        turret = new Turret(hardwareMap, vision, localizer);
+
+        // Устанавливаем координаты цели для автонаведения (твои координаты)
+        turret.setGoalPosition(12.076163610719336, 135.56276445698165);
+
+        telemetry.addLine("=== TURRET TESTER WITH ODOMETRY ===");
         telemetry.addLine();
-        telemetry.addLine("NORMAL MODE:");
+        telemetry.addLine("DRIVETRAIN (Gamepad1):");
+        telemetry.addLine("Left Stick: Movement (Field-centric)");
+        telemetry.addLine("Right Stick X: Rotation");
+        telemetry.addLine("Right Trigger: Slow mode (30%)");
+        telemetry.addLine();
+        telemetry.addLine("TURRET NORMAL MODE (Gamepad1):");
         telemetry.addLine("Right Stick X: Manual control (PIDF)");
         telemetry.addLine("Right Trigger (HOLD): Vision auto-aim");
         telemetry.addLine("Dpad Up: CENTER (0°)");
@@ -72,6 +93,9 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("A: Stop turret");
         telemetry.addLine("B: Reset encoder");
         telemetry.addLine();
+        telemetry.addLine("Auto-aim: ODOMETRY (Priority 1), Vision (Priority 2)");
+        telemetry.addLine("Goal: (12.08, 135.56) mm");
+        telemetry.addLine();
         telemetry.addLine("Tune PIDF via FTC Dashboard");
         telemetry.update();
 
@@ -84,6 +108,12 @@ public class TurretTester extends LinearOpMode {
         turret.resetEncoder();
 
         while (opModeIsActive()) {
+            // Обновляем Localizer (ПЕРВЫМ!)
+            localizer.update();
+
+            // Обновляем DriveTrain (gamepad1 для движения)
+            driveTrain.update(gamepad1);
+
             // Обновляем PIDF коэффициенты из Dashboard
             turret.setPIDF(KP, KI, KD, KF);
 
@@ -200,6 +230,18 @@ public class TurretTester extends LinearOpMode {
             telemetry.addLine();
         }
 
+        // Odometry (только в NORMAL режиме)
+        if (currentMode == ControlMode.NORMAL) {
+            telemetry.addLine("--- ODOMETRY ---");
+            telemetry.addData("Robot X (mm)", "%.1f", localizer.getX());
+            telemetry.addData("Robot Y (mm)", "%.1f", localizer.getY());
+            telemetry.addData("Robot Heading", "%.1f°", localizer.getHeading());
+            telemetry.addData("Goal X (mm)", "12.08");
+            telemetry.addData("Goal Y (mm)", "135.56");
+            telemetry.addData("Distance to Goal (mm)", "%.1f", turret.getDistanceToGoal());
+            telemetry.addLine();
+        }
+
         // Vision (только в NORMAL режиме)
         if (currentMode == ControlMode.NORMAL) {
             telemetry.addLine("--- VISION ---");
@@ -216,6 +258,17 @@ public class TurretTester extends LinearOpMode {
             } else {
                 telemetry.addData("Distance", "---");
                 telemetry.addData("Yaw", "---");
+            }
+            telemetry.addLine();
+
+            // Tracking mode indicator
+            telemetry.addLine("--- AUTO-AIM MODE ---");
+            if (turret.hasGoal()) {
+                telemetry.addData("Active Mode", "ODOMETRY (Priority 1) ✓");
+            } else if (vision.hasTargetTag()) {
+                telemetry.addData("Active Mode", "VISION (Priority 2)");
+            } else {
+                telemetry.addData("Active Mode", "MANUAL");
             }
             telemetry.addLine();
         }
