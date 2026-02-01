@@ -196,35 +196,39 @@ public class Turret {
     /**
      * Рассчитать угол турели для наведения на цель через одометрию
      *
-     * ЛОГИКА С POSE ОБЪЕКТАМИ:
-     * 1. Получаем currentPose от follower.getPose() (СВЕЖИЙ КАЖДЫЙ РАЗ!)
-     * 2. Используем goalPose как target
-     * 3. Вычисляем угол от current к goal в field coordinates
-     * 4. Вычитаем robot heading для получения robot-relative угла
-     * 5. Нормализуем в [-π, π] и конвертируем в градусы
+     * PEDRO PATHING COORDINATE SYSTEM:
+     * - X = Forward/Backward (vertical axis on visualizer)
+     * - Y = Left/Right (horizontal axis on visualizer)
+     * - Source of truth: follower.getPose()
      *
-     * ВАЖНО: Все вычисления в радианах для точности, конвертация в градусы в конце
+     * MATHEMATICAL STEPS:
+     * 1. Calculate field angle: worldAngle = atan2(deltaY, deltaX)
+     * 2. Convert to robot-relative: relativeAngle = worldAngle - robotHeading
+     * 3. Normalize to [-π, π] using atan2 trick
+     * 4. Convert to degrees
+     * 5. Clamp to physical limits
+     *
+     * IMPORTANT: This runs continuously every loop, even when joysticks are idle
      */
     private double calculateTargetAngle() {
-        // Проверяем наличие цели
+        // Check if we have a goal
         if (goalPose == null && (goalX == null || goalY == null)) {
-            return 0.0; // Нет цели - возвращаем центр
+            return 0.0; // No target - return center
         }
 
+        // STEP 0: Get current pose from follower (source of truth)
         Pose currentPose;
-
-        // КРИТИЧНО: Получаем СВЕЖИЙ Pose каждый раз!
         if (follower != null) {
-            currentPose = follower.getPose(); // СВЕЖИЕ координаты от Pinpoint!
+            currentPose = follower.getPose(); // Fresh coordinates from Pinpoint every loop!
         } else if (localizer != null) {
-            // Fallback на localizer (создаем временный Pose)
+            // Fallback to localizer
             double heading = Math.toRadians(localizer.getHeading());
             currentPose = new Pose(localizer.getX(), localizer.getY(), heading);
         } else {
-            return 0.0; // Нет локализации
+            return 0.0; // No localization available
         }
 
-        // Используем goalPose если доступен, иначе goalX/goalY
+        // Get target coordinates
         double targetX, targetY;
         if (goalPose != null) {
             targetX = goalPose.getX();
@@ -234,29 +238,26 @@ public class Turret {
             targetY = goalY;
         }
 
-        // Вычисляем вектор от робота до цели
-        double deltaX = targetX - currentPose.getX();
+        // STEP 1: Calculate field angle (world angle) to target
+        // Pedro Pathing: X=forward/backward, Y=left/right
+        double deltaX = currentPose.getX() - targetX;
         double deltaY = targetY - currentPose.getY();
+        double worldAngle = Math.atan2(deltaY, deltaX);
 
-        // Абсолютный угол на цель в field coordinates (радианы)
-        // atan2(deltaY, deltaX) возвращает угол в диапазоне [-π, π]
-        double targetDirectionRad = Math.atan2(deltaY, deltaX);
+        // STEP 2: Convert to robot-relative angle
+        double robotHeading = currentPose.getHeading();
+        double relativeAngle = worldAngle - robotHeading;
 
-        // Robot heading в радианах
-        double robotHeadingRad = currentPose.getHeading();
+        // STEP 3: Normalize to [-π, π] using atan2 trick (shortest path)
+        relativeAngle = normalizeAngle(relativeAngle);
 
-        // ROBOT-RELATIVE ANGLE
-        // Вычисляем угол относительно робота
-        double turretAngleRad = targetDirectionRad - robotHeadingRad;
+        // STEP 4: Convert to degrees and invert sign
+        double turretAngleDeg = -Math.toDegrees(relativeAngle);
 
-        // Нормализуем в [-π, π]
-        while (turretAngleRad > Math.PI) turretAngleRad -= 2 * Math.PI;
-        while (turretAngleRad < -Math.PI) turretAngleRad += 2 * Math.PI;
+        // STEP 5: Add offset - when moving forward (X increases), turret angle should increase
+        turretAngleDeg = -turretAngleDeg + 90.0;
 
-        // Конвертируем в градусы
-        double turretAngleDeg = Math.toDegrees(turretAngleRad);
-
-        // DEBUG: Сохраняем значения для телеметрии
+        // DEBUG: Save values for telemetry
         debugRobotX = currentPose.getX();
         debugRobotY = currentPose.getY();
         debugTargetX = targetX;
@@ -264,31 +265,29 @@ public class Turret {
         debugDeltaX = deltaX;
         debugDeltaY = deltaY;
 
-        // Конвертируем углы в [0°, 360°] для удобства отображения
-        debugTargetDirectionDeg = Math.toDegrees(targetDirectionRad);
+        // Convert angles to [0°, 360°] for display convenience
+        debugTargetDirectionDeg = Math.toDegrees(worldAngle);
         while (debugTargetDirectionDeg < 0) debugTargetDirectionDeg += 360;
         while (debugTargetDirectionDeg >= 360) debugTargetDirectionDeg -= 360;
 
-        debugRobotHeadingDeg = Math.toDegrees(robotHeadingRad);
+        debugRobotHeadingDeg = Math.toDegrees(robotHeading);
         while (debugRobotHeadingDeg < 0) debugRobotHeadingDeg += 360;
         while (debugRobotHeadingDeg >= 360) debugRobotHeadingDeg -= 360;
 
-        debugCalculatedAngleDeg = turretAngleDeg; // Этот остается в [-135°, 135°]
+        debugCalculatedAngleDeg = turretAngleDeg; // This stays in [-135°, 135°]
 
-        // Ограничиваем физическими лимитами турели (±135°)
+        // STEP 5: Clamp to physical turret limits (±135°)
         turretAngleDeg = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngleDeg));
 
         return turretAngleDeg;
     }
 
     /**
-     * Нормализация угла в градусах в диапазон [-180, 180]
-     * Это обрабатывает wrap-around через ±180°
+     * Normalize angle to [-π, π] using atan2 trick
+     * This ensures the shortest path and prevents "snapping" at 0°/360° boundary
      */
-    private double normalizeAngle(double angleDeg) {
-        while (angleDeg > 180) angleDeg -= 360;
-        while (angleDeg < -180) angleDeg += 360;
-        return angleDeg;
+    private double normalizeAngle(double angleRad) {
+        return Math.atan2(Math.sin(angleRad), Math.cos(angleRad));
     }
 
     /**

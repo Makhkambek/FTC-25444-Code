@@ -177,6 +177,10 @@ public class BlueAuto extends OpMode {
 //        turret = new Turret(hardwareMap, vision, localizer);
 
         follower = Constants.createFollower(hardwareMap);
+
+        // CRITICAL: Update Pinpoint ONCE before setting starting pose to initialize encoder data
+        follower.update();
+
         follower.setStartingPose(startPose);
 
         pathTimer = new Timer();

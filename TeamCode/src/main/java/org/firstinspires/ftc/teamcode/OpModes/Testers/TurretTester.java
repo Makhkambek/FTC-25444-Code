@@ -70,16 +70,20 @@ public class TurretTester extends LinearOpMode {
         follower = Constants.createFollower(hardwareMap);
 
         // Starting Poses - начальные позиции робота для разных альянсов
-        blueStartPose = new Pose(39.945, 135.779, Math.toRadians(270));  // Blue alliance start
-        redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start
+        blueStartPose = new Pose(39.945, 136, Math.toRadians(270));  // Blue alliance start (X=horizontal, Y=vertical)  НЕ МЕНЯЙ
+        redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start (X=horizontal, Y=vertical) НЕ МЕНЯЙ
 
-        // Goal Poses - координаты корзин для разных альянсов
-        blueGoalPose = new Pose(14, 136, 0);   // Blue alliance корзина (LEFT side)
-        redGoalPose = new Pose(131, 136, 0);   // Red alliance корзина (RIGHT side)
+        // Goal Poses - координаты корзин для разных альянсов (ФИНАЛЬНЫЕ - НЕ МЕНЯТЬ!)
+        blueGoalPose = new Pose(136, 40, 270);   // Blue alliance корзина
+        redGoalPose = new Pose(136, 104, 270);   // Red alliance корзина
 
         // По умолчанию Blue alliance
         isRedAlliance = false;
         goalPose = blueGoalPose;
+
+        // CRITICAL: Update Pinpoint ONCE before setting starting pose to initialize encoder data
+        follower.update();
+
         follower.setStartingPose(blueStartPose);
 
         // Инициализация DriveTrain для правильного управления

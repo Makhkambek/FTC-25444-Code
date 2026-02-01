@@ -30,9 +30,12 @@ public class Localizer {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setOffsets(0, 124.46, DistanceUnit.MM); // Твои оффсеты
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD); //change it
+        // CRITICAL: These encoder directions MUST match Constants.java (Pedro Pathing)!
+        // Parameter order: (forwardEncoder, strafeEncoder)
+        // Forward encoder → Y-axis (forward/backward), Strafe encoder → X-axis (left/right)
         pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD
+                GoBildaPinpointDriver.EncoderDirection.FORWARD,     // Forward = Y-axis
+                GoBildaPinpointDriver.EncoderDirection.REVERSED     // Strafe = X-axis
         );
         pinpoint.resetPosAndIMU();
     }
