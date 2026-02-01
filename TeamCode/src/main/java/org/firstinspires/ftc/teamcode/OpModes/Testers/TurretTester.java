@@ -32,6 +32,10 @@ public class TurretTester extends LinearOpMode {
     private Follower follower; // Pedro Pathing с Pinpoint odometry
     private DriveTrain driveTrain;
 
+    // Starting Poses - начальные позиции робота для разных альянсов
+    private Pose blueStartPose;
+    private Pose redStartPose;
+
     // Goal Poses - координаты корзин для разных альянсов
     private Pose blueGoalPose;
     private Pose redGoalPose;
@@ -65,8 +69,9 @@ public class TurretTester extends LinearOpMode {
         // Инициализация Pedro Pathing Follower с Pinpoint odometry
         follower = Constants.createFollower(hardwareMap);
 
-        // Устанавливаем начальную позицию робота (твои координаты из BlueAuto)
-        follower.setStartingPose(new Pose(39.945, 135.779, Math.toRadians(270)));
+        // Starting Poses - начальные позиции робота для разных альянсов
+        blueStartPose = new Pose(39.945, 135.779, Math.toRadians(270));  // Blue alliance start
+        redStartPose = new Pose(104, 135, Math.toRadians(270));          // Red alliance start
 
         // Goal Poses - координаты корзин для разных альянсов
         blueGoalPose = new Pose(13, 135, 0);  // Blue alliance корзина
@@ -75,6 +80,7 @@ public class TurretTester extends LinearOpMode {
         // По умолчанию Blue alliance
         isRedAlliance = false;
         goalPose = blueGoalPose;
+        follower.setStartingPose(blueStartPose);
 
         // Инициализация DriveTrain для правильного управления
         driveTrain = new DriveTrain(hardwareMap, (org.firstinspires.ftc.teamcode.SubSystems.Localizer) null);
@@ -121,9 +127,15 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("Auto-aim: ODOMETRY (Priority 1), Vision (Priority 2)");
         telemetry.addLine();
         telemetry.addData("Current Alliance", isRedAlliance ? "RED" : "BLUE");
-        telemetry.addData("Active Goal", "(%.1f, %.1f) cm", goalPose.getX(), goalPose.getY());
-        telemetry.addData("Blue Goal", "(%.1f, %.1f) cm", blueGoalPose.getX(), blueGoalPose.getY());
-        telemetry.addData("Red Goal", "(%.1f, %.1f) cm", redGoalPose.getX(), redGoalPose.getY());
+        telemetry.addLine();
+        telemetry.addLine("Starting Poses:");
+        telemetry.addData("  Blue Start", "(%.1f, %.1f)", blueStartPose.getX(), blueStartPose.getY());
+        telemetry.addData("  Red Start", "(%.1f, %.1f)", redStartPose.getX(), redStartPose.getY());
+        telemetry.addLine();
+        telemetry.addLine("Goal Poses:");
+        telemetry.addData("  Blue Goal", "(%.1f, %.1f)", blueGoalPose.getX(), blueGoalPose.getY());
+        telemetry.addData("  Red Goal", "(%.1f, %.1f)", redGoalPose.getX(), redGoalPose.getY());
+        telemetry.addData("  Active Goal", "(%.1f, %.1f)", goalPose.getX(), goalPose.getY());
         telemetry.addLine();
         telemetry.addLine("FTC Dashboard настройки:");
         telemetry.addLine("- Tune PIDF coefficients (KP, KI, KD, KF)");
@@ -163,8 +175,16 @@ public class TurretTester extends LinearOpMode {
         // Переключение альянса (Left Bumper)
         if (gamepad1.left_bumper && !prevLeftBumper) {
             isRedAlliance = !isRedAlliance;
+
+            // Обновляем Goal Pose
             goalPose = isRedAlliance ? redGoalPose : blueGoalPose;
             turret.setGoalPose(goalPose);
+
+            // Обновляем Starting Pose робота
+            Pose startPose = isRedAlliance ? redStartPose : blueStartPose;
+            follower.setPose(startPose);
+
+            // Обновляем Vision alliance
             vision.setAlliance(isRedAlliance);
         }
 
