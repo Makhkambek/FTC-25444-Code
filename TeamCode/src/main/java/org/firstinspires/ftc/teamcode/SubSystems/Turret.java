@@ -240,8 +240,8 @@ public class Turret {
 
         // STEP 1: Calculate field angle (world angle) to target
         // Pedro Pathing: X=forward/backward, Y=left/right
-        double deltaX = currentPose.getX() - targetX;
-        double deltaY = targetY - currentPose.getY();
+        double deltaX = currentPose.getX() - targetX; //currentPose.getX() - targetX reversed
+        double deltaY = targetY - currentPose.getY(); //targetY - currentPose.getY();
         double worldAngle = Math.atan2(deltaY, deltaX);
 
         // STEP 2: Convert to robot-relative angle
