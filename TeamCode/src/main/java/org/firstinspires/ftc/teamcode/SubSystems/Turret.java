@@ -2,11 +2,14 @@ package org.firstinspires.ftc.teamcode.SubSystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 
 public class Turret {
     private DcMotor turretMotor;
     private Vision vision;
     private Localizer localizer;
+    private Follower follower; // Pedro Pathing Follower (альтернатива Localizer)
 
     // PIDF коэффициенты (настроены для плавного tracking)
     public double kP = 0.035;   // Уменьшен для плавности
@@ -40,6 +43,7 @@ public class Turret {
     // 4. TICKS_PER_DEGREE = 900 / 90 = 10.0
     public static double TICKS_PER_DEGREE  = 3.2; // Откалибровано: 108 ticks / 90° = 1.2
 
+
     // Manual control
     private double targetAngle = 0.0;
     private static final double MANUAL_STEP = 3.0; // Градусов за цикл при ручном управлении
@@ -47,14 +51,44 @@ public class Turret {
     // Manual override (прямое управление без PID)
     private static final double OVERRIDE_POWER = 0.4; // Фиксированная мощность для аварийного режима
 
-    // Координаты цели (корзины) для одометрии
+    // Координаты цели (корзины) для одометрии - Legacy (deprecated)
     private Double goalX = null;
     private Double goalY = null;
+
+    // Goal Pose - современный способ задания цели через Pedro Pathing Pose
+    private Pose goalPose = null;
+
+    // Debug переменные для телеметрии
+    public double debugRobotX = 0;
+    public double debugRobotY = 0;
+    public double debugTargetX = 0;
+    public double debugTargetY = 0;
+    public double debugDeltaX = 0;
+    public double debugDeltaY = 0;
+    public double debugTargetDirectionDeg = 0;
+    public double debugRobotHeadingDeg = 0;
+    public double debugCalculatedAngleDeg = 0;
 
     // Конструктор для TeleOp и Auto (с Vision и Localizer)
     public Turret(HardwareMap hardwareMap, Vision vision, Localizer localizer) {
         this.vision = vision;
         this.localizer = localizer;
+        this.follower = null;
+
+        turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
+        turretMotor.setDirection(DcMotor.Direction.REVERSE); // Инверт: вправо = +, влево = -
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        targetAngle = ZERO;
+    }
+
+    // Конструктор для TeleOp с Pedro Pathing Follower (правильная одометрия!)
+    public Turret(HardwareMap hardwareMap, Vision vision, Follower follower) {
+        this.vision = vision;
+        this.follower = follower;
+        this.localizer = null; // Используем follower вместо localizer
 
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
         turretMotor.setDirection(DcMotor.Direction.REVERSE); // Инверт: вправо = +, влево = -
@@ -69,6 +103,7 @@ public class Turret {
     public Turret(HardwareMap hardwareMap, Vision vision) {
         this.vision = vision;
         this.localizer = null; // Localizer не нужен для Vision tracking
+        this.follower = null;
 
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
         turretMotor.setDirection(DcMotor.Direction.REVERSE); // Инверт: вправо = +, влево = -
@@ -83,6 +118,7 @@ public class Turret {
     public Turret(HardwareMap hardwareMap) {
         this.vision = null;
         this.localizer = null;
+        this.follower = null;
 
         turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
         turretMotor.setDirection(DcMotor.Direction.REVERSE); // Инверт: вправо = +, влево = -
@@ -95,6 +131,7 @@ public class Turret {
 
     /**
      * Установить координаты цели (корзины) для автоприцеливания через одометрию
+     * Legacy метод - используй setGoalPose() для Pedro Pathing
      */
     public void setGoalPosition(double x, double y) {
         this.goalX = x;
@@ -102,25 +139,56 @@ public class Turret {
     }
 
     /**
+     * Установить Goal Pose для турели (современный способ через Pedro Pathing)
+     */
+    public void setGoalPose(Pose goal) {
+        this.goalPose = goal;
+        // Синхронизируем со старыми переменными для совместимости
+        if (goal != null) {
+            this.goalX = goal.getX();
+            this.goalY = goal.getY();
+        }
+    }
+
+    /**
      * Есть ли установленная цель?
      */
     public boolean hasGoal() {
-        return goalX != null && goalY != null;
+        return goalPose != null || (goalX != null && goalY != null);
     }
 
     /**
      * Расстояние до цели (в см)
+     * Использует Pose объекты для вычислений
      */
     public double getDistanceToGoal() {
-        if (goalX == null || goalY == null) {
+        if (goalPose == null && (goalX == null || goalY == null)) {
             return 0.0;
         }
 
-        double robotX = localizer.getX();
-        double robotY = localizer.getY();
+        Pose currentPose;
 
-        double deltaX = goalX - robotX;
-        double deltaY = goalY - robotY;
+        // Получаем текущую позицию робота
+        if (follower != null) {
+            currentPose = follower.getPose(); // Используем существующий Pose!
+        } else if (localizer != null) {
+            currentPose = new Pose(localizer.getX(), localizer.getY(), 0);
+        } else {
+            return 0.0; // Нет локализации
+        }
+
+        // Используем goalPose если доступен
+        double targetX, targetY;
+        if (goalPose != null) {
+            targetX = goalPose.getX();
+            targetY = goalPose.getY();
+        } else {
+            targetX = goalX;
+            targetY = goalY;
+        }
+
+        double deltaX = targetX - currentPose.getX();
+        double deltaY = targetY - currentPose.getY();
 
         return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
@@ -128,76 +196,130 @@ public class Turret {
     /**
      * Рассчитать угол турели для наведения на цель через одометрию
      *
-     * Формула:
-     * 1. targetDirection = atan2(yTarget - y, xTarget - x) — направление на цель в field coordinates
-     * 2. turretAngle = targetDirection - robotHeading — угол турели относительно робота
+     * ЛОГИКА С POSE ОБЪЕКТАМИ:
+     * 1. Получаем currentPose от follower.getPose() (СВЕЖИЙ КАЖДЫЙ РАЗ!)
+     * 2. Используем goalPose как target
+     * 3. Вычисляем угол от current к goal в field coordinates
+     * 4. Вычитаем robot heading для получения robot-relative угла
+     * 5. Нормализуем в [-π, π] и конвертируем в градусы
+     *
+     * ВАЖНО: Все вычисления в радианах для точности, конвертация в градусы в конце
      */
     private double calculateTargetAngle() {
-        if (goalX == null || goalY == null || localizer == null) {
-            return 0.0; // Нет цели или локалайзера - возвращаем центр
+        // Проверяем наличие цели
+        if (goalPose == null && (goalX == null || goalY == null)) {
+            return 0.0; // Нет цели - возвращаем центр
         }
 
-        double robotX = localizer.getX();
-        double robotY = localizer.getY();
-        double robotHeadingRad = Math.toRadians(localizer.getHeading());
+        Pose currentPose;
 
-        // Направление на цель в field coordinates (радианы)
-        double targetDirection = Math.atan2(goalY - robotY, goalX - robotX);
+        // КРИТИЧНО: Получаем СВЕЖИЙ Pose каждый раз!
+        if (follower != null) {
+            currentPose = follower.getPose(); // СВЕЖИЕ координаты от Pinpoint!
+        } else if (localizer != null) {
+            // Fallback на localizer (создаем временный Pose)
+            double heading = Math.toRadians(localizer.getHeading());
+            currentPose = new Pose(localizer.getX(), localizer.getY(), heading);
+        } else {
+            return 0.0; // Нет локализации
+        }
 
-        // Угол турели = направление на цель - heading робота
-        double turretAngleRad = normalizeRadians(targetDirection - robotHeadingRad);
-        double turretAngle = Math.toDegrees(turretAngleRad);
+        // Используем goalPose если доступен, иначе goalX/goalY
+        double targetX, targetY;
+        if (goalPose != null) {
+            targetX = goalPose.getX();
+            targetY = goalPose.getY();
+        } else {
+            targetX = goalX;
+            targetY = goalY;
+        }
 
-        return Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngle));
+        // Вычисляем вектор от робота до цели
+        double deltaX = targetX - currentPose.getX();
+        double deltaY = targetY - currentPose.getY();
+
+        // Абсолютный угол на цель в field coordinates (радианы)
+        // atan2(deltaY, deltaX) возвращает угол в диапазоне [-π, π]
+        double targetDirectionRad = Math.atan2(deltaY, deltaX);
+
+        // Robot heading в радианах
+        double robotHeadingRad = currentPose.getHeading();
+
+        // ROBOT-RELATIVE ANGLE
+        // Вычисляем угол относительно робота
+        double turretAngleRad = targetDirectionRad - robotHeadingRad;
+
+        // Нормализуем в [-π, π]
+        while (turretAngleRad > Math.PI) turretAngleRad -= 2 * Math.PI;
+        while (turretAngleRad < -Math.PI) turretAngleRad += 2 * Math.PI;
+
+        // Конвертируем в градусы
+        double turretAngleDeg = Math.toDegrees(turretAngleRad);
+
+        // DEBUG: Сохраняем значения для телеметрии
+        debugRobotX = currentPose.getX();
+        debugRobotY = currentPose.getY();
+        debugTargetX = targetX;
+        debugTargetY = targetY;
+        debugDeltaX = deltaX;
+        debugDeltaY = deltaY;
+
+        // Конвертируем углы в [0°, 360°] для удобства отображения
+        debugTargetDirectionDeg = Math.toDegrees(targetDirectionRad);
+        while (debugTargetDirectionDeg < 0) debugTargetDirectionDeg += 360;
+        while (debugTargetDirectionDeg >= 360) debugTargetDirectionDeg -= 360;
+
+        debugRobotHeadingDeg = Math.toDegrees(robotHeadingRad);
+        while (debugRobotHeadingDeg < 0) debugRobotHeadingDeg += 360;
+        while (debugRobotHeadingDeg >= 360) debugRobotHeadingDeg -= 360;
+
+        debugCalculatedAngleDeg = turretAngleDeg; // Этот остается в [-135°, 135°]
+
+        // Ограничиваем физическими лимитами турели (±135°)
+        turretAngleDeg = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngleDeg));
+
+        return turretAngleDeg;
     }
 
     /**
-     * Нормализация угла в радианах в диапазон [-π, π]
+     * Нормализация угла в градусах в диапазон [-180, 180]
+     * Это обрабатывает wrap-around через ±180°
      */
-    private double normalizeRadians(double angleRad) {
-        while (angleRad > Math.PI) angleRad -= 2 * Math.PI;
-        while (angleRad < -Math.PI) angleRad += 2 * Math.PI;
-        return angleRad;
+    private double normalizeAngle(double angleDeg) {
+        while (angleDeg > 180) angleDeg -= 360;
+        while (angleDeg < -180) angleDeg += 360;
+        return angleDeg;
     }
 
     /**
-     * Нормализация угла в диапазон [-180, 180]
-     */
-    private double normalizeAngle(double angle) {
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
-        return angle;
-    }
-
-    /**
-     * Автоприцеливание с плавным сглаживанием:
-     * 1. Если есть одометрия и установлена цель - используем calculateTargetAngle
-     * 2. Если нет - используем Vision (yaw от AprilTag)
+     * Автоприцеливание:
+     * 1. Если есть одометрия и установлена цель - используем calculateTargetAngle (БЕЗ сглаживания!)
+     * 2. Если нет - используем Vision (yaw от AprilTag) с EMA сглаживанием
      *
-     * Использует EMA (Exponential Moving Average) для плавного движения
+     * ВАЖНО: Odometry tracking БЕЗ сглаживания для мгновенной реакции на движение робота!
      */
     public void autoAim() {
-        double rawTarget = targetAngle; // Сохраняем текущий target как fallback
+        boolean usingOdometry = false;
 
-        // Приоритет 1: Odometry
-        if (hasGoal() && localizer != null) {
-            rawTarget = calculateTargetAngle();
+        // Приоритет 1: Odometry (follower ИЛИ localizer)
+        if (hasGoal() && (follower != null || localizer != null)) {
+            // Odometry - прямое значение БЕЗ сглаживания!
+            targetAngle = calculateTargetAngle();
+            smoothedTargetAngle = targetAngle; // Синхронизируем smoothed с raw
+            usingOdometry = true;
         }
-        // Приоритет 2: Vision
+        // Приоритет 2: Vision (с EMA сглаживанием для стабильности)
         else if (vision != null && vision.hasTargetTag()) {
             double yaw = vision.getTargetYaw();
             if (!Double.isNaN(yaw)) {
-                rawTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
+                double rawTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
+
+                // Плавное сглаживание ТОЛЬКО для Vision (AprilTag может прыгать)
+                smoothedTargetAngle += SMOOTHING_FACTOR * (rawTarget - smoothedTargetAngle);
+                smoothedTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, smoothedTargetAngle));
+                targetAngle = smoothedTargetAngle;
             }
         }
-
-        // Плавное сглаживание через EMA (Exponential Moving Average)
-        // smoothedTarget = smoothedTarget + factor * (rawTarget - smoothedTarget)
-        smoothedTargetAngle += SMOOTHING_FACTOR * (rawTarget - smoothedTargetAngle);
-
-        // Ограничиваем диапазон
-        smoothedTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, smoothedTargetAngle));
-        targetAngle = smoothedTargetAngle;
 
         // Применяем PIDF
         double currentAngle = getCurrentAngle();

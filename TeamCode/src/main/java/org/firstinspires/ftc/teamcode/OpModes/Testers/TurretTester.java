@@ -5,11 +5,13 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
-import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import org.firstinspires.ftc.teamcode.SubSystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Config
 @TeleOp(name="[TEST] Turret Tester", group="Testers")
@@ -27,8 +29,11 @@ public class TurretTester extends LinearOpMode {
 
     private Turret turret;
     private Vision vision;
-    private Localizer localizer;
+    private Follower follower; // Pedro Pathing с Pinpoint odometry
     private DriveTrain driveTrain;
+
+    // Goal Pose - target для турели (координаты корзины)
+    private Pose goalPose;
 
     private boolean prevDpadUp = false;
     private boolean prevA = false;
@@ -51,32 +56,38 @@ public class TurretTester extends LinearOpMode {
         // Настройка телеметрии для Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        // Инициализация Localizer (ПЕРВЫМ!)
-        localizer = Localizer.getInstance(hardwareMap);
+        // Инициализация Pedro Pathing Follower с Pinpoint odometry
+        follower = Constants.createFollower(hardwareMap);
 
-        // Устанавливаем начальную позицию робота (твои координаты)
-        localizer.setPosition(39.29196050775742, 135.56276445698165, 0.0);
+        // Устанавливаем начальную позицию робота (твои координаты из BlueAuto)
+        follower.setStartingPose(new Pose(39.945, 135.779, Math.toRadians(270)));
+
+        // Goal Pose - координаты корзины (target для турели)
+        goalPose = new Pose(12.076, 135.563, 0);
+
+        // Инициализация DriveTrain для правильного управления
+        driveTrain = new DriveTrain(hardwareMap, (org.firstinspires.ftc.teamcode.SubSystems.Localizer) null);
 
         // Инициализация Vision
         vision = new Vision();
         vision.init(hardwareMap);
         vision.setAlliance(false); // BLUE alliance (tag 21)
 
-        // Создаем DriveTrain для передвижения
-        driveTrain = new DriveTrain(hardwareMap, localizer);
+        // Создаем Turret с Vision и Pedro Pathing Follower
+        turret = new Turret(hardwareMap, vision, follower);
 
-        // Создаем Turret с Vision и Localizer
-        turret = new Turret(hardwareMap, vision, localizer);
+        // Устанавливаем Goal Pose для турели
+        turret.setGoalPose(goalPose);
 
-        // Устанавливаем координаты цели для автонаведения (твои координаты)
-        turret.setGoalPosition(12.076163610719336, 135.56276445698165);
-
-        telemetry.addLine("=== TURRET TESTER WITH ODOMETRY ===");
+        telemetry.addLine("=== TURRET TESTER WITH PEDRO PATHING ===");
+        telemetry.addLine();
+        telemetry.addLine("IMPORTANT: Watch 'DELTAS' section!");
+        telemetry.addLine("Delta X/Y MUST change when you move!");
         telemetry.addLine();
         telemetry.addLine("DRIVETRAIN (Gamepad1):");
-        telemetry.addLine("Left Stick: Movement (Field-centric)");
+        telemetry.addLine("Left Stick: Movement");
         telemetry.addLine("Right Stick X: Rotation");
-        telemetry.addLine("Right Trigger: Slow mode (30%)");
+        telemetry.addLine("NOTE: Using Pedro Pathing Pinpoint odometry");
         telemetry.addLine();
         telemetry.addLine("TURRET NORMAL MODE (Gamepad1):");
         telemetry.addLine("Right Stick X: Manual control (PIDF)");
@@ -93,10 +104,15 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("A: Stop turret");
         telemetry.addLine("B: Reset encoder");
         telemetry.addLine();
+        telemetry.addLine("=== DEBUG INFO ===");
+        telemetry.addLine("Using Pedro Pathing Pinpoint Odometry");
         telemetry.addLine("Auto-aim: ODOMETRY (Priority 1), Vision (Priority 2)");
-        telemetry.addLine("Goal: (12.08, 135.56) mm");
+        telemetry.addData("Goal Pose", "(%.1f, %.1f) cm", goalPose.getX(), goalPose.getY());
         telemetry.addLine();
-        telemetry.addLine("Tune PIDF via FTC Dashboard");
+        telemetry.addLine("FTC Dashboard настройки:");
+        telemetry.addLine("- Tune PIDF coefficients (KP, KI, KD, KF)");
+        telemetry.addLine("- Turret uses normalized angle calculation");
+        telemetry.addLine("  Formula: targetDirection - robotHeading");
         telemetry.update();
 
         waitForStart();
@@ -108,15 +124,16 @@ public class TurretTester extends LinearOpMode {
         turret.resetEncoder();
 
         while (opModeIsActive()) {
-            // Обновляем Localizer (ПЕРВЫМ!)
-            localizer.update();
+            // Обновляем Pedro Pathing Follower (одометрия)
+            follower.update();
 
-            // Обновляем DriveTrain (gamepad1 для движения)
-            driveTrain.update(gamepad1);
+            // Manual drive control через DriveTrain (gamepad1)
+            driveTrain.drive(gamepad1, gamepad2, telemetry);
 
             // Обновляем PIDF коэффициенты из Dashboard
             turret.setPIDF(KP, KI, KD, KF);
 
+            // Turret control
             handleControls();
             displayTelemetry();
             telemetry.update();
@@ -237,14 +254,65 @@ public class TurretTester extends LinearOpMode {
 
         // Odometry (только в NORMAL режиме)
         if (currentMode == ControlMode.NORMAL) {
-            telemetry.addLine("--- ODOMETRY ---");
-            telemetry.addData("Robot X (mm)", "%.1f", localizer.getX());
-            telemetry.addData("Robot Y (mm)", "%.1f", localizer.getY());
-            telemetry.addData("Robot Heading", "%.1f°", localizer.getHeading());
-            telemetry.addData("Goal X (mm)", "12.08");
-            telemetry.addData("Goal Y (mm)", "135.56");
-            telemetry.addData("Distance to Goal (mm)", "%.1f", turret.getDistanceToGoal());
+            telemetry.addLine("--- PEDRO PATHING ODOMETRY DEBUG ---");
+
+            Pose currentPose = follower.getPose();
+            double robotX = currentPose.getX();
+            double robotY = currentPose.getY();
+            double robotHeadingRad = currentPose.getHeading();
+
+            // Конвертируем heading в стандартный диапазон [0°, 360°]
+            double robotHeading = Math.toDegrees(robotHeadingRad);
+            while (robotHeading < 0) robotHeading += 360;
+            while (robotHeading >= 360) robotHeading -= 360;
+
+            double goalX = goalPose.getX();
+            double goalY = goalPose.getY();
+
+            double deltaX = goalX - robotX;
+            double deltaY = goalY - robotY;
+            double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            telemetry.addLine("=== COORDINATES ===");
+            telemetry.addData("Robot X", "%.2f cm", robotX);
+            telemetry.addData("Robot Y", "%.2f cm", robotY);
+            telemetry.addData("Robot Heading", "%.1f° (0-360)", robotHeading);
+            telemetry.addData("  (raw from Pose)", "%.1f rad", robotHeadingRad);
             telemetry.addLine();
+            telemetry.addData("Goal X", "%.2f cm", goalX);
+            telemetry.addData("Goal Y", "%.2f cm", goalY);
+            telemetry.addLine();
+
+            telemetry.addLine("=== DELTAS (SHOULD CHANGE!) ===");
+            telemetry.addData("Delta X (goal-robot)", "%.2f cm", deltaX);
+            telemetry.addData("Delta Y (goal-robot)", "%.2f cm", deltaY);
+            telemetry.addData("Distance to Goal", "%.2f cm", distance);
+            telemetry.addLine();
+
+            telemetry.addLine("=== TURRET CALCULATION DEBUG ===");
+            telemetry.addData("Auto-Aim Active", visionTrackingEnabled ? "YES (RT held)" : "YES (idle)");
+            telemetry.addLine();
+            telemetry.addData("Turret sees Robot X", "%.2f", turret.debugRobotX);
+            telemetry.addData("Turret sees Robot Y", "%.2f", turret.debugRobotY);
+            telemetry.addData("Turret sees Target X", "%.2f", turret.debugTargetX);
+            telemetry.addData("Turret sees Target Y", "%.2f", turret.debugTargetY);
+            telemetry.addLine();
+            telemetry.addData("Turret Delta X", "%.2f cm", turret.debugDeltaX);
+            telemetry.addData("Turret Delta Y", "%.2f cm", turret.debugDeltaY);
+            telemetry.addData("Target Direction", "%.1f°", turret.debugTargetDirectionDeg);
+            telemetry.addData("Robot Heading", "%.1f°", turret.debugRobotHeadingDeg);
+            telemetry.addData("Calculated Angle", "%.1f°", turret.debugCalculatedAngleDeg);
+            telemetry.addLine();
+
+            // Проверка что deltas меняются
+            if (Math.abs(turret.debugDeltaX) < 0.1 && Math.abs(turret.debugDeltaY) < 0.1) {
+                telemetry.addLine("⚠️ WARNING: Deltas are near zero!");
+                telemetry.addLine("   Robot might be ON the goal!");
+            }
+            if (Math.abs(deltaX - turret.debugDeltaX) > 0.5 || Math.abs(deltaY - turret.debugDeltaY) > 0.5) {
+                telemetry.addLine("⚠️ WARNING: Deltas mismatch!");
+                telemetry.addLine("   Check coordinate units!");
+            }
         }
 
         // Vision (только в NORMAL режиме)

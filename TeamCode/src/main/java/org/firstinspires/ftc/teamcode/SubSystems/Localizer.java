@@ -28,7 +28,7 @@ public class Localizer {
 
     private Localizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(-107.95, -63.5, DistanceUnit.MM); // Твои оффсеты
+        pinpoint.setOffsets(0, 124.46, DistanceUnit.MM); // Твои оффсеты
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD); //change it
         pinpoint.setEncoderDirections(
                 GoBildaPinpointDriver.EncoderDirection.REVERSED,
