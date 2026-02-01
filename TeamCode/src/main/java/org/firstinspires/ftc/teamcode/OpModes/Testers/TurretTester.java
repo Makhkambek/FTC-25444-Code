@@ -24,8 +24,8 @@ public class TurretTester extends LinearOpMode {
     public static double KF = 0.0015; // Feedforward для преодоления трения
 
     // Test positions (в градусах) - теперь 270° диапазон (-135 до +135)
-    public static double RED_POSITION = 90.0;   // Тест правая сторона
-    public static double BLUE_POSITION = -90.0; // Тест левая сторона
+    public static double RED_POSITION = -90.0;  // Тест левая сторона
+    public static double BLUE_POSITION = 90.0;  // Тест правая сторона
 
     private Turret turret;
     private Vision vision;
@@ -71,11 +71,11 @@ public class TurretTester extends LinearOpMode {
 
         // Starting Poses - начальные позиции робота для разных альянсов
         blueStartPose = new Pose(39.945, 135.779, Math.toRadians(270));  // Blue alliance start
-        redStartPose = new Pose(104, 135, Math.toRadians(270));          // Red alliance start
+        redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start
 
         // Goal Poses - координаты корзин для разных альянсов
-        blueGoalPose = new Pose(13, 135, 0);  // Blue alliance корзина
-        redGoalPose = new Pose(129, 135, 0);  // Red alliance корзина
+        blueGoalPose = new Pose(14, 136, 0);   // Blue alliance корзина (LEFT side)
+        redGoalPose = new Pose(131, 136, 0);   // Red alliance корзина (RIGHT side)
 
         // По умолчанию Blue alliance
         isRedAlliance = false;
@@ -107,8 +107,8 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("NOTE: Using Pedro Pathing Pinpoint odometry");
         telemetry.addLine();
         telemetry.addLine("TURRET NORMAL MODE (Gamepad1):");
-        telemetry.addLine("Right Stick X: Manual control (PIDF)");
-        telemetry.addLine("Right Trigger (HOLD): Vision auto-aim");
+        telemetry.addLine("Auto-aim: ALWAYS active (odometry tracking)");
+        telemetry.addLine("Right Trigger (HOLD): Enable Vision tracking");
         telemetry.addLine("Dpad Up: CENTER (0°)");
         telemetry.addLine("Right Bumper: RED position (90°)");
         telemetry.addLine("Dpad Down: BLUE position (-90°)");
@@ -197,34 +197,29 @@ public class TurretTester extends LinearOpMode {
         if (currentMode == ControlMode.NORMAL) {
             // === NORMAL MODE - PIDF Control ===
 
-            // Vision tracking (HOLD Right Trigger)
+            // ALWAYS update target angle based on odometry/vision
+            turret.autoAim();
+
+            // Track vision state for telemetry
             if (gamepad1.right_trigger > 0.5) {
                 visionTrackingEnabled = true;
-                turret.autoAim(); // Автоприцеливание через Vision
             } else {
                 visionTrackingEnabled = false;
+            }
 
-                // Manual control с джойстиком
-                double stickInput = -gamepad1.right_stick_x;
-                if (Math.abs(stickInput) > 0.1) {
-                    turret.manualControl(stickInput);
-                } else {
-                    // Держим текущий targetAngle
-                    turret.autoAim();
-                }
+            // Manual control via right stick REMOVED - only auto-aim now
 
-                // Preset positions
-                if (gamepad1.dpad_up && !prevDpadUp) {
-                    turret.returnToCenter(); // CENTER (0°)
-                }
+            // Preset positions
+            if (gamepad1.dpad_up && !prevDpadUp) {
+                turret.returnToCenter(); // CENTER (0°)
+            }
 
-                if (gamepad1.right_bumper && !prevRightBumper) {
-                    turret.setTargetAngle(RED_POSITION); // RED (90°)
-                }
+            if (gamepad1.right_bumper && !prevRightBumper) {
+                turret.setTargetAngle(RED_POSITION); // RED (90°)
+            }
 
-                if (gamepad1.dpad_down && !prevDpadDown) {
-                    turret.setTargetAngle(BLUE_POSITION); // BLUE (-90°)
-                }
+            if (gamepad1.dpad_down && !prevDpadDown) {
+                turret.setTargetAngle(BLUE_POSITION); // BLUE (-90°)
             }
 
         } else {
@@ -397,8 +392,8 @@ public class TurretTester extends LinearOpMode {
         telemetry.addData("Left Bumper", "Toggle Alliance (Current: " + (isRedAlliance ? "RED" : "BLUE") + ")");
         telemetry.addLine();
         if (currentMode == ControlMode.NORMAL) {
-            telemetry.addData("RT (HOLD)", visionTrackingEnabled ? "Vision ON ✓" : "Vision auto-aim");
-            telemetry.addData("Right Stick X", "Manual (PIDF)");
+            telemetry.addData("Auto-Aim", "ALWAYS active (odometry)");
+            telemetry.addData("RT (HOLD)", visionTrackingEnabled ? "Vision ON ✓" : "Vision available");
             telemetry.addData("Dpad Up", "CENTER (0°)");
             telemetry.addData("Right Bumper", "RED (%.0f°)", RED_POSITION);
             telemetry.addData("Dpad Down", "BLUE (%.0f°)", BLUE_POSITION);
