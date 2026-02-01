@@ -21,8 +21,8 @@ public class Turret {
     private double lastError = 0;
 
     // Позиции турели в ГРАДУСАХ
-    public static final double RED_TARGET = 45.0;    // Позиция для красной корзины
-    public static final double BLUE_TARGET = -45.0;  // Позиция для синей корзины
+    public static final double RED_TARGET = -90.0;   // Позиция для красной корзины
+    public static final double BLUE_TARGET = 90.0;   // Позиция для синей корзины
     public static final double ZERO = 0.0;           // Центр
 
     // 270° диапазон: от -135° до +135°
@@ -246,7 +246,7 @@ public class Turret {
 
         // STEP 2: Convert to robot-relative angle
         double robotHeading = currentPose.getHeading();
-        double relativeAngle = worldAngle - robotHeading;
+        double relativeAngle = worldAngle + robotHeading; // Инвертирован знак для компенсации вращения робота
 
         // STEP 3: Normalize to [-π, π] using atan2 trick (shortest path)
         relativeAngle = normalizeAngle(relativeAngle);
@@ -255,7 +255,8 @@ public class Turret {
         double turretAngleDeg = -Math.toDegrees(relativeAngle);
 
         // STEP 5: Add offset - when moving forward (X increases), turret angle should increase
-        turretAngleDeg = -turretAngleDeg + 90.0;
+        turretAngleDeg = -turretAngleDeg;
+        //turretAngleDeg = -turretAngleDeg + 90.0;
 
         // DEBUG: Save values for telemetry
         debugRobotX = currentPose.getX();

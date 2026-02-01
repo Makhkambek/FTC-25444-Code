@@ -70,11 +70,11 @@ public class TurretTester extends LinearOpMode {
         follower = Constants.createFollower(hardwareMap);
 
         // Starting Poses - начальные позиции робота для разных альянсов
-        blueStartPose = new Pose(39.945, 136, Math.toRadians(270));  // Blue alliance start (X=horizontal, Y=vertical)  НЕ МЕНЯЙ
+        blueStartPose = new Pose(50, 95, Math.toRadians(270));  // Blue alliance start - adjusted for 90° turret angle
         redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start (X=horizontal, Y=vertical) НЕ МЕНЯЙ
 
         // Goal Poses - координаты корзин для разных альянсов (ФИНАЛЬНЫЕ - НЕ МЕНЯТЬ!)
-        blueGoalPose = new Pose(136, 40, 270);   // Blue alliance корзина
+        blueGoalPose = new Pose(136, 11, 270);   // Blue alliance корзина  blueGoalPose = new Pose(136, 40, 270);
         redGoalPose = new Pose(136, 104, 270);   // Red alliance корзина
 
         // По умолчанию Blue alliance
