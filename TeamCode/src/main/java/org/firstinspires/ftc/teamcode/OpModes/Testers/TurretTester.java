@@ -32,15 +32,21 @@ public class TurretTester extends LinearOpMode {
     private Follower follower; // Pedro Pathing с Pinpoint odometry
     private DriveTrain driveTrain;
 
-    // Goal Pose - target для турели (координаты корзины)
-    private Pose goalPose;
+    // Goal Poses - координаты корзин для разных альянсов
+    private Pose blueGoalPose;
+    private Pose redGoalPose;
+    private Pose goalPose; // Текущая активная цель
+
+    // Alliance selection
+    private boolean isRedAlliance = false; // По умолчанию Blue
 
     private boolean prevDpadUp = false;
+    private boolean prevDpadDown = false;
     private boolean prevA = false;
     private boolean prevB = false;
     private boolean prevX = false; // Для OVERRIDE MODE toggle
     private boolean prevRightBumper = false;
-    private boolean prevLeftBumper = false;
+    private boolean prevLeftBumper = false; // Для Alliance toggle
 
     private boolean visionTrackingEnabled = false; // Vision auto-aim
 
@@ -62,8 +68,13 @@ public class TurretTester extends LinearOpMode {
         // Устанавливаем начальную позицию робота (твои координаты из BlueAuto)
         follower.setStartingPose(new Pose(39.945, 135.779, Math.toRadians(270)));
 
-        // Goal Pose - координаты корзины (target для турели)
-        goalPose = new Pose(12.076, 135.563, 0);
+        // Goal Poses - координаты корзин для разных альянсов
+        blueGoalPose = new Pose(13, 135, 0);  // Blue alliance корзина
+        redGoalPose = new Pose(129, 135, 0);  // Red alliance корзина
+
+        // По умолчанию Blue alliance
+        isRedAlliance = false;
+        goalPose = blueGoalPose;
 
         // Инициализация DriveTrain для правильного управления
         driveTrain = new DriveTrain(hardwareMap, (org.firstinspires.ftc.teamcode.SubSystems.Localizer) null);
@@ -71,12 +82,12 @@ public class TurretTester extends LinearOpMode {
         // Инициализация Vision
         vision = new Vision();
         vision.init(hardwareMap);
-        vision.setAlliance(false); // BLUE alliance (tag 21)
+        vision.setAlliance(isRedAlliance); // BLUE alliance (tag 21) по умолчанию
 
         // Создаем Turret с Vision и Pedro Pathing Follower
         turret = new Turret(hardwareMap, vision, follower);
 
-        // Устанавливаем Goal Pose для турели
+        // Устанавливаем начальный Goal Pose для турели
         turret.setGoalPose(goalPose);
 
         telemetry.addLine("=== TURRET TESTER WITH PEDRO PATHING ===");
@@ -93,8 +104,9 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("Right Stick X: Manual control (PIDF)");
         telemetry.addLine("Right Trigger (HOLD): Vision auto-aim");
         telemetry.addLine("Dpad Up: CENTER (0°)");
-        telemetry.addLine("Right Bumper: RED position (45°)");
-        telemetry.addLine("Left Bumper: BLUE position (-45°)");
+        telemetry.addLine("Right Bumper: RED position (90°)");
+        telemetry.addLine("Dpad Down: BLUE position (-90°)");
+        telemetry.addLine("Left Bumper: Toggle Alliance (Red/Blue)");
         telemetry.addLine();
         telemetry.addLine("OVERRIDE MODE (X to toggle):");
         telemetry.addLine("Dpad Left: Move LEFT (direct power)");
@@ -107,7 +119,11 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("=== DEBUG INFO ===");
         telemetry.addLine("Using Pedro Pathing Pinpoint Odometry");
         telemetry.addLine("Auto-aim: ODOMETRY (Priority 1), Vision (Priority 2)");
-        telemetry.addData("Goal Pose", "(%.1f, %.1f) cm", goalPose.getX(), goalPose.getY());
+        telemetry.addLine();
+        telemetry.addData("Current Alliance", isRedAlliance ? "RED" : "BLUE");
+        telemetry.addData("Active Goal", "(%.1f, %.1f) cm", goalPose.getX(), goalPose.getY());
+        telemetry.addData("Blue Goal", "(%.1f, %.1f) cm", blueGoalPose.getX(), blueGoalPose.getY());
+        telemetry.addData("Red Goal", "(%.1f, %.1f) cm", redGoalPose.getX(), redGoalPose.getY());
         telemetry.addLine();
         telemetry.addLine("FTC Dashboard настройки:");
         telemetry.addLine("- Tune PIDF coefficients (KP, KI, KD, KF)");
@@ -144,6 +160,14 @@ public class TurretTester extends LinearOpMode {
     }
 
     private void handleControls() {
+        // Переключение альянса (Left Bumper)
+        if (gamepad1.left_bumper && !prevLeftBumper) {
+            isRedAlliance = !isRedAlliance;
+            goalPose = isRedAlliance ? redGoalPose : blueGoalPose;
+            turret.setGoalPose(goalPose);
+            vision.setAlliance(isRedAlliance);
+        }
+
         // Переключение режимов (X)
         if (gamepad1.x && !prevX) {
             currentMode = (currentMode == ControlMode.NORMAL) ? ControlMode.OVERRIDE : ControlMode.NORMAL;
@@ -175,11 +199,11 @@ public class TurretTester extends LinearOpMode {
                 }
 
                 if (gamepad1.right_bumper && !prevRightBumper) {
-                    turret.setTargetAngle(RED_POSITION); // RED (45°)
+                    turret.setTargetAngle(RED_POSITION); // RED (90°)
                 }
 
-                if (gamepad1.left_bumper && !prevLeftBumper) {
-                    turret.setTargetAngle(BLUE_POSITION); // BLUE (-45°)
+                if (gamepad1.dpad_down && !prevDpadDown) {
+                    turret.setTargetAngle(BLUE_POSITION); // BLUE (-90°)
                 }
             }
 
@@ -208,6 +232,7 @@ public class TurretTester extends LinearOpMode {
 
         // Save button states
         prevDpadUp = gamepad1.dpad_up;
+        prevDpadDown = gamepad1.dpad_down;
         prevA = gamepad1.a;
         prevB = gamepad1.b;
         prevX = gamepad1.x;
@@ -281,6 +306,7 @@ public class TurretTester extends LinearOpMode {
             telemetry.addLine();
             telemetry.addData("Goal X", "%.2f cm", goalX);
             telemetry.addData("Goal Y", "%.2f cm", goalY);
+            telemetry.addData("Alliance", isRedAlliance ? "RED" : "BLUE");
             telemetry.addLine();
 
             telemetry.addLine("=== DELTAS (SHOULD CHANGE!) ===");
@@ -348,15 +374,16 @@ public class TurretTester extends LinearOpMode {
 
         // Controls reminder
         telemetry.addLine("--- CONTROLS ---");
+        telemetry.addData("Left Bumper", "Toggle Alliance (Current: " + (isRedAlliance ? "RED" : "BLUE") + ")");
+        telemetry.addLine();
         if (currentMode == ControlMode.NORMAL) {
             telemetry.addData("RT (HOLD)", visionTrackingEnabled ? "Vision ON ✓" : "Vision auto-aim");
             telemetry.addData("Right Stick X", "Manual (PIDF)");
             telemetry.addData("Dpad Up", "CENTER (0°)");
             telemetry.addData("Right Bumper", "RED (%.0f°)", RED_POSITION);
-            telemetry.addData("Left Bumper", "BLUE (%.0f°)", BLUE_POSITION);
+            telemetry.addData("Dpad Down", "BLUE (%.0f°)", BLUE_POSITION);
             telemetry.addData("X", "Switch to OVERRIDE");
         } else {
-            telemetry.addData("Dpad Left", "Move LEFT");
             telemetry.addData("Dpad Right", "Move RIGHT");
             telemetry.addData("X", "Switch to NORMAL");
             telemetry.addLine("⚠️ OVERRIDE MODE ACTIVE");
