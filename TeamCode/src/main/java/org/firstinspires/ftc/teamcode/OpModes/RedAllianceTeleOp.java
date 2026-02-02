@@ -20,7 +20,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Инициализация робота
         telemetry.addData("Status", "Initializing...");
         telemetry.addData("Alliance", "RED");
-        telemetry.addData("Target AprilTag ID", 11);
+        telemetry.addData("Target AprilTag ID", 24);
         telemetry.update();
 
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);

@@ -293,32 +293,32 @@ public class Turret {
 
     /**
      * Автоприцеливание:
-     * 1. Если есть одометрия и установлена цель - используем calculateTargetAngle (БЕЗ сглаживания!)
-     * 2. Если нет - используем Vision (yaw от AprilTag) с EMA сглаживанием
+     * 1. PRIORITY 1: Vision (yaw от AprilTag) с EMA сглаживанием - если камера видит tag
+     * 2. PRIORITY 2: Odometry (calculateTargetAngle) БЕЗ сглаживания - если нет Vision
      *
-     * ВАЖНО: Odometry tracking БЕЗ сглаживания для мгновенной реакции на движение робота!
+     * Vision имеет приоритет когда AprilTag виден, odometry - fallback
      */
     public void autoAim() {
-        boolean usingOdometry = false;
+        boolean usingVision = false;
 
-        // Приоритет 1: Odometry (follower ИЛИ localizer)
-        if (hasGoal() && (follower != null || localizer != null)) {
-            // Odometry - прямое значение БЕЗ сглаживания!
-            targetAngle = calculateTargetAngle();
-            smoothedTargetAngle = targetAngle; // Синхронизируем smoothed с raw
-            usingOdometry = true;
-        }
-        // Приоритет 2: Vision (с EMA сглаживанием для стабильности)
-        else if (vision != null && vision.hasTargetTag()) {
+        // Приоритет 1: Vision (если камера видит AprilTag)
+        if (vision != null && vision.hasTargetTag()) {
             double yaw = vision.getTargetYaw();
             if (!Double.isNaN(yaw)) {
                 double rawTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
 
-                // Плавное сглаживание ТОЛЬКО для Vision (AprilTag может прыгать)
+                // Плавное сглаживание для Vision (AprilTag может прыгать)
                 smoothedTargetAngle += SMOOTHING_FACTOR * (rawTarget - smoothedTargetAngle);
                 smoothedTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, smoothedTargetAngle));
                 targetAngle = smoothedTargetAngle;
+                usingVision = true;
             }
+        }
+        // Приоритет 2: Odometry (fallback когда Vision недоступен)
+        else if (hasGoal() && (follower != null || localizer != null)) {
+            // Odometry - прямое значение БЕЗ сглаживания!
+            targetAngle = calculateTargetAngle();
+            smoothedTargetAngle = targetAngle; // Синхронизируем smoothed с raw
         }
 
         // Применяем PIDF
