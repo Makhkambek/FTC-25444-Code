@@ -27,6 +27,9 @@ public class TurretTester extends LinearOpMode {
     public static double RED_POSITION = -90.0;  // Тест левая сторона
     public static double BLUE_POSITION = 90.0;  // Тест правая сторона
 
+    // Kalman Filter toggle
+    public static boolean ENABLE_KALMAN = true;  // FTC Dashboard toggle
+
     private Turret turret;
     private Vision vision;
     private Follower follower; // Pedro Pathing с Pinpoint odometry
@@ -99,6 +102,9 @@ public class TurretTester extends LinearOpMode {
 
         // Устанавливаем начальный Goal Pose для турели
         turret.setGoalPose(goalPose);
+
+        // Enable/disable Kalman filter based on Dashboard toggle
+        turret.setKalmanEnabled(ENABLE_KALMAN);
 
         telemetry.addLine("=== TURRET TESTER WITH PEDRO PATHING ===");
         telemetry.addLine();
@@ -387,6 +393,29 @@ public class TurretTester extends LinearOpMode {
                 telemetry.addData("Active Mode", "VISION (Priority 2)");
             } else {
                 telemetry.addData("Active Mode", "MANUAL");
+            }
+            telemetry.addLine();
+
+            // Kalman Filter debug
+            telemetry.addLine("--- KALMAN FILTER ---");
+            telemetry.addData("Enabled", turret.isKalmanEnabled() ? "YES ✓" : "NO (Legacy EMA)");
+            if (turret.isKalmanEnabled()) {
+                telemetry.addData("Filtered Target X", "%.2f cm", turret.debugFilteredX);
+                telemetry.addData("Filtered Target Y", "%.2f cm", turret.debugFilteredY);
+                telemetry.addData("Innovation X", "%.2f cm", turret.debugInnovation[0]);
+                telemetry.addData("Innovation Y", "%.2f cm", turret.debugInnovation[1]);
+                telemetry.addData("Outliers Rejected", turret.debugOutlierCount);
+
+                // Innovation should be small (~0-5cm) when tracking well
+                double innovationMagnitude = Math.sqrt(
+                    turret.debugInnovation[0] * turret.debugInnovation[0] +
+                    turret.debugInnovation[1] * turret.debugInnovation[1]
+                );
+                if (innovationMagnitude > 10.0) {
+                    telemetry.addLine("⚠️ Large innovation - measurement mismatch!");
+                }
+            } else {
+                telemetry.addLine("(Toggle ENABLE_KALMAN on Dashboard)");
             }
             telemetry.addLine();
         }

@@ -69,6 +69,16 @@ public class Turret {
     public double debugRobotHeadingDeg = 0;
     public double debugCalculatedAngleDeg = 0;
 
+    // Kalman Filter for sensor fusion
+    private KalmanFilter kalmanFilter;
+    private boolean kalmanEnabled = true;  // Toggle for testing
+
+    // Kalman debug telemetry
+    public double debugFilteredX = 0;
+    public double debugFilteredY = 0;
+    public double[] debugInnovation = new double[2];
+    public int debugOutlierCount = 0;
+
     // Конструктор для TeleOp и Auto (с Vision и Localizer)
     public Turret(HardwareMap hardwareMap, Vision vision, Localizer localizer) {
         this.vision = vision;
@@ -147,6 +157,13 @@ public class Turret {
         if (goal != null) {
             this.goalX = goal.getX();
             this.goalY = goal.getY();
+
+            // Reset Kalman filter to new goal
+            if (kalmanFilter != null) {
+                kalmanFilter.reset(goal.getX(), goal.getY());
+            } else {
+                kalmanFilter = new KalmanFilter(goal.getX(), goal.getY());
+            }
         }
     }
 
@@ -155,6 +172,20 @@ public class Turret {
      */
     public boolean hasGoal() {
         return goalPose != null || (goalX != null && goalY != null);
+    }
+
+    /**
+     * Enable or disable Kalman filter
+     */
+    public void setKalmanEnabled(boolean enabled) {
+        this.kalmanEnabled = enabled;
+    }
+
+    /**
+     * Check if Kalman filter is enabled
+     */
+    public boolean isKalmanEnabled() {
+        return kalmanEnabled;
     }
 
     /**
@@ -292,13 +323,94 @@ public class Turret {
     }
 
     /**
-     * Автоприцеливание:
-     * 1. PRIORITY 1: Vision (yaw от AprilTag) с EMA сглаживанием - если камера видит tag
-     * 2. PRIORITY 2: Odometry (calculateTargetAngle) БЕЗ сглаживания - если нет Vision
+     * Автоприцеливание с Kalman Filter sensor fusion
+     * Объединяет Vision (AprilTag) и Odometry для плавного отслеживания цели
      *
-     * Vision имеет приоритет когда AprilTag виден, odometry - fallback
+     * Kalman filter отслеживает позицию корзины в field coordinates
+     * Predict: Каждый loop cycle используя время
+     * Update: Vision (приоритет) или Odometry (fallback)
      */
     public void autoAim() {
+        // Initialize Kalman filter if not done
+        if (kalmanFilter == null && hasGoal()) {
+            double gx = (goalPose != null) ? goalPose.getX() : goalX;
+            double gy = (goalPose != null) ? goalPose.getY() : goalY;
+            kalmanFilter = new KalmanFilter(gx, gy);
+        }
+
+        // Fallback to legacy EMA system if Kalman disabled
+        if (!kalmanEnabled || kalmanFilter == null) {
+            autoAimLegacy();
+            return;
+        }
+
+        // STEP 1: Predict (every loop)
+        long currentTime = System.currentTimeMillis();
+        kalmanFilter.predict(currentTime);
+
+        // STEP 2: Update with measurements
+        if (vision != null && vision.hasTargetTag() && follower != null) {
+            // Vision measurement available
+            Pose robotPose = follower.getPose();
+            double yawDeg = vision.getTargetYaw();
+            double rangeCm = vision.getTargetDistance();
+
+            boolean accepted = kalmanFilter.updateVision(
+                robotPose.getX(),
+                robotPose.getY(),
+                robotPose.getHeading(),
+                yawDeg,
+                rangeCm
+            );
+
+            // If outlier, fallback to odometry
+            if (!accepted && hasGoal()) {
+                double gx = (goalPose != null) ? goalPose.getX() : goalX;
+                double gy = (goalPose != null) ? goalPose.getY() : goalY;
+                kalmanFilter.updateOdometry(gx, gy);
+            }
+        } else if (hasGoal()) {
+            // Vision not available - use odometry
+            double gx = (goalPose != null) ? goalPose.getX() : goalX;
+            double gy = (goalPose != null) ? goalPose.getY() : goalY;
+            kalmanFilter.updateOdometry(gx, gy);
+        }
+
+        // STEP 3: Calculate turret angle from filtered position
+        if (follower != null) {
+            double[] filtered = kalmanFilter.getEstimatedPosition();
+            double targetX_filtered = filtered[0];
+            double targetY_filtered = filtered[1];
+
+            // Debug telemetry
+            debugFilteredX = targetX_filtered;
+            debugFilteredY = targetY_filtered;
+            debugInnovation = kalmanFilter.getInnovation();
+            debugOutlierCount = kalmanFilter.getOutlierCount();
+
+            // Calculate angle to filtered target
+            Pose robotPose = follower.getPose();
+            double deltaX = robotPose.getX() - targetX_filtered;
+            double deltaY = targetY_filtered - robotPose.getY();
+            double worldAngle = Math.atan2(deltaY, deltaX);
+            double relativeAngle = worldAngle + robotPose.getHeading();
+            relativeAngle = normalizeAngle(relativeAngle);
+            double turretAngleDeg = -Math.toDegrees(relativeAngle);
+            turretAngleDeg = -turretAngleDeg;
+
+            // Set target and apply PIDF
+            targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngleDeg));
+            double currentAngle = getCurrentAngle();
+            double power = calculatePIDF(targetAngle, currentAngle);
+            turretMotor.setPower(power);
+        }
+    }
+
+    /**
+     * Legacy auto-aim method (EMA smoothing)
+     * Used as fallback when Kalman filter is disabled
+     */
+    private void autoAimLegacy() {
         boolean usingVision = false;
 
         // Приоритет 1: Vision (если камера видит AprilTag)
