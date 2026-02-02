@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
+import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 public class VisionTester extends LinearOpMode {
 
     private Vision vision;
+    private Turret turret;
     private boolean isRedAlliance = true;
     private boolean prevDpadUp = false;
     private boolean prevDpadDown = false;
@@ -26,11 +28,16 @@ public class VisionTester extends LinearOpMode {
         vision.start();
         vision.setAlliance(isRedAlliance);
 
+        // Initialize turret with Vision-only constructor
+        turret = new Turret(hardwareMap, vision);
+
         telemetry.addData("Status", "Ready!");
         telemetry.addLine();
         telemetry.addLine("Controls:");
         telemetry.addData("DPad Up", "Switch to RED Alliance");
         telemetry.addData("DPad Down", "Switch to BLUE Alliance");
+        telemetry.addLine();
+        telemetry.addData("Turret", "Auto-aim ENABLED (tracks AprilTag)");
         telemetry.update();
 
         waitForStart();
@@ -49,6 +56,9 @@ public class VisionTester extends LinearOpMode {
             prevDpadUp = gamepad1.dpad_up;
             prevDpadDown = gamepad1.dpad_down;
 
+            // Turret auto-aim (tracks AprilTag using Vision yaw)
+            turret.autoAim();
+
             // Display telemetry
             displayTelemetry();
 
@@ -56,6 +66,7 @@ public class VisionTester extends LinearOpMode {
             sleep(50);
         }
 
+        turret.stop();
         vision.stop();
     }
 
@@ -118,6 +129,22 @@ public class VisionTester extends LinearOpMode {
             telemetry.addData("Distance", "---");
             telemetry.addData("Yaw", "---");
             telemetry.addData("Suggested Hood", "---");
+        }
+
+        telemetry.addLine();
+
+        // Turret section
+        telemetry.addLine("--- TURRET ---");
+        telemetry.addData("Current Angle", "%.1f°", turret.getCurrentAngle());
+        telemetry.addData("Target Angle", "%.1f°", turret.getTargetAngle());
+        telemetry.addData("At Target", turret.atTarget() ? "YES" : "NO");
+        telemetry.addData("Motor Power", "%.3f", turret.getMotorPower());
+
+        // Tracking status
+        if (vision.hasTargetTag()) {
+            telemetry.addData("Status", "TRACKING TAG");
+        } else {
+            telemetry.addData("Status", "NO TARGET");
         }
 
         telemetry.addLine();
