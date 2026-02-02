@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Robot;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
@@ -24,15 +25,22 @@ public class RedAllianceTeleOp extends LinearOpMode {
 
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
 
+        // Set starting pose for Red alliance
+        Pose redStartPose = new Pose(103, 136, Math.toRadians(270));
+        robot.follower.setStartingPose(redStartPose);
+
+        // Set goal (basket) for turret auto-aim
+        Pose redGoalPose = new Pose(136, 104, 270);
+        robot.turret.setGoalPose(redGoalPose);
+
         telemetry.addData("Status", "Ready to start!");
+        telemetry.addData("Start Pose", "(%.1f, %.1f)", redStartPose.getX(), redStartPose.getY());
+        telemetry.addData("Goal Pose", "(%.1f, %.1f)", redGoalPose.getX(), redGoalPose.getY());
         telemetry.update();
 
         waitForStart();
 
         robot.start();
-
-        // Устанавливаем красную корзину для автонаведения
-        robot.turret.setAutoTargetByAlliance(true); // Red alliance
 
         while (opModeIsActive()) {
             // Обновление робота

@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
-import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import org.firstinspires.ftc.teamcode.Controllers.HeadingController;
 import org.firstinspires.ftc.teamcode.Controllers.IntakeController;
@@ -13,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Controllers.ResetController;
 public class
 Robot {
     // SubSystems
-    public Localizer localizer;
+    public Follower follower;
     public DriveTrain driveTrain;
     public Intake intake;
     public Shooter shooter;
@@ -31,8 +34,9 @@ Robot {
     private boolean prevFireButton = false;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance) {
-        // Localizer первым!
-        localizer = Localizer.getInstance(hardwareMap);
+        // Pedro Pathing Follower (одометрия)
+        follower = Constants.createFollower(hardwareMap);
+        follower.update(); // CRITICAL: Initialize before setting pose
 
         // Vision (нужна для Turret)
         vision = new Vision();
@@ -44,7 +48,7 @@ Robot {
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap, vision, localizer);
+        turret = new Turret(hardwareMap, vision, follower);
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
@@ -61,7 +65,7 @@ Robot {
     }
 
     public void update(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
-        localizer.update();
+        follower.update();
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
@@ -78,6 +82,7 @@ Robot {
     }
 
     private void updateControllers(Gamepad gamepad2) {
+        intakeController.gamepad = gamepad2;
         intakeController.update();
 
         shooterController.gamepad = gamepad2;

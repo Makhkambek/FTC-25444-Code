@@ -74,8 +74,8 @@ public class TurretTester extends LinearOpMode {
         redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start (X=horizontal, Y=vertical) НЕ МЕНЯЙ
 
         // Goal Poses - координаты корзин для разных альянсов (ФИНАЛЬНЫЕ - НЕ МЕНЯТЬ!)
-        blueGoalPose = new Pose(136, 11, 270);   // Blue alliance корзина  blueGoalPose = new Pose(136, 40, 270);
-        redGoalPose = new Pose(136, 104, 270);   // Red alliance корзина
+        blueGoalPose = new Pose(136, 11, 270);   // Blue alliance корзина  blueGoalPose = new Pose(136, 11, 270);
+        redGoalPose = new Pose(136, 104, 270);   // Red alliance корзина  redGoalPose = new Pose(136, 104, 270);
 
         // По умолчанию Blue alliance
         isRedAlliance = false;

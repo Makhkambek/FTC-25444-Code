@@ -33,7 +33,7 @@ public class Shooter {
     }
 
     private static final double SHOOTER_POWER = 1.0;
-    private static final double STOP_OPEN = 1.0;
+    private static final double STOP_OPEN = 0.29;
     private static final double STOP_CLOSE = 0.0;
     private static final double SPIN_UP_TIME = 0.2;
     private static final double OPEN_STOP_TIME = 0.3;
