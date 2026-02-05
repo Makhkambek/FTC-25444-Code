@@ -36,9 +36,9 @@ public class ServoTester extends LinearOpMode {
 //            }
 
             // Stop control
-            if (gamepad1.x) {
+            if (gamepad1.dpad_down) {
                 shooterStop.setPosition(0.0);
-            } else if (gamepad1.y) {
+            } else if (gamepad1.dpad_up) {
                 shooterStop.setPosition(0.29);
             }
 

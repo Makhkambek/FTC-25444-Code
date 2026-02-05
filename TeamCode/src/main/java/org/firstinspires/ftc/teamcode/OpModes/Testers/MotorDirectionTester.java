@@ -17,8 +17,8 @@ public class MotorDirectionTester extends LinearOpMode {
         shooterMotor2 = hardwareMap.get(DcMotor.class, "shooterMotor2");
 
         // Motor2 в REVERSE для синхронного вращения
-        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.FORWARD);
 
         telemetry.addLine("=== MOTOR DIRECTION TESTER ===");
         telemetry.addLine("D-pad Up: Both motors forward");

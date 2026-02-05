@@ -227,19 +227,18 @@ public class Turret {
     /**
      * Рассчитать угол турели для наведения на цель через одометрию
      *
-     * PEDRO PATHING COORDINATE SYSTEM:
-     * - X = Forward/Backward (vertical axis on visualizer)
-     * - Y = Left/Right (horizontal axis on visualizer)
-     * - Source of truth: follower.getPose()
+     * ROBOT-CENTRIC SYSTEM (вид с робота, не с поля):
+     * - Вычисляем позицию цели относительно робота
+     * - Не зависит от heading робота на поле
+     * - Турель просто "смотрит" на цель относительно передней части робота
      *
      * MATHEMATICAL STEPS:
-     * 1. Calculate field angle: worldAngle = atan2(deltaY, deltaX)
-     * 2. Convert to robot-relative: relativeAngle = worldAngle - robotHeading
-     * 3. Normalize to [-π, π] using atan2 trick
-     * 4. Convert to degrees
-     * 5. Clamp to physical limits
+     * 1. Get field deltas: deltaX = targetX - robotX, deltaY = targetY - robotY
+     * 2. Rotate to robot frame: use heading to transform field coords → robot coords
+     * 3. Calculate angle: turretAngle = atan2(robotY, robotX)
+     * 4. Convert to degrees and clamp
      *
-     * IMPORTANT: This runs continuously every loop, even when joysticks are idle
+     * IMPORTANT: This runs continuously every loop
      */
     private double calculateTargetAngle() {
         // Check if we have a goal
@@ -269,35 +268,36 @@ public class Turret {
             targetY = goalY;
         }
 
-        // STEP 1: Calculate field angle (world angle) to target
-        // Pedro Pathing: X=forward/backward, Y=left/right
-        double deltaX = currentPose.getX() - targetX; //currentPose.getX() - targetX reversed
-        double deltaY = targetY - currentPose.getY(); //targetY - currentPose.getY();
-        double worldAngle = Math.atan2(deltaY, deltaX);
+        // STEP 1: Calculate field deltas (in field coordinates)
+        double fieldDeltaX = targetX - currentPose.getX();
+        double fieldDeltaY = targetY - currentPose.getY();
 
-        // STEP 2: Convert to robot-relative angle
+        // STEP 2: Transform from field coordinates to robot coordinates
+        // Rotate by heading to convert field frame → robot frame
         double robotHeading = currentPose.getHeading();
-        double relativeAngle = worldAngle + robotHeading; // Инвертирован знак для компенсации вращения робота
+        double cos = Math.cos(robotHeading);
+        double sin = Math.sin(robotHeading);
 
-        // STEP 3: Normalize to [-π, π] using atan2 trick (shortest path)
-        relativeAngle = normalizeAngle(relativeAngle);
+        double robotDeltaX = fieldDeltaX * cos + fieldDeltaY * sin;
+        double robotDeltaY = -fieldDeltaX * sin + fieldDeltaY * cos;
 
-        // STEP 4: Convert to degrees and invert sign
-        double turretAngleDeg = -Math.toDegrees(relativeAngle);
-
-        // STEP 5: Add offset - when moving forward (X increases), turret angle should increase
-        turretAngleDeg = -turretAngleDeg;
-        //turretAngleDeg = -turretAngleDeg + 90.0;
+        // STEP 3: Calculate turret angle in robot frame
+        // robotDeltaX = forward/backward relative to robot front
+        // robotDeltaY = left/right relative to robot front
+        // ИНВЕРТИРУЕМ угол чтобы турель компенсировала поворот робота
+        double turretAngleRad = Math.atan2(robotDeltaY, robotDeltaX);
+        double turretAngleDeg = -Math.toDegrees(turretAngleRad);
 
         // DEBUG: Save values for telemetry
         debugRobotX = currentPose.getX();
         debugRobotY = currentPose.getY();
         debugTargetX = targetX;
         debugTargetY = targetY;
-        debugDeltaX = deltaX;
-        debugDeltaY = deltaY;
+        debugDeltaX = fieldDeltaX;
+        debugDeltaY = fieldDeltaY;
 
         // Convert angles to [0°, 360°] for display convenience
+        double worldAngle = Math.atan2(fieldDeltaY, fieldDeltaX);
         debugTargetDirectionDeg = Math.toDegrees(worldAngle);
         while (debugTargetDirectionDeg < 0) debugTargetDirectionDeg += 360;
         while (debugTargetDirectionDeg >= 360) debugTargetDirectionDeg -= 360;
@@ -308,7 +308,7 @@ public class Turret {
 
         debugCalculatedAngleDeg = turretAngleDeg; // This stays in [-135°, 135°]
 
-        // STEP 5: Clamp to physical turret limits (±135°)
+        // STEP 4: Clamp to physical turret limits (±135°)
         turretAngleDeg = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngleDeg));
 
         return turretAngleDeg;
@@ -376,7 +376,7 @@ public class Turret {
             kalmanFilter.updateOdometry(gx, gy);
         }
 
-        // STEP 3: Calculate turret angle from filtered position
+        // STEP 3: Calculate turret angle from filtered position (ROBOT-CENTRIC)
         if (follower != null) {
             double[] filtered = kalmanFilter.getEstimatedPosition();
             double targetX_filtered = filtered[0];
@@ -388,15 +388,23 @@ public class Turret {
             debugInnovation = kalmanFilter.getInnovation();
             debugOutlierCount = kalmanFilter.getOutlierCount();
 
-            // Calculate angle to filtered target
+            // Calculate angle to filtered target (ROBOT-CENTRIC)
             Pose robotPose = follower.getPose();
-            double deltaX = robotPose.getX() - targetX_filtered;
-            double deltaY = targetY_filtered - robotPose.getY();
-            double worldAngle = Math.atan2(deltaY, deltaX);
-            double relativeAngle = worldAngle + robotPose.getHeading();
-            relativeAngle = normalizeAngle(relativeAngle);
-            double turretAngleDeg = -Math.toDegrees(relativeAngle);
-            turretAngleDeg = -turretAngleDeg;
+
+            // Field deltas
+            double fieldDeltaX = targetX_filtered - robotPose.getX();
+            double fieldDeltaY = targetY_filtered - robotPose.getY();
+
+            // Transform to robot frame
+            double robotHeading = robotPose.getHeading();
+            double cos = Math.cos(robotHeading);
+            double sin = Math.sin(robotHeading);
+            double robotDeltaX = fieldDeltaX * cos + fieldDeltaY * sin;
+            double robotDeltaY = -fieldDeltaX * sin + fieldDeltaY * cos;
+
+            // Calculate turret angle (инвертируем для компенсации поворота робота)
+            double turretAngleRad = Math.atan2(robotDeltaY, robotDeltaX);
+            double turretAngleDeg = -Math.toDegrees(turretAngleRad);
 
             // Set target and apply PIDF
             targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, turretAngleDeg));

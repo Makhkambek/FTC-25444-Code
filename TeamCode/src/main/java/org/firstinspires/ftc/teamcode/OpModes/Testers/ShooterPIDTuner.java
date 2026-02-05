@@ -17,10 +17,10 @@ import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 public class ShooterPIDTuner extends LinearOpMode {
 
     // PID коэффициенты (настраиваются через Dashboard)
-    public static double KP = 0.013; //checked
-    public static double KI = 0.00015;
-    public static double KD = 0.005;
-    public static double KF = 0.00048;  //checked
+    public static double KP = 0.009; //checked
+    public static double KI = 0;
+    public static double KD = 0;
+    public static double KF = 0.0003;  //checked
 
     // Настройки
     public static double TARGET_VELOCITY = 1700; // ticks/sec

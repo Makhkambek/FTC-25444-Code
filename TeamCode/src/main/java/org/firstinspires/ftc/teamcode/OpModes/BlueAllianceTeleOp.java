@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.geometry.Pose;
@@ -7,8 +8,12 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.SubSystems.Robot;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 
+@Config
 @TeleOp(name="BLUE Alliance TeleOp", group="TeleOp")
 public class BlueAllianceTeleOp extends LinearOpMode {
+
+    // Kalman Filter toggle (FTC Dashboard)
+    public static boolean ENABLE_KALMAN = true;
 
     private Robot robot;
 
@@ -32,6 +37,9 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         // Set goal (basket) for turret auto-aim
         Pose blueGoalPose = new Pose(136, 11, 270);
         robot.turret.setGoalPose(blueGoalPose);
+
+        // Enable Kalman Filter for sensor fusion
+        robot.turret.setKalmanEnabled(ENABLE_KALMAN);
 
         telemetry.addData("Status", "Ready to start!");
         telemetry.addData("Start Pose", "(%.1f, %.1f)", blueStartPose.getX(), blueStartPose.getY());
@@ -91,6 +99,27 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Mode", turretMode);
         telemetry.addData("Auto Aim", robot.turretController.isAutoAimEnabled() ? "ON" : "MANUAL");
         telemetry.addData("Centered", robot.turret.isCentered() ? "YES" : "NO");
+
+        // Kalman Filter
+        telemetry.addLine();
+        telemetry.addLine("=== KALMAN FILTER ===");
+        telemetry.addData("Enabled", robot.turret.isKalmanEnabled() ? "YES ✓" : "NO (Legacy EMA)");
+        if (robot.turret.isKalmanEnabled()) {
+            telemetry.addData("Filtered Target X", "%.2f cm", robot.turret.debugFilteredX);
+            telemetry.addData("Filtered Target Y", "%.2f cm", robot.turret.debugFilteredY);
+            telemetry.addData("Innovation X", "%.2f cm", robot.turret.debugInnovation[0]);
+            telemetry.addData("Innovation Y", "%.2f cm", robot.turret.debugInnovation[1]);
+            telemetry.addData("Outliers Rejected", robot.turret.debugOutlierCount);
+
+            // Innovation magnitude check
+            double innovationMagnitude = Math.sqrt(
+                robot.turret.debugInnovation[0] * robot.turret.debugInnovation[0] +
+                robot.turret.debugInnovation[1] * robot.turret.debugInnovation[1]
+            );
+            if (innovationMagnitude > 10.0) {
+                telemetry.addLine("⚠️ Large innovation!");
+            }
+        }
 
         // Shooter
         telemetry.addLine();

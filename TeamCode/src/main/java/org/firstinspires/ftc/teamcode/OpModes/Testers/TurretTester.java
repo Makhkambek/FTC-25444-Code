@@ -9,7 +9,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
-import org.firstinspires.ftc.teamcode.SubSystems.Vision;
+// import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 import org.firstinspires.ftc.teamcode.SubSystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -31,7 +31,7 @@ public class TurretTester extends LinearOpMode {
     public static boolean ENABLE_KALMAN = true;  // FTC Dashboard toggle
 
     private Turret turret;
-    private Vision vision;
+    // private Vision vision;
     private Follower follower; // Pedro Pathing с Pinpoint odometry
     private DriveTrain driveTrain;
 
@@ -77,7 +77,7 @@ public class TurretTester extends LinearOpMode {
         redStartPose = new Pose(103, 136, Math.toRadians(270));          // Red alliance start (X=horizontal, Y=vertical) НЕ МЕНЯЙ
 
         // Goal Poses - координаты корзин для разных альянсов (ФИНАЛЬНЫЕ - НЕ МЕНЯТЬ!)
-        blueGoalPose = new Pose(136, 11, 270);   // Blue alliance корзина  blueGoalPose = new Pose(136, 11, 270);
+        blueGoalPose = new Pose(12, 136, 270);   // Blue alliance корзина  blueGoalPose = new Pose(136, 11, 270);
         redGoalPose = new Pose(136, 104, 270);   // Red alliance корзина  redGoalPose = new Pose(136, 104, 270);
 
         // По умолчанию Blue alliance
@@ -92,13 +92,13 @@ public class TurretTester extends LinearOpMode {
         // Инициализация DriveTrain для правильного управления
         driveTrain = new DriveTrain(hardwareMap, (org.firstinspires.ftc.teamcode.SubSystems.Localizer) null);
 
-        // Инициализация Vision
-        vision = new Vision();
-        vision.init(hardwareMap);
-        vision.setAlliance(isRedAlliance); // BLUE alliance (tag 21) по умолчанию
+        // Инициализация Vision (ЗАКОММЕНТИРОВАНО - только одометрия)
+        // vision = new Vision();
+        // vision.init(hardwareMap);
+        // vision.setAlliance(isRedAlliance); // BLUE alliance (tag 21) по умолчанию
 
-        // Создаем Turret с Vision и Pedro Pathing Follower
-        turret = new Turret(hardwareMap, vision, follower);
+        // Создаем Turret ТОЛЬКО с Pedro Pathing Follower (без Vision)
+        turret = new Turret(hardwareMap, null, follower);
 
         // Устанавливаем начальный Goal Pose для турели
         turret.setGoalPose(goalPose);
@@ -117,8 +117,8 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine("NOTE: Using Pedro Pathing Pinpoint odometry");
         telemetry.addLine();
         telemetry.addLine("TURRET NORMAL MODE (Gamepad1):");
-        telemetry.addLine("Auto-aim: ALWAYS active (odometry tracking)");
-        telemetry.addLine("Right Trigger (HOLD): Enable Vision tracking");
+        telemetry.addLine("Auto-aim: ALWAYS active (ODOMETRY ONLY)");
+        telemetry.addLine("Right Trigger: (disabled - Vision OFF)");
         telemetry.addLine("Dpad Up: CENTER (0°)");
         telemetry.addLine("Right Bumper: RED position (90°)");
         telemetry.addLine("Dpad Down: BLUE position (-90°)");
@@ -134,7 +134,7 @@ public class TurretTester extends LinearOpMode {
         telemetry.addLine();
         telemetry.addLine("=== DEBUG INFO ===");
         telemetry.addLine("Using Pedro Pathing Pinpoint Odometry");
-        telemetry.addLine("Auto-aim: ODOMETRY (Priority 1), Vision (Priority 2)");
+        telemetry.addLine("Auto-aim: ODOMETRY ONLY (Vision disabled)");
         telemetry.addLine();
         telemetry.addData("Current Alliance", isRedAlliance ? "RED" : "BLUE");
         telemetry.addLine();
@@ -155,8 +155,8 @@ public class TurretTester extends LinearOpMode {
 
         waitForStart();
 
-        // Запускаем Vision
-        vision.start();
+        // Запускаем Vision (ЗАКОММЕНТИРОВАНО)
+        // vision.start();
 
         // Reset encoder
         turret.resetEncoder();
@@ -178,7 +178,7 @@ public class TurretTester extends LinearOpMode {
         }
 
         turret.stop();
-        vision.stop();
+        // vision.stop();
     }
 
     private void handleControls() {
@@ -194,8 +194,8 @@ public class TurretTester extends LinearOpMode {
             Pose startPose = isRedAlliance ? redStartPose : blueStartPose;
             follower.setPose(startPose);
 
-            // Обновляем Vision alliance
-            vision.setAlliance(isRedAlliance);
+            // Обновляем Vision alliance (ЗАКОММЕНТИРОВАНО)
+            // vision.setAlliance(isRedAlliance);
         }
 
         // Переключение режимов (X)
@@ -366,7 +366,8 @@ public class TurretTester extends LinearOpMode {
             }
         }
 
-        // Vision (только в NORMAL режиме)
+        // Vision (ЗАКОММЕНТИРОВАНО - только одометрия)
+        /*
         if (currentMode == ControlMode.NORMAL) {
             telemetry.addLine("--- VISION ---");
             telemetry.addData("Tracking", visionTrackingEnabled ? "ACTIVE (RT held)" : "OFF");
@@ -391,6 +392,17 @@ public class TurretTester extends LinearOpMode {
                 telemetry.addData("Active Mode", "ODOMETRY (Priority 1) ✓");
             } else if (vision.hasTargetTag()) {
                 telemetry.addData("Active Mode", "VISION (Priority 2)");
+            } else {
+                telemetry.addData("Active Mode", "MANUAL");
+            }
+            telemetry.addLine();
+        */
+
+        // Упрощенный AUTO-AIM MODE (только одометрия) - вне закомментированного блока
+        if (currentMode == ControlMode.NORMAL) {
+            telemetry.addLine("--- AUTO-AIM MODE ---");
+            if (turret.hasGoal()) {
+                telemetry.addData("Active Mode", "ODOMETRY ONLY ✓");
             } else {
                 telemetry.addData("Active Mode", "MANUAL");
             }
@@ -425,8 +437,8 @@ public class TurretTester extends LinearOpMode {
         telemetry.addData("Left Bumper", "Toggle Alliance (Current: " + (isRedAlliance ? "RED" : "BLUE") + ")");
         telemetry.addLine();
         if (currentMode == ControlMode.NORMAL) {
-            telemetry.addData("Auto-Aim", "ALWAYS active (odometry)");
-            telemetry.addData("RT (HOLD)", visionTrackingEnabled ? "Vision ON ✓" : "Vision available");
+            telemetry.addData("Auto-Aim", "ALWAYS active (ODOMETRY ONLY)");
+            telemetry.addData("RT (HOLD)", "(Vision disabled)");
             telemetry.addData("Dpad Up", "CENTER (0°)");
             telemetry.addData("Right Bumper", "RED (%.0f°)", RED_POSITION);
             telemetry.addData("Dpad Down", "BLUE (%.0f°)", BLUE_POSITION);

@@ -34,8 +34,8 @@ public class Localizer {
         // Parameter order: (forwardEncoder, strafeEncoder)
         // Forward encoder → Y-axis (forward/backward), Strafe encoder → X-axis (left/right)
         pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.FORWARD,     // Forward = Y-axis
-                GoBildaPinpointDriver.EncoderDirection.REVERSED     // Strafe = X-axis
+                GoBildaPinpointDriver.EncoderDirection.REVERSED,     // Forward = Y-axis //forward
+                GoBildaPinpointDriver.EncoderDirection.REVERSED     // Strafe = X-axis //reversed
         );
         pinpoint.resetPosAndIMU();
     }
