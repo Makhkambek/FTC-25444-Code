@@ -39,10 +39,10 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
 
-    public double kP = 0.009;
+    public double kP = 0.007;
     public double kI = 0.0;
     public double kD = 0;
-    public double kF = 0.0003;
+    public double kF = 0.00028;
 
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
@@ -58,6 +58,9 @@ public class Shooter {
     // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
     private static final double HOOD_DEADZONE = 3.0;
 
+    // Velocity deadzone - минимальное изменение расстояния для обновления velocity (см)
+    private static final double VELOCITY_DEADZONE = 5.0;
+
     private double lastError = 0;
     private double integralSum = 0;
     private double targetVelocity = 0; // Целевая скорость в ticks/sec
@@ -71,6 +74,7 @@ public class Shooter {
     private ShooterState currentState = ShooterState.IDLE;
     private ElapsedTime stateTimer = new ElapsedTime();
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
+    private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
@@ -78,18 +82,18 @@ public class Shooter {
         hood = hardwareMap.get(Servo.class, "shooterHood");
         shooterStop = hardwareMap.get(Servo.class, "shooterStop");
 
-        // Настройка моторов для PID
-        // Motor1 БЕЗ REVERSE - для корректного чтения velocity
+        // Настройка моторов для PID (такие же как в ShooterPIDTuner)
+        // Motor1 в FORWARD - используется для чтения velocity в PID
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        // Motor2 в REVERSE направлении (для синхронного вращения)
+        // Motor2 в REVERSE - для синхронного вращения
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         setHoodPosition(HoodPosition.CLOSE);
         shooterStop.setPosition(STOP_CLOSE);
 
@@ -124,6 +128,26 @@ public class Shooter {
     }
 
     /**
+     * Вычисляет целевую velocity на основе расстояния до цели
+     * Расстояние в см, возвращает velocity в ticks/sec
+     * 0-30 см → 1300
+     * 30-60 см → 1500
+     * 60-150 см → 1800
+     * 150+ см → 2000
+     */
+    private double calculateTargetVelocity(double distance) {
+        if (distance <= 30.0) {
+            return 1300.0;
+        } else if (distance <= 60.0) {
+            return 1500.0;
+        } else if (distance <= 150.0) {
+            return 1800.0;
+        } else {
+            return 2000.0;
+        }
+    }
+
+    /**
      * Обновляет позицию Hood на основе расстояния до цели
      * Расстояние в см
      * Использует deadzone 3 см для предотвращения лишних движений
@@ -146,6 +170,29 @@ public class Shooter {
 
                 // Сохраняем последнее расстояние
                 lastHoodDistance = distance;
+            }
+        }
+    }
+
+    /**
+     * Обновляет target velocity на основе расстояния до цели
+     * Расстояние в см
+     * Использует deadzone 5 см для предотвращения лишних изменений
+     */
+    public void updateVelocity(double distance) {
+        if (distance > 0) {
+            // Проверяем deadzone - обновляем только если изменение > 5 см
+            if (lastVelocityDistance < 0 || Math.abs(distance - lastVelocityDistance) > VELOCITY_DEADZONE) {
+                double newVelocity = calculateTargetVelocity(distance);
+
+                // Обновляем velocity только если моторы уже крутятся или собираются крутиться
+                // Не сбрасываем PID состояние если velocity не изменилась значительно
+                if (Math.abs(newVelocity - targetVelocity) > 50.0) {
+                    setTargetVelocity(newVelocity);
+                }
+
+                // Сохраняем последнее расстояние
+                lastVelocityDistance = distance;
             }
         }
     }
@@ -181,7 +228,10 @@ public class Shooter {
                 break;
 
             case SPIN_UP:
-                on();
+                // Запускаем моторы только если они не крутятся (для безопасности)
+                if (targetVelocity == 0) {
+                    on();
+                }
                 if (stateTimer.seconds() >= SPIN_UP_TIME) {
                     currentState = ShooterState.OPEN_STOP; //timer
                     stateTimer.reset();
@@ -206,7 +256,8 @@ public class Shooter {
 
             case RESET:
                 shooterStop.setPosition(STOP_CLOSE);
-                off();
+                // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
+                // off();
                 intake.off();
                 currentState = ShooterState.IDLE;
                 break;
@@ -277,7 +328,7 @@ public class Shooter {
 
     public void on() {
         // Устанавливаем целевую скорость (например, максимальная)
-        targetVelocity = 2200; // ticks/sec - настройте под ваши моторы
+        targetVelocity = 2000; // ticks/sec - настроено через ShooterPIDTuner
         lastError = 0;
         integralSum = 0;
         smoothedOutput = 0;
@@ -350,6 +401,7 @@ public class Shooter {
         currentState = ShooterState.IDLE; // Сбрасываем FSM
         stateTimer.reset();
         lastHoodDistance = -1; // Сбрасываем deadzone tracking
+        lastVelocityDistance = -1; // Сбрасываем velocity deadzone tracking
     }
 
     // Testing methods

@@ -38,30 +38,40 @@ Robot {
         follower = Constants.createFollower(hardwareMap);
         follower.update(); // CRITICAL: Initialize before setting pose
 
-        // Vision (нужна для Turret)
-        vision = new Vision();
-        vision.init(hardwareMap);
-        vision.start();
-        vision.setAlliance(isRedAlliance); // Устанавливаем альянс
+        // Vision (нужна для Turret) - DISABLED: No camera for now
+        // vision = new Vision();
+        // vision.init(hardwareMap);
+        // vision.start();
+        // vision.setAlliance(isRedAlliance); // Устанавливаем альянс
 
         // SubSystems
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap, vision, follower);
+        turret = new Turret(hardwareMap, null, follower); // Vision disabled
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
 
         // Controllers (на gamepad2)
         intakeController = new IntakeController(null, intake); // gamepad передадим в update
-        shooterController = new ShooterController(null, shooter, vision);
-        turretController = new TurretController(null, turret, vision);
+        shooterController = new ShooterController(null, shooter, null); // Vision disabled
+        turretController = new TurretController(null, turret, null); // Vision disabled
         resetController = new ResetController(headingController, intakeController, shooterController, turretController, intake, shooter, turret);
     }
 
     public void start() {
-        // Начальная настройка
+        // Начальная настройка - убедимся что intake выключен
+        intake.off();
+
+        // Запускаем shooter моторы с velocity на основе начального расстояния до цели
+        double distanceToGoal = turret.getDistanceToGoal();
+        if (distanceToGoal > 0) {
+            shooter.updateVelocity(distanceToGoal); // Устанавливает правильную velocity
+            shooter.updateHood(distanceToGoal); // Устанавливает правильную hood позицию
+        } else {
+            shooter.on(); // Fallback: стандартная velocity = 2000 ticks/sec
+        }
     }
 
     public void update(Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
@@ -69,8 +79,15 @@ Robot {
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
-        // Динамически обновляем Hood на основе расстояния до цели (Vision)
-        shooter.updateHoodDynamic(vision);
+        // Динамически обновляем Hood на основе расстояния до цели (Vision) - DISABLED
+        // shooter.updateHoodDynamic(vision);
+
+        // Динамически обновляем target velocity на основе расстояния до цели (Odometry)
+        double distanceToGoal = turret.getDistanceToGoal();
+        if (distanceToGoal > 0) {
+            shooter.updateVelocity(distanceToGoal);
+            shooter.updateHood(distanceToGoal); // Также обновляем Hood
+        }
 
         shooter.updatePID();
 
@@ -81,15 +98,18 @@ Robot {
         handleFireButton(gamepad2, telemetry);
     }
 
-    private void updateControllers(Gamepad gamepad2) {
-        intakeController.gamepad = gamepad2;
-        intakeController.update();
-
+private void updateControllers(Gamepad gamepad2) {
         shooterController.gamepad = gamepad2;
         shooterController.update(intake);
 
         turretController.gamepad = gamepad2;
         turretController.update();
+
+        // IntakeController управляет intake только если Shooter НЕ активен
+        intakeController.gamepad = gamepad2;
+        if (!shooterController.isShooting()) {
+            intakeController.update();
+        }
 
         resetController.handleResetButton(gamepad2);
     }
@@ -107,10 +127,10 @@ Robot {
         intake.off();
         shooter.off();
         turret.stop();
-        vision.stop();
+        // vision.stop(); // Vision disabled
     }
 
     public void setAlliance(boolean isRedAlliance) {
-        vision.setAlliance(isRedAlliance);
+        // vision.setAlliance(isRedAlliance); // Vision disabled
     }
 }

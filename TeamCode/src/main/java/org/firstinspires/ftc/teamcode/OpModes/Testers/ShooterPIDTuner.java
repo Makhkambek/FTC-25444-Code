@@ -17,13 +17,13 @@ import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 public class ShooterPIDTuner extends LinearOpMode {
 
     // PID коэффициенты (настраиваются через Dashboard)
-    public static double KP = 0.009; //checked
+    public static double KP = 0.007; //checked
     public static double KI = 0;
     public static double KD = 0;
-    public static double KF = 0.0003;  //checked
+    public static double KF = 0.00028;  //checked
 
     // Настройки
-    public static double TARGET_VELOCITY = 1700; // ticks/sec
+    public static double TARGET_VELOCITY = 2000; // ticks/sec
     public static double INTEGRAL_LIMIT = 100.0; // Anti-windup
 
     // PID защита от спайков
@@ -65,17 +65,17 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
 
-        // Motor1 БЕЗ REVERSE - используется для чтения velocity в PID
+        // Motor1 в FORWARD - используется для чтения velocity в PID
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Motor2 в REVERSE - для синхронного вращения
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooterMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
         // Инициализация Intake
@@ -156,8 +156,8 @@ public class ShooterPIDTuner extends LinearOpMode {
             return;
         }
 
-        // Инвертируем velocity т.к. motor1 в REVERSE (encoder считает в минус)
-        double currentVelocity = -shooterMotor1.getVelocity();
+        // Motor1 в FORWARD, инверсия не нужна
+        double currentVelocity = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVelocity;
 
         double deltaTime = pidTimer.seconds();
@@ -219,8 +219,8 @@ public class ShooterPIDTuner extends LinearOpMode {
     }
 
     private void displayTelemetry() {
-        // Инвертируем velocity т.к. motor1 в REVERSE
-        double currentVel = -shooterMotor1.getVelocity();
+        // Motor1 в FORWARD, инверсия не нужна
+        double currentVel = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVel;
 
         telemetry.addLine("=== SHOOTER PID TUNER ===");

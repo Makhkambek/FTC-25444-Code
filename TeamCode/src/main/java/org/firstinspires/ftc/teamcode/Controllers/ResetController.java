@@ -52,6 +52,16 @@ public class ResetController {
         // Сброс подсистем
         intake.off();
         shooter.reset(); // Полный сброс shooter (моторы, servos, FSM)
+
+        // Снова запускаем моторы с правильной velocity на основе расстояния
+        double distanceToGoal = turret.getDistanceToGoal();
+        if (distanceToGoal > 0) {
+            shooter.updateVelocity(distanceToGoal);
+            shooter.updateHood(distanceToGoal);
+        } else {
+            shooter.on(); // Fallback: стандартная velocity
+        }
+
         turret.returnToCenter(); // Возврат turret на 0 с PID
 
         wasResetPressed = false;
