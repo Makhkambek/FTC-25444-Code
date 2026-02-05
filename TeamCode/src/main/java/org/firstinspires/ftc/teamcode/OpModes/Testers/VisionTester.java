@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.Testers;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -104,14 +105,16 @@ public class VisionTester extends LinearOpMode {
 
         if (hasTarget) {
             double distance = vision.getTargetDistance();
-            double yaw = vision.getTargetYaw();
+            double tx = vision.getTargetYaw();        // Horizontal offset
+            double ty = vision.getTargetPitch();      // Vertical offset
 
-            telemetry.addData("Distance (cm)", "%.2f", distance);
-            telemetry.addData("Yaw (degrees)", "%.2f", yaw);
+            telemetry.addData("Distance (cm)", String.format("%.2f", distance));
+            telemetry.addData("tx (H offset)", String.format("%.2f°", tx));
+            telemetry.addData("ty (V offset)", String.format("%.2f°", ty));
 
             // Hood calculation based on distance (servo position 0.0-0.5)
             double hoodServoPos = calculateHoodPosition(distance);
-            telemetry.addData("Hood Servo Position", "%.3f", hoodServoPos);
+            telemetry.addData("Hood Servo", String.format("%.3f", hoodServoPos));
 
             // Range indicator
             String rangeIndicator;
@@ -127,8 +130,9 @@ public class VisionTester extends LinearOpMode {
             telemetry.addData("Range", rangeIndicator);
         } else {
             telemetry.addData("Distance", "---");
-            telemetry.addData("Yaw", "---");
-            telemetry.addData("Suggested Hood", "---");
+            telemetry.addData("tx (H offset)", "---");
+            telemetry.addData("ty (V offset)", "---");
+            telemetry.addData("Hood Servo", "---");
         }
 
         telemetry.addLine();
@@ -158,6 +162,11 @@ public class VisionTester extends LinearOpMode {
         } else {
             telemetry.addData("All Tags", "None detected");
         }
+
+        // Debug: Limelight raw data (tx, ty)
+        telemetry.addLine();
+        telemetry.addLine("--- DEBUG: LIMELIGHT RAW DATA ---");
+        telemetry.addData("Data", vision.getDebugLimelightData());
 
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");

@@ -423,12 +423,18 @@ public class Turret {
 
         // Приоритет 1: Vision (если камера видит AprilTag)
         if (vision != null && vision.hasTargetTag()) {
-            double yaw = vision.getTargetYaw();
-            if (!Double.isNaN(yaw)) {
-                double rawTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, yaw));
+            double tx = vision.getTargetYaw(); // tx = horizontal offset (градусы)
+            if (!Double.isNaN(tx)) {
+                // tx - это ОШИБКА (offset от центра), НЕ абсолютный угол
+                // Турель должен компенсировать эту ошибку
+                double currentAngle = getCurrentAngle();
+                double newTarget = currentAngle + tx; // Добавляем ошибку к текущему углу
+
+                // Clamp к физическим лимитам
+                newTarget = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, newTarget));
 
                 // Плавное сглаживание для Vision (AprilTag может прыгать)
-                smoothedTargetAngle += SMOOTHING_FACTOR * (rawTarget - smoothedTargetAngle);
+                smoothedTargetAngle += SMOOTHING_FACTOR * (newTarget - smoothedTargetAngle);
                 smoothedTargetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, smoothedTargetAngle));
                 targetAngle = smoothedTargetAngle;
                 usingVision = true;
