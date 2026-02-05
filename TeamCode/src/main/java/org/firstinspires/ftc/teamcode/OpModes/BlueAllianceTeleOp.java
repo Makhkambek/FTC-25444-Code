@@ -12,8 +12,8 @@ import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 @TeleOp(name="BLUE Alliance TeleOp", group="TeleOp")
 public class BlueAllianceTeleOp extends LinearOpMode {
 
-    // Kalman Filter toggle (FTC Dashboard) - DISABLED: требует Vision
-    // public static boolean ENABLE_KALMAN = true;
+    // Kalman Filter toggle (FTC Dashboard)
+    public static boolean ENABLE_KALMAN = true;
 
     private Robot robot;
 
@@ -25,7 +25,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         // Инициализация робота
         telemetry.addData("Status", "Initializing...");
         telemetry.addData("Alliance", "BLUE");
-        telemetry.addData("Mode", "ODOMETRY ONLY (No Vision)");
+        telemetry.addData("Target AprilTag ID", 20);
+        telemetry.addData("Mode", "Vision + Odometry (Kalman Filter)");
         telemetry.update();
 
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
@@ -38,8 +39,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         Pose blueGoalPose = new Pose(12, 136, 270);
         robot.turret.setGoalPose(blueGoalPose);
 
-        // Enable Kalman Filter for sensor fusion - DISABLED: требует Vision
-        // robot.turret.setKalmanEnabled(ENABLE_KALMAN);
+        // Enable Kalman Filter for sensor fusion
+        robot.turret.setKalmanEnabled(ENABLE_KALMAN);
 
         telemetry.addData("Status", "Ready to start!");
         telemetry.addData("Start Pose", "(%.1f, %.1f)", blueStartPose.getX(), blueStartPose.getY());
@@ -71,6 +72,17 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Robot Y", "%.2f cm", currentPose.getY());
         telemetry.addData("Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
 
+        // Vision
+        telemetry.addLine();
+        telemetry.addLine("=== VISION (BLUE) ===");
+        telemetry.addData("Alliance", robot.vision.getAllianceColor());
+        telemetry.addData("Target Tag ID", robot.vision.getTargetTagId());
+        telemetry.addData("Target Visible", robot.vision.hasTargetTag() ? "YES" : "NO");
+        if (robot.vision.hasTargetTag()) {
+            telemetry.addData("Distance", "%.1f cm", robot.vision.getTargetDistance());
+            telemetry.addData("Yaw", "%.1f°", robot.vision.getTargetYaw());
+        }
+
         // Turret
         telemetry.addLine();
         telemetry.addLine("=== TURRET ===");
@@ -93,8 +105,7 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Robot Heading", "%.1f°", robot.turret.debugRobotHeadingDeg);
         telemetry.addData("Calculated Angle", "%.1f°", robot.turret.debugCalculatedAngleDeg);
 
-        // Kalman Filter - DISABLED: требует Vision для sensor fusion
-        /*
+        // Kalman Filter
         telemetry.addLine();
         telemetry.addLine("=== KALMAN FILTER ===");
         telemetry.addData("Enabled", robot.turret.isKalmanEnabled() ? "YES ✓" : "NO (Legacy EMA)");
@@ -114,7 +125,6 @@ public class BlueAllianceTeleOp extends LinearOpMode {
                 telemetry.addLine("⚠️ Large innovation!");
             }
         }
-        */
 
         // Shooter
         telemetry.addLine();

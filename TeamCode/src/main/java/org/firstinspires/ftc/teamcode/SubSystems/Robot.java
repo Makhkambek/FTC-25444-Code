@@ -38,25 +38,25 @@ Robot {
         follower = Constants.createFollower(hardwareMap);
         follower.update(); // CRITICAL: Initialize before setting pose
 
-        // Vision (нужна для Turret) - DISABLED: No camera for now
-        // vision = new Vision();
-        // vision.init(hardwareMap);
-        // vision.start();
-        // vision.setAlliance(isRedAlliance); // Устанавливаем альянс
+        // Vision (нужна для Turret) - ENABLED for Kalman Filter
+        vision = new Vision();
+        vision.init(hardwareMap);
+        vision.start();
+        vision.setAlliance(isRedAlliance); // Устанавливаем альянс
 
         // SubSystems
         driveTrain = new DriveTrain(hardwareMap, telemetry);
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
-        turret = new Turret(hardwareMap, null, follower); // Vision disabled
+        turret = new Turret(hardwareMap, vision, follower); // Vision enabled for Kalman Filter
 
         // HeadingController (используется в DriveTrain)
         headingController = new HeadingController(hardwareMap);
 
         // Controllers (на gamepad2)
         intakeController = new IntakeController(null, intake); // gamepad передадим в update
-        shooterController = new ShooterController(null, shooter, null); // Vision disabled
-        turretController = new TurretController(null, turret, null); // Vision disabled
+        shooterController = new ShooterController(null, shooter, vision); // Vision enabled
+        turretController = new TurretController(null, turret, vision); // Vision enabled
         resetController = new ResetController(headingController, intakeController, shooterController, turretController, intake, shooter, turret);
     }
 
@@ -79,8 +79,8 @@ Robot {
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
-        // Динамически обновляем Hood на основе расстояния до цели (Vision) - DISABLED
-        // shooter.updateHoodDynamic(vision);
+        // Динамически обновляем Hood на основе расстояния до цели (Vision)
+        shooter.updateHoodDynamic(vision);
 
         // Динамически обновляем target velocity на основе расстояния до цели (Odometry)
         double distanceToGoal = turret.getDistanceToGoal();
@@ -127,10 +127,10 @@ private void updateControllers(Gamepad gamepad2) {
         intake.off();
         shooter.off();
         turret.stop();
-        // vision.stop(); // Vision disabled
+        vision.stop();
     }
 
     public void setAlliance(boolean isRedAlliance) {
-        // vision.setAlliance(isRedAlliance); // Vision disabled
+        vision.setAlliance(isRedAlliance);
     }
 }
