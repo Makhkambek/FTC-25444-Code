@@ -78,6 +78,7 @@ public class Shooter {
     private ElapsedTime stateTimer = new ElapsedTime();
     private boolean openStopExecuted = false;  // Флаг для OPEN_STOP state-entry
     private boolean feedExecuted = false;      // Флаг для FEED state-entry
+    private boolean resetExecuted = false;     // Флаг для RESET state-entry
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
@@ -275,13 +276,17 @@ public class Shooter {
                 break;
 
             case RESET:
-                // Возвращаем оба servo в обычные позиции
-                shooterStop.setPosition(STOP_CLOSE);
-                intakeStop.setPosition(INTAKE_STOP_OFF);
-                // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
-                // off();
-                intake.off();
+                // Возвращаем оба servo в обычные позиции (ТОЛЬКО ОДИН РАЗ)
+                if (!resetExecuted) {
+                    shooterStop.setPosition(STOP_CLOSE);
+                    intakeStop.setPosition(INTAKE_STOP_OFF);
+                    // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
+                    // off();
+                    intake.off();
+                    resetExecuted = true;
+                }
                 currentState = ShooterState.IDLE;
+                resetExecuted = false; // Сброс для следующего раза
                 break;
         }
     }

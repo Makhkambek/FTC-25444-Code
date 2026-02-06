@@ -97,53 +97,40 @@ public class BlueAuto extends OpMode {
             case 0: // Запуск Path 1 (turret направлен)
 //                shooter.on();
                 follower.followPath(path1, true);
-                setPathState(1);
+                setPathState(11);
                 break;
 
             case 1: // Ожидание завершения Path 1
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.1) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
 //                    shooter.startShoot();
+                    follower.followPath(path2, true);
                     setPathState(2);
                 }
                 break;
 
-            case 2: // Запуск Path 2 с intake
-//                intake.on();
-                follower.followPath(path2, true);
-                setPathState(3);
+            case 2: // Ожидание завершения Path 2
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
+                    follower.followPath(path3, true);
+                    setPathState(3);
+                }
                 break;
 
-            case 3: // Ожидание завершения Path 2
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.1) {
+            case 3: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
+                    follower.followPath(path3, true);
                     setPathState(4);
                 }
                 break;
 
-            case 4: // Запуск Path 3
-                follower.followPath(path3, true);
-                setPathState(5);
-                break;
-
-            case 5: // Ожидание завершения Path 3
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.5) {
-                    setPathState(6);
+            case 4: // Ожидание завершения Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
+                    follower.followPath(path4, true);
+                    setPathState(5);
                 }
                 break;
 
-            case 6: // Ожидание 0.3 секунды
-                if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
-//                    shooter.startShoot();
-                    setPathState(7);
-                }
-                break;
 
-            case 7: // Запуск Path 4 с intake
-//                intake.on();
-                follower.followPath(path4, true);
-                setPathState(8);
-                break;
-
-            case 8: // Ожидание завершения Path 4 - завершение
+            case 5: // Ожидание завершения Path 4 - завершение
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
 //                    intake.off();
                         follower.followPath(path5, true);

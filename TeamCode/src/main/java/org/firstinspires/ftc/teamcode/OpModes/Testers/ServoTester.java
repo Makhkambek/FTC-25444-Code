@@ -11,12 +11,15 @@ public class ServoTester extends LinearOpMode {
 
     private Servo shooterHood;
     private Servo shooterStop;
+    private Servo shooterStop1;
     private Intake intake;
 
     @Override
     public void runOpMode() {
 //        shooterHood = hardwareMap.get(Servo.class, "shooterHood");
         shooterStop = hardwareMap.get(Servo.class, "shooterStop");
+        shooterStop.setDirection(Servo.Direction.FORWARD);
+        shooterStop1 = hardwareMap.get(Servo.class, "shooterStop1");
         intake = new Intake(hardwareMap);
 
         telemetry.addData("Status", "Ready!");
@@ -37,9 +40,11 @@ public class ServoTester extends LinearOpMode {
 
             // Stop control
             if (gamepad1.dpad_down) {
-                shooterStop.setPosition(0.0);
+                shooterStop.setPosition(1);
+                shooterStop1.setPosition(0.0);
             } else if (gamepad1.dpad_up) {
-                shooterStop.setPosition(0.29);
+                shooterStop1.setPosition(0.29);
+                shooterStop.setPosition(0.9);
             }
 
             // Intake control
