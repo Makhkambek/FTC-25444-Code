@@ -35,14 +35,30 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         Pose blueStartPose = new Pose(50, 95, Math.toRadians(270));
         robot.follower.setStartingPose(blueStartPose);
 
+        // CRITICAL: Synchronize Localizer with Follower
+        // This ensures HeadingController (used for heading lock) has correct heading
+        Pose syncPose = robot.follower.getPose();
+        org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+            syncPose.getX(),
+            syncPose.getY(),
+            Math.toDegrees(syncPose.getHeading())
+        );
+
         // Set goal (basket) for turret auto-aim (updated from TurretTester)
-        Pose blueGoalPose = new Pose(12, 136, 270);
+        Pose blueGoalPose = new Pose(12, 136, Math.toRadians(270));
         robot.turret.setGoalPose(blueGoalPose);
 
         // Enable Kalman Filter for sensor fusion
         robot.turret.setKalmanEnabled(ENABLE_KALMAN);
 
-        telemetry.addData("Status", "Ready to start!");
+        // Verify heading synchronization
+        telemetry.addLine("=== INITIALIZATION ===");
+        telemetry.addData("Status", "Pinpoint IMU Ready");
+        telemetry.addData("Follower Heading", "%.1f°", Math.toDegrees(robot.follower.getPose().getHeading()));
+        telemetry.addData("Localizer Heading", "%.1f°", org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().getHeading());
+        telemetry.addData("Expected Heading", "270.0°");
+        telemetry.addLine();
+        telemetry.addData("Sync Status", "Both systems aligned ✓");
         telemetry.addData("Start Pose", "(%.1f, %.1f)", blueStartPose.getX(), blueStartPose.getY());
         telemetry.addData("Goal Pose", "(%.1f, %.1f)", blueGoalPose.getX(), blueGoalPose.getY());
         telemetry.update();

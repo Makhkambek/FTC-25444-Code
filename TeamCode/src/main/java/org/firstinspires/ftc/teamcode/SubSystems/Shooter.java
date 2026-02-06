@@ -147,11 +147,11 @@ public class Shooter {
      */
     private double calculateTargetVelocity(double distance) {
         if (distance <= 30.0) {
-            return 1300.0;
+            return 1200.0;
         } else if (distance <= 60.0) {
             return 1500.0;
         } else if (distance <= 150.0) {
-            return 1800.0;
+            return 1700.0;
         } else {
             return 2000.0;
         }
