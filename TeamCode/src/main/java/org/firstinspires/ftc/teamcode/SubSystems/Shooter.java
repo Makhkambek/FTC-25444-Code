@@ -11,6 +11,7 @@ public class Shooter {
     private DcMotorEx shooterMotor1, shooterMotor2;
     private Servo hood;
     private Servo shooterStop;
+    private Servo intakeStop;
 
     public enum HoodPosition {
         CLOSE(0.0),
@@ -35,6 +36,8 @@ public class Shooter {
     private static final double SHOOTER_POWER = 1.0;
     private static final double STOP_OPEN = 0.29;
     private static final double STOP_CLOSE = 0.0;
+    private static final double INTAKE_STOP_ON = 0.9;   // Позиция во время стрельбы
+    private static final double INTAKE_STOP_OFF = 1.0;  // Обычная позиция (не стреляем)
     private static final double SPIN_UP_TIME = 0.2;
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 1.5;
@@ -81,6 +84,7 @@ public class Shooter {
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
         hood = hardwareMap.get(Servo.class, "shooterHood");
         shooterStop = hardwareMap.get(Servo.class, "shooterStop");
+        intakeStop = hardwareMap.get(Servo.class, "intakeStop");
 
         // Настройка моторов для PID (такие же как в ShooterPIDTuner)
         // Motor1 в FORWARD - используется для чтения velocity в PID
@@ -95,7 +99,10 @@ public class Shooter {
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         setHoodPosition(HoodPosition.CLOSE);
+
+        // Обычные позиции когда не стреляем
         shooterStop.setPosition(STOP_CLOSE);
+        intakeStop.setPosition(INTAKE_STOP_OFF);
 
         pidTimer.reset();
     }
@@ -239,7 +246,9 @@ public class Shooter {
                 break;
 
             case OPEN_STOP:
+                // Открываем оба servo для стрельбы
                 shooterStop.setPosition(STOP_OPEN);
+                intakeStop.setPosition(INTAKE_STOP_ON);
                 if (stateTimer.seconds() >= OPEN_STOP_TIME) { //timer
                     currentState = ShooterState.FEED;
                     stateTimer.reset();
@@ -255,7 +264,9 @@ public class Shooter {
                 break;
 
             case RESET:
+                // Возвращаем оба servo в обычные позиции
                 shooterStop.setPosition(STOP_CLOSE);
+                intakeStop.setPosition(INTAKE_STOP_OFF);
                 // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
                 // off();
                 intake.off();
@@ -397,6 +408,7 @@ public class Shooter {
         // Полный сброс shooter в начальное состояние
         off(); // Выключаем моторы
         shooterStop.setPosition(STOP_CLOSE); // Закрываем stop
+        intakeStop.setPosition(INTAKE_STOP_OFF); // Обычная позиция
         setHoodPosition(HoodPosition.CLOSE);
         currentState = ShooterState.IDLE; // Сбрасываем FSM
         stateTimer.reset();
@@ -419,5 +431,9 @@ public class Shooter {
 
     public double getStopPosition() {
         return shooterStop.getPosition();
+    }
+
+    public double getIntakeStopPosition() {
+        return intakeStop.getPosition();
     }
 }

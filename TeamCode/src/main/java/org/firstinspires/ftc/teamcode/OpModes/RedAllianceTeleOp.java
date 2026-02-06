@@ -127,6 +127,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
         telemetry.addData("State", robot.shooterController.getCurrentState());
         telemetry.addData("Is Shooting", robot.shooterController.isShooting() ? "YES" : "NO");
         telemetry.addData("Hood Position", robot.shooter.getCurrentHoodPosition());
+        telemetry.addData("ShooterStop Position", "%.2f", robot.shooter.getStopPosition());
+        telemetry.addData("IntakeStop Position", "%.2f", robot.shooter.getIntakeStopPosition());
 
         // Controls
         telemetry.addLine();

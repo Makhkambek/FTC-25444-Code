@@ -133,6 +133,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addData("State", robot.shooterController.getCurrentState());
         telemetry.addData("Is Shooting", robot.shooterController.isShooting() ? "YES" : "NO");
         telemetry.addData("Hood Position", robot.shooter.getCurrentHoodPosition());
+        telemetry.addData("ShooterStop Position", "%.2f", robot.shooter.getStopPosition());
+        telemetry.addData("IntakeStop Position", "%.2f", robot.shooter.getIntakeStopPosition());
         telemetry.addData("Target Velocity", "%.0f ticks/sec", robot.shooter.getTargetVelocity());
         telemetry.addData("Current Velocity", "%.0f ticks/sec", robot.shooter.getCurrentVelocity());
 
