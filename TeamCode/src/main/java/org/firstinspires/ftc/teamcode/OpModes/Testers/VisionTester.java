@@ -3,13 +3,9 @@ package org.firstinspires.ftc.teamcode.OpModes.Testers;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
-import org.firstinspires.ftc.teamcode.SubSystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
@@ -19,8 +15,6 @@ public class VisionTester extends LinearOpMode {
 
     private Vision vision;
     private Turret turret;
-    private Follower follower; // Для Kalman Filter sensor fusion
-    private DriveTrain driveTrain;
     private boolean isRedAlliance = true;
     private boolean prevDpadUp = false;
     private boolean prevDpadDown = false;
@@ -35,69 +29,36 @@ public class VisionTester extends LinearOpMode {
         vision.start();
         vision.setAlliance(isRedAlliance);
 
-        // Initialize Follower for Kalman Filter sensor fusion
-        telemetry.addData("Status", "Initializing Odometry...");
-        telemetry.update();
-
-        follower = Constants.createFollower(hardwareMap);
-        follower.update(); // Critical first update
-
-        // Set starting pose (Blue alliance position as default)
-        Pose startPose = new Pose(50, 95, Math.toRadians(270));
-        follower.setStartingPose(startPose);
-
-        // Initialize DriveTrain
-        driveTrain = new DriveTrain(hardwareMap, telemetry);
-
-        // Initialize turret with Vision + Follower for Kalman Filter
-        turret = new Turret(hardwareMap, vision, follower);
-
-        // Set goal pose (basket) for Kalman Filter tracking
-        // This automatically initializes the Kalman Filter in Turret
-        Pose goalPose = new Pose(12, 136, 270); // Blue basket position
-        turret.setGoalPose(goalPose);
+        // Initialize turret with Vision ONLY (no Kalman Filter, no odometry)
+        turret = new Turret(hardwareMap, vision);
 
         telemetry.addData("Status", "Ready!");
         telemetry.addLine();
         telemetry.addLine("Controls:");
-        telemetry.addData("GP1 Left Stick", "Drive (X/Y)");
-        telemetry.addData("GP1 Right Stick", "Rotate");
         telemetry.addData("GP1 DPad Up", "Switch to RED Alliance");
         telemetry.addData("GP1 DPad Down", "Switch to BLUE Alliance");
         telemetry.addLine();
-        telemetry.addData("Turret", "Auto-aim ENABLED (Kalman Filter)");
-        telemetry.addData("Kalman Filter", "ENABLED for sensor fusion");
+        telemetry.addData("Turret", "Auto-aim ENABLED (Vision Only)");
+        telemetry.addData("Mode", "LEGACY - No Kalman Filter");
         telemetry.update();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            // Update odometry FIRST every loop
-            follower.update();
-
-            // DriveTrain control (gamepad1)
-            driveTrain.drive(gamepad1, gamepad2, telemetry);
-
             // Alliance switching
             if (gamepad1.dpad_up && !prevDpadUp) {
                 isRedAlliance = true;
                 vision.setAlliance(true);
-                // Update goal pose for RED alliance
-                Pose redGoalPose = new Pose(12, 12, 90); // Red basket position
-                turret.setGoalPose(redGoalPose);
             }
             if (gamepad1.dpad_down && !prevDpadDown) {
                 isRedAlliance = false;
                 vision.setAlliance(false);
-                // Update goal pose for BLUE alliance
-                Pose blueGoalPose = new Pose(12, 136, 270); // Blue basket position
-                turret.setGoalPose(blueGoalPose);
             }
 
             prevDpadUp = gamepad1.dpad_up;
             prevDpadDown = gamepad1.dpad_down;
 
-            // Turret auto-aim (tracks AprilTag using Kalman Filter sensor fusion)
+            // Turret auto-aim (Vision-only mode, no Kalman filter)
             turret.autoAim();
 
             // Display telemetry
@@ -207,47 +168,34 @@ public class VisionTester extends LinearOpMode {
         telemetry.addLine("--- DEBUG: LIMELIGHT RAW DATA ---");
         telemetry.addData("Data", vision.getDebugLimelightData());
 
-        // Kalman Filter section
+        // Vision-Only Mode
         telemetry.addLine();
-        telemetry.addLine("--- KALMAN FILTER ---");
-        telemetry.addData("Status", turret.isKalmanEnabled() ? "ENABLED ✓" : "DISABLED");
+        telemetry.addLine("--- VISION MODE ---");
+        telemetry.addData("Mode", "LEGACY (Vision Only, No Kalman)");
+        telemetry.addData("Smoothing Factor", String.format("%.2f", 0.15));
 
-        if (turret.isKalmanEnabled()) {
-            // Odometry position
-            Pose currentPose = follower.getPose();
-            telemetry.addData("Robot X (Odo)", String.format("%.1f cm", currentPose.getX()));
-            telemetry.addData("Robot Y (Odo)", String.format("%.1f cm", currentPose.getY()));
-            telemetry.addData("Heading", String.format("%.1f°", Math.toDegrees(currentPose.getHeading())));
+        // Debug: Vision → Turret conversion
+        telemetry.addLine();
+        telemetry.addLine("--- DEBUG: VISION → TURRET ---");
+        if (vision.hasTargetTag()) {
+            double rawTx = vision.getTargetYaw();
+            double currentAngle = turret.getCurrentAngle();
+            double targetAngle = turret.getTargetAngle();
+            double error = targetAngle - currentAngle;
 
-            // Filtered goal position
-            telemetry.addData("Filtered Goal X", String.format("%.2f cm", turret.debugFilteredX));
-            telemetry.addData("Filtered Goal Y", String.format("%.2f cm", turret.debugFilteredY));
-
-            // Innovation (measurement - prediction difference)
-            telemetry.addData("Innovation X", String.format("%.2f cm", turret.debugInnovation[0]));
-            telemetry.addData("Innovation Y", String.format("%.2f cm", turret.debugInnovation[1]));
-
-            // Innovation magnitude check
-            double innovationMagnitude = Math.sqrt(
-                turret.debugInnovation[0] * turret.debugInnovation[0] +
-                turret.debugInnovation[1] * turret.debugInnovation[1]
-            );
-            telemetry.addData("Innovation Mag", String.format("%.2f cm", innovationMagnitude));
-
-            if (innovationMagnitude > 10.0) {
-                telemetry.addLine("⚠️ Large innovation - measurement differs from prediction!");
-            }
-
-            // Outlier rejection count
-            telemetry.addData("Outliers Rejected", turret.debugOutlierCount);
-
-            // Distance to goal
-            telemetry.addData("Distance to Goal", String.format("%.1f cm", turret.getDistanceToGoal()));
+            telemetry.addData("Vision tx (raw)", String.format("%.2f°", rawTx));
+            telemetry.addData("Current Turret Angle", String.format("%.2f°", currentAngle));
+            telemetry.addData("Smoothed Target", String.format("%.2f°", targetAngle));
+            telemetry.addData("Error (Target - Current)", String.format("%.2f°", error));
+        } else {
+            telemetry.addData("Vision tx", "NO TARGET");
+            telemetry.addData("Current Turret Angle", String.format("%.2f°", turret.getCurrentAngle()));
         }
 
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
-        telemetry.addData("GP1 Left/Right Stick", "Drive robot");
         telemetry.addData("GP1 DPad Up/Down", "Switch alliance");
+        telemetry.addLine();
+        telemetry.addLine("NOTE: Robot stationary - move manually");
     }
 }

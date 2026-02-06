@@ -553,6 +553,17 @@ public class Turret {
     }
 
     /**
+     * Поддерживает текущую целевую позицию турели
+     * Используется в manual mode когда джойстик отпущен
+     * Просто применяет PIDF к текущему targetAngle без пересчёта
+     */
+    public void maintainTarget() {
+        double currentAngle = getCurrentAngle();
+        double power = calculatePIDF(targetAngle, currentAngle);
+        turretMotor.setPower(power);
+    }
+
+    /**
      * АВАРИЙНЫЙ режим: прямое управление мощностью БЕЗ PID
      * Используй если автоматика даст сбой
      *

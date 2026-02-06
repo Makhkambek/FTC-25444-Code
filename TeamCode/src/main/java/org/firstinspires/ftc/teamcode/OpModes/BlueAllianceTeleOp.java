@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 public class BlueAllianceTeleOp extends LinearOpMode {
 
     // Kalman Filter toggle (FTC Dashboard)
-    public static boolean ENABLE_KALMAN = true;
+    public static boolean ENABLE_KALMAN = false; // Раунд 1: Тест Vision-Only (Legacy mode)
 
     private Robot robot;
 
@@ -150,7 +150,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
-        telemetry.addData("GP2 Right Stick X", "Manual Turret");
+        telemetry.addData("GP2 Right Stick X", "Manual Turret (holds position)");
+        telemetry.addData("GP2 Left Bumper", "Re-enable Auto-Aim");
         telemetry.addData("GP2 Options", "RESET ALL");
     }
 }

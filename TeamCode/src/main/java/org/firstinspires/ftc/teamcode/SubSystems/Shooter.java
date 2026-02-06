@@ -76,6 +76,8 @@ public class Shooter {
     private HoodPosition currentHoodPosition = HoodPosition.MIDDLE;
     private ShooterState currentState = ShooterState.IDLE;
     private ElapsedTime stateTimer = new ElapsedTime();
+    private boolean openStopExecuted = false;  // Флаг для OPEN_STOP state-entry
+    private boolean feedExecuted = false;      // Флаг для FEED state-entry
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
@@ -246,20 +248,29 @@ public class Shooter {
                 break;
 
             case OPEN_STOP:
-                // Открываем оба servo для стрельбы
-                shooterStop.setPosition(STOP_OPEN);
-                intakeStop.setPosition(INTAKE_STOP_ON);
+                // Открываем оба servo для стрельбы (ТОЛЬКО ОДИН РАЗ)
+                if (!openStopExecuted) {
+                    shooterStop.setPosition(STOP_OPEN);
+                    intakeStop.setPosition(INTAKE_STOP_ON);
+                    openStopExecuted = true;
+                }
                 if (stateTimer.seconds() >= OPEN_STOP_TIME) { //timer
                     currentState = ShooterState.FEED;
                     stateTimer.reset();
+                    openStopExecuted = false; // Сброс для следующего раза
                 }
                 break;
 
             case FEED:
-                intake.on();
+                // Включаем intake (ТОЛЬКО ОДИН РАЗ)
+                if (!feedExecuted) {
+                    intake.on();
+                    feedExecuted = true;
+                }
                 if (stateTimer.seconds() >= FEED_TIME) { //timer
                     currentState = ShooterState.RESET;
                     stateTimer.reset();
+                    feedExecuted = false; // Сброс для следующего раза
                 }
                 break;
 

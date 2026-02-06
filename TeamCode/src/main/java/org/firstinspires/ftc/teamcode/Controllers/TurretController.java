@@ -29,6 +29,13 @@ public class TurretController {
 
         double manualInput = gamepad.right_stick_x;
 
+        // Left bumper - явное включение auto-aim
+        if (gamepad.left_bumper) {
+            if (!autoAimEnabled) {
+                autoAimEnabled = true;
+            }
+        }
+
         if (Math.abs(manualInput) > JOYSTICK_DEADZONE) {
             // Ручное управление - отменяем autoAim
             if (autoAimEnabled) {
@@ -38,12 +45,14 @@ public class TurretController {
             }
             turret.manualControl(manualInput * MANUAL_SENSITIVITY);
         } else {
-            // Auto-aim
-            if (!autoAimEnabled) {
-                // Переключаемся с manual на auto
-                autoAimEnabled = true;
+            // Joystick centered - НЕ переключаемся обратно на auto автоматически
+            if (autoAimEnabled) {
+                // Auto-aim mode
+                turret.autoAim();
+            } else {
+                // Manual mode - держим текущую позицию
+                turret.maintainTarget();
             }
-            turret.autoAim();
         }
     }
 

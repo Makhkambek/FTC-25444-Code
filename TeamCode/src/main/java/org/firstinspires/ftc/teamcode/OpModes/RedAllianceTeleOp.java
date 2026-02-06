@@ -134,7 +134,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
-        telemetry.addData("GP2 Right Stick X", "Manual Turret");
+        telemetry.addData("GP2 Right Stick X", "Manual Turret (holds position)");
+        telemetry.addData("GP2 Left Bumper", "Re-enable Auto-Aim");
         telemetry.addData("GP2 Options", "RESET ALL");
     }
 }
