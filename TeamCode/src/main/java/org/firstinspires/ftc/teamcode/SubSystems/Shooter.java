@@ -14,9 +14,9 @@ public class Shooter {
     private Servo intakeStop;
 
     public enum HoodPosition {
-        CLOSE(0.0),
-        MIDDLE(0.25),
-        FAR(0.5);
+        CLOSE(0.0),   // ≤30 cm - flat angle
+        MIDDLE(0.7),  // ~70 cm - medium angle
+        FAR(1.0);     // 150+ cm - high angle
 
         public final double position;
 
@@ -112,28 +112,24 @@ public class Shooter {
 
     /**
      * Вычисляет динамическую позицию Hood на основе расстояния
-     * Расстояние в см, возвращает servo позицию (0.0 - 0.5)
-     * 30 см → 0.0 (низкий угол)
-     * 150 см → 0.4
-     * 300 см → 0.5 (высокий угол)
+     * Ступенчатая система углов:
+     * ≤30 см → 0.0
+     * ≤50 см → 0.5
+     * ≤70 см → 0.7
+     * ≤100 см → 0.9
+     * ≤150+ см → 1.0
      */
     private double calculateHoodPosition(double distance) {
-        final double MIN_DISTANCE = 30.0;   // см
-        final double MID_DISTANCE = 150.0;  // см
-        final double MAX_DISTANCE = 300.0;  // см
-
-        if (distance <= MIN_DISTANCE) {
-            return 0.0; // Минимум
-        } else if (distance <= MID_DISTANCE) {
-            // 30-150: интерполяция 0.0 → 0.4
-            double ratio = (distance - MIN_DISTANCE) / (MID_DISTANCE - MIN_DISTANCE);
-            return ratio * 0.4;
-        } else if (distance <= MAX_DISTANCE) {
-            // 150-300: интерполяция 0.4 → 0.5
-            double ratio = (distance - MID_DISTANCE) / (MAX_DISTANCE - MID_DISTANCE);
-            return 0.4 + (ratio * 0.1);
+        if (distance <= 30.0) {
+            return 0.0;
+        } else if (distance <= 50.0) {
+            return 0.5;
+        } else if (distance <= 70.0) {
+            return 0.7;
+        } else if (distance <= 100.0) {
+            return 0.9;
         } else {
-            return 0.5; // Максимум
+            return 1.0; // 150+ cm
         }
     }
 

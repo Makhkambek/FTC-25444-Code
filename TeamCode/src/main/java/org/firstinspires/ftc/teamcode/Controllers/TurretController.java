@@ -44,6 +44,11 @@ public class TurretController {
                 autoAimEnabled = false;
             }
             turret.manualControl(manualInput * MANUAL_SENSITIVITY);
+
+            // Vibration feedback when target is visible in manual mode
+            if (vision != null && vision.hasTargetTag()) {
+                gamepad.rumble(200);  // 200ms pulse
+            }
         } else {
             // Joystick centered - НЕ переключаемся обратно на auto автоматически
             if (autoAimEnabled) {
