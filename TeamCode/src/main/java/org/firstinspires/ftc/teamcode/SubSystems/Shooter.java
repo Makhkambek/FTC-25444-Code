@@ -40,7 +40,7 @@ public class Shooter {
     private static final double INTAKE_STOP_OFF = 1.0;  // Обычная позиция (не стреляем)
     private static final double SPIN_UP_TIME = 0.2;
     private static final double OPEN_STOP_TIME = 0.3;
-    private static final double FEED_TIME = 1.5;
+    private static final double FEED_TIME = 2.5;
 
     public double kP = 0.007;
     public double kI = 0.0;

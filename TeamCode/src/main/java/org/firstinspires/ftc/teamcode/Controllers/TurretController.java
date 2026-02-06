@@ -13,7 +13,7 @@ public class TurretController {
     public boolean autoAimEnabled = true;
 
     // Чувствительность ручного управления
-    private static final double MANUAL_SENSITIVITY = 0.3;
+    private static final double MANUAL_SENSITIVITY = 0.7;
 
     // Deadzone для джойстика
     private static final double JOYSTICK_DEADZONE = 0.1;

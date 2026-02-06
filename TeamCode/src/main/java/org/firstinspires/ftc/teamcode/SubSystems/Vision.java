@@ -26,6 +26,12 @@ public class Vision {
     private long cacheTimestamp = 0;
     private static final long CACHE_VALIDITY_MS = 20; // 50Hz update rate
 
+    // Vision Persistence Filter для устранения flickering на больших расстояниях
+    private static final int FRAMES_TO_CONFIRM = 3;  // Требуется 3 последовательных фрейма
+    private int consecutiveDetections = 0;  // Счетчик последовательных обнаружений
+    private int consecutiveLosses = 0;      // Счетчик последовательных потерь
+    private boolean stableTagVisible = false;  // Стабильное состояние видимости
+
     public void init(HardwareMap hw) {
         limelight = hw.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // Request data 100 times per second
@@ -56,6 +62,8 @@ public class Vision {
         // Инвалидируем кэш при смене альянса
         cachedTargetFiducial = null;
         cacheTimestamp = 0;
+        // Сбрасываем persistence filter
+        resetPersistenceFilter();
     }
 
     /**
@@ -146,10 +154,45 @@ public class Vision {
     }
 
     /**
-     * Проверяет, виден ли целевой tag
+     * Проверяет, виден ли целевой tag (с persistence фильтром)
+     *
+     * Persistence Filter:
+     * - Требуется 3 последовательных фрейма для подтверждения обнаружения/потери
+     * - Устраняет single-frame flickering на расстояниях 400-500см
+     * - ~60ms задержка при 50Hz loop rate (приемлемо для стабильности)
      */
     public boolean hasTargetTag() {
-        return getTargetFiducial() != null;
+        boolean rawDetection = getTargetFiducial() != null;
+
+        // Обновляем счетчики на основе raw detection
+        if (rawDetection) {
+            consecutiveDetections++;
+            consecutiveLosses = 0;  // Сброс счетчика потерь
+        } else {
+            consecutiveLosses++;
+            consecutiveDetections = 0;  // Сброс счетчика обнаружений
+        }
+
+        // Переключаемся на "виден" только после 3 последовательных обнаружений
+        if (consecutiveDetections >= FRAMES_TO_CONFIRM) {
+            stableTagVisible = true;
+        }
+
+        // Переключаемся на "не виден" только после 3 последовательных потерь
+        if (consecutiveLosses >= FRAMES_TO_CONFIRM) {
+            stableTagVisible = false;
+        }
+
+        return stableTagVisible;
+    }
+
+    /**
+     * Сбрасывает persistence filter (для тестирования или смены альянса)
+     */
+    public void resetPersistenceFilter() {
+        consecutiveDetections = 0;
+        consecutiveLosses = 0;
+        stableTagVisible = false;
     }
 
     /**
