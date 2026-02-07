@@ -91,10 +91,21 @@ public class Vision {
         if (fiducials == null) return null;
 
         // Фильтруем по targetTagId (24 для RED, 20 для BLUE)
+        // ВАЖНО: Явно игнорируем теги другого альянса для предотвращения tracking неправильных целей
         for (FiducialResult f : fiducials) {
-            if (f.getFiducialId() == targetTagId) {
+            int fiducialId = f.getFiducialId();
+
+            // ТОЛЬКО наш alliance tag
+            if (fiducialId == targetTagId) {
                 cachedTargetFiducial = f;
                 break;
+            }
+
+            // Явно игнорируем тег противоположного альянса
+            int oppositeAllianceTag = (targetTagId == RED_ALLIANCE_TAG) ? BLUE_ALLIANCE_TAG : RED_ALLIANCE_TAG;
+            if (fiducialId == oppositeAllianceTag) {
+                // Пропускаем этот тег - он от другого альянса
+                continue;
             }
         }
 

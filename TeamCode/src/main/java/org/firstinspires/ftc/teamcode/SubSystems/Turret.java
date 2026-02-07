@@ -487,7 +487,7 @@ public class Turret {
     private void autoAimLegacy() {
         boolean usingVision = false;
 
-        // Приоритет 1: Vision (если камера видит AprilTag)
+        // Приоритет 1: Vision (если камера видит alliance-specific AprilTag)
         if (vision != null && vision.hasTargetTag()) {
             double tx = vision.getTargetYaw(); // tx = horizontal offset (градусы)
             if (!Double.isNaN(tx)) {
@@ -506,12 +506,14 @@ public class Turret {
                 usingVision = true;
             }
         }
-        // Приоритет 2: Odometry (fallback когда Vision недоступен)
-        else if (hasGoal() && (follower != null || localizer != null)) {
+        // Приоритет 2: Odometry fallback ТОЛЬКО если камера не видит НИКАКИХ тегов вообще
+        // Если камера видит теги (даже неправильного альянса) - держим позицию, НЕ переключаемся на odometry
+        else if (!vision.hasTarget() && hasGoal() && (follower != null || localizer != null)) {
             // Odometry - прямое значение БЕЗ сглаживания!
             targetAngle = calculateTargetAngle();
             smoothedTargetAngle = targetAngle; // Синхронизируем smoothed с raw
         }
+        // Если vision.hasTarget()=true но vision.hasTargetTag()=false → держим последнюю позицию
 
         // Применяем PIDF
         double currentAngle = getCurrentAngle();
