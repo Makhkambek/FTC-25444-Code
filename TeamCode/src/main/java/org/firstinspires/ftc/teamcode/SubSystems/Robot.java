@@ -64,9 +64,6 @@ Robot {
         // Начальная настройка - убедимся что intake выключен
         intake.off();
 
-        // Турель сразу смотрит на goal при старте
-        turret.autoAim();
-
         // Запускаем shooter моторы с velocity на основе начального расстояния до цели
         double distanceToGoal = turret.getDistanceToGoal();
         if (distanceToGoal > 0) {
