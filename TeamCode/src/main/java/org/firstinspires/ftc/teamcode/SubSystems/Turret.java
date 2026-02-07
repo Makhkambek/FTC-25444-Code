@@ -79,10 +79,16 @@ public class Turret {
     public double[] debugInnovation = new double[2];
     public int debugOutlierCount = 0;
 
-    // Pose validation to prevent odometry jumps
-    private Pose lastValidPose = null;
-    private static final double MAX_POSITION_JUMP_CM = 50.0;  // Max robot movement per loop
-    private int odometryJumpCount = 0;  // Debug counter for telemetry
+    // Pose validation to prevent extreme odometry jumps (Y=360 bug)
+    private double lastValidX = 0.0;
+    private double lastValidY = 0.0;
+    private boolean poseInitialized = false;
+    private int jumpCount = 0;  // Debug counter for telemetry
+
+    // Pose validation thresholds
+    private static final double MAX_COORDINATE_JUMP_CM = 100.0;  // Per-axis jump threshold
+    private static final double FIELD_MIN = -50.0;   // Field boundary (with margin)
+    private static final double FIELD_MAX = 400.0;   // Field boundary (with margin)
 
     // Конструктор для TeleOp и Auto (с Vision и Localizer)
     public Turret(HardwareMap hardwareMap, Vision vision, Localizer localizer) {
@@ -194,6 +200,61 @@ public class Turret {
     }
 
     /**
+     * Validates pose coordinates to reject extreme odometry jumps (Y=360 bug)
+     *
+     * Uses triple-layered protection:
+     * 1. NaN/Infinity check
+     * 2. Field boundary check (FTC field ~360x360cm)
+     * 3. Per-axis jump detection (100cm threshold)
+     *
+     * Preserves heading even when rejecting coordinates - turret can still rotate correctly
+     *
+     * @param newPose Pose from follower.getPose()
+     * @return Validated pose (either newPose or last valid position with new heading)
+     */
+    private Pose validatePose(Pose newPose) {
+        double newX = newPose.getX();
+        double newY = newPose.getY();
+
+        // First call - initialize tracking
+        if (!poseInitialized) {
+            lastValidX = newX;
+            lastValidY = newY;
+            poseInitialized = true;
+            return newPose;
+        }
+
+        // Check 1: NaN/Infinity (invalid sensor data)
+        if (Double.isNaN(newX) || Double.isNaN(newY) ||
+            Double.isInfinite(newX) || Double.isInfinite(newY)) {
+            jumpCount++;
+            return new Pose(lastValidX, lastValidY, newPose.getHeading());
+        }
+
+        // Check 2: Field boundaries (Y=360 when field is ~150cm)
+        if (newX < FIELD_MIN || newX > FIELD_MAX ||
+            newY < FIELD_MIN || newY > FIELD_MAX) {
+            jumpCount++;
+            return new Pose(lastValidX, lastValidY, newPose.getHeading());
+        }
+
+        // Check 3: Per-axis jump detection
+        // Robot moves max ~15cm per loop, 100cm threshold allows fast movement + lag
+        double jumpX = Math.abs(newX - lastValidX);
+        double jumpY = Math.abs(newY - lastValidY);
+
+        if (jumpX > MAX_COORDINATE_JUMP_CM || jumpY > MAX_COORDINATE_JUMP_CM) {
+            jumpCount++;
+            return new Pose(lastValidX, lastValidY, newPose.getHeading());
+        }
+
+        // All checks passed - update tracking and return
+        lastValidX = newX;
+        lastValidY = newY;
+        return newPose;
+    }
+
+    /**
      * Расстояние до цели (в см)
      * Использует Pose объекты для вычислений
      */
@@ -202,19 +263,16 @@ public class Turret {
             return 0.0;
         }
 
-        Pose rawPose;
+        Pose currentPose;
 
         // Получаем текущую позицию робота
         if (follower != null) {
-            rawPose = follower.getPose();
+            currentPose = validatePose(follower.getPose());  // Защита от Y=360 jumps
         } else if (localizer != null) {
-            rawPose = new Pose(localizer.getX(), localizer.getY(), 0);
+            currentPose = new Pose(localizer.getX(), localizer.getY(), 0);
         } else {
             return 0.0; // Нет локализации
         }
-
-        // VALIDATE pose before using
-        Pose currentPose = validatePose(rawPose);
 
         // Используем goalPose если доступен
         double targetX, targetY;
@@ -230,43 +288,6 @@ public class Turret {
         double deltaY = targetY - currentPose.getY();
 
         return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    }
-
-    /**
-     * Validates robot pose to reject impossible odometry jumps
-     * Returns previous valid pose if new pose jumped >50cm in one loop
-     *
-     * @param newPose Current pose from follower/localizer
-     * @return Validated pose (either newPose or lastValidPose if jump detected)
-     */
-    private Pose validatePose(Pose newPose) {
-        // First call - no previous pose to compare
-        if (lastValidPose == null) {
-            lastValidPose = newPose;
-            return newPose;
-        }
-
-        // Check for NaN/Infinity
-        if (Double.isNaN(newPose.getX()) || Double.isNaN(newPose.getY()) ||
-            Double.isInfinite(newPose.getX()) || Double.isInfinite(newPose.getY())) {
-            odometryJumpCount++;
-            return lastValidPose;  // Return previous valid pose
-        }
-
-        // Calculate distance from previous pose
-        double dx = newPose.getX() - lastValidPose.getX();
-        double dy = newPose.getY() - lastValidPose.getY();
-        double jumpDistance = Math.sqrt(dx * dx + dy * dy);
-
-        // Reject if jump too large (impossible for robot to move this far in one loop)
-        if (jumpDistance > MAX_POSITION_JUMP_CM) {
-            odometryJumpCount++;  // Increment counter for telemetry
-            return lastValidPose;  // Return previous valid pose instead
-        }
-
-        // Pose is valid - update lastValidPose and return
-        lastValidPose = newPose;
-        return newPose;
     }
 
     /**
@@ -292,19 +313,16 @@ public class Turret {
         }
 
         // STEP 0: Get current pose from follower (source of truth)
-        Pose rawPose;
+        Pose currentPose;
         if (follower != null) {
-            rawPose = follower.getPose();
+            currentPose = validatePose(follower.getPose()); // Защита от Y=360 jumps
         } else if (localizer != null) {
             // Fallback to localizer
             double heading = Math.toRadians(localizer.getHeading());
-            rawPose = new Pose(localizer.getX(), localizer.getY(), heading);
+            currentPose = new Pose(localizer.getX(), localizer.getY(), heading);
         } else {
             return 0.0; // No localization available
         }
-
-        // VALIDATE pose before using
-        Pose currentPose = validatePose(rawPose);
 
         // Get target coordinates
         double targetX, targetY;
@@ -399,7 +417,7 @@ public class Turret {
         // STEP 2: Update with measurements
         if (vision != null && vision.hasTargetTag() && follower != null) {
             // Vision measurement available
-            Pose robotPose = follower.getPose();
+            Pose robotPose = validatePose(follower.getPose());  // Защита от Y=360 jumps
             double yawDeg = vision.getTargetYaw();
             double rangeCm = vision.getTargetDistance();
 
@@ -437,7 +455,7 @@ public class Turret {
             debugOutlierCount = kalmanFilter.getOutlierCount();
 
             // Calculate angle to filtered target (ROBOT-CENTRIC)
-            Pose robotPose = follower.getPose();
+            Pose robotPose = validatePose(follower.getPose());  // Защита от Y=360 jumps
 
             // Field deltas
             double fieldDeltaX = targetX_filtered - robotPose.getX();
@@ -730,13 +748,6 @@ public class Turret {
         return (vision != null && vision.hasTargetTag()) || hasGoal();
     }
 
-    /**
-     * Returns count of odometry jumps detected (for telemetry debug)
-     */
-    public int getOdometryJumpCount() {
-        return odometryJumpCount;
-    }
-
     public void setPIDF(double p, double i, double d, double f) {
         this.kP = p;
         this.kI = i;
@@ -764,5 +775,26 @@ public class Turret {
         integral = 0;
         lastError = 0;
         lastPower = 0;
+    }
+
+    /**
+     * Returns count of odometry jumps detected (for telemetry debug)
+     */
+    public int getJumpCount() {
+        return jumpCount;
+    }
+
+    /**
+     * Returns last validated X coordinate (for telemetry debug)
+     */
+    public double getLastValidX() {
+        return lastValidX;
+    }
+
+    /**
+     * Returns last validated Y coordinate (for telemetry debug)
+     */
+    public double getLastValidY() {
+        return lastValidY;
     }
 }
