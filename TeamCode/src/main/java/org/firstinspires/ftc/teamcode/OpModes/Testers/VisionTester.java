@@ -104,13 +104,20 @@ public class VisionTester extends LinearOpMode {
         telemetry.addData("Target Visible", hasTarget ? "YES" : "NO");
 
         if (hasTarget) {
-            double distance = vision.getTargetDistance();
+            double distance = vision.getTargetDistance();  // В дюймах от Limelight 3A
             double tx = vision.getTargetYaw();        // Horizontal offset
             double ty = vision.getTargetPitch();      // Vertical offset
 
-            telemetry.addData("Distance (cm)", String.format("%.2f", distance));
+            // Показываем расстояние в обоих форматах для проверки
+            telemetry.addData("Distance (inches)", String.format("%.2f", distance));
+            telemetry.addData("Distance (cm)", String.format("%.2f", distance * 2.54));
             telemetry.addData("tx (H offset)", String.format("%.2f°", tx));
             telemetry.addData("ty (V offset)", String.format("%.2f°", ty));
+
+            // DEBUG: Show raw Pose3D data
+            telemetry.addLine();
+            telemetry.addLine("--- POSE3D DEBUG ---");
+            telemetry.addData("Debug Info", vision.getDebugPose3DInfo());
 
             // Hood calculation based on distance (servo position 0.0-0.5)
             double hoodServoPos = calculateHoodPosition(distance);

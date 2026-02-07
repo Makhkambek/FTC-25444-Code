@@ -47,6 +47,32 @@ public class Shooter {
     public double kD = 0;
     public double kF = 0.00028;
 
+    // Flywheel velocity formula coefficients (sigmoid)
+    // V = L / (1 + e^(-(k * distance + b)))
+    // Формула из Desmos - калибровка для робота (в дюймах)
+    // ВАЖНО: Pedro Pathing использует дюймы (DistanceUnit.INCH)
+    public static double VELOCITY_L = 2045.06422;      // Максимальная velocity (асимптота)
+    public static double VELOCITY_K = 0.0195391;       // Скорость роста кривой
+    public static double VELOCITY_B = -0.348709;       // Сдвиг (k*x0)
+
+    // Velocity limits (clamp)
+    private static final double MIN_VELOCITY = 0.0;        // Минимальная velocity
+    private static final double MAX_VELOCITY = 2100.0;     // Увеличено для сигмоида
+    public static double FLYWHEEL_OFFSET = 0.0;           // Offset для калибровки (tunable)
+
+    // Hood angle formula coefficients (quadratic)
+    // hoodAngle = A * distance² + B * distance + C
+    // Формула из Desmos - калибровка для робота (в дюймах)
+    // y = -0.0000985709x² + 0.0227599x - 0.584238
+    public static double HOOD_COEFF_A = -0.0000985709;  // Коэффициент при x²
+    public static double HOOD_COEFF_B = 0.0227599;      // Коэффициент при x
+    public static double HOOD_COEFF_C = -0.584238;      // Свободный член
+
+    // Hood angle limits
+    private static final double MIN_HOOD_ANGLE = 0.0;   // Обновлено: min 0.0
+    private static final double MAX_HOOD_ANGLE = 1.0;   // Обновлено: max 1.0
+    public static double HOOD_OFFSET = 0.0;             // Offset для калибровки (tunable)
+
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
 
@@ -58,11 +84,12 @@ public class Shooter {
     private static final double OUTPUT_DEADBAND = 0.005; // минимальное изменение output для применения
     private static final double MAX_OUTPUT_CHANGE = 0.05; // максимальное изменение за один цикл (rate limiter)
 
-    // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
-    // Увеличено до 10.0 для уменьшения jittering
+    // Hood deadzone - минимальное изменение расстояния для обновления hood (inches)
+    // 10 дюймов = ~25 см - уменьшает jittering
     private static final double HOOD_DEADZONE = 10.0;
 
-    // Velocity deadzone - минимальное изменение расстояния для обновления velocity (см)
+    // Velocity deadzone - минимальное изменение расстояния для обновления velocity (inches)
+    // 5 дюймов = ~13 см
     private static final double VELOCITY_DEADZONE = 5.0;
 
     private double lastError = 0;
@@ -80,6 +107,7 @@ public class Shooter {
     private boolean openStopExecuted = false;  // Флаг для OPEN_STOP state-entry
     private boolean feedExecuted = false;      // Флаг для FEED state-entry
     private boolean resetExecuted = false;     // Флаг для RESET state-entry
+    private boolean manualStopOverride = false; // Ручное открытие shooterStop (приоритет над FSM)
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
@@ -119,58 +147,63 @@ public class Shooter {
     }
 
     /**
-     * Вычисляет динамическую позицию Hood на основе расстояния
-     * Ступенчатая система углов:
-     * ≤30 см → 0.0
-     * ≤50 см → 0.5
-     * ≤70 см → 0.7
-     * ≤100 см → 0.9
-     * ≤150+ см → 1.0
+     * Helper: Clamp value between min and max
      */
-    private double calculateHoodPosition(double distance) {
-        if (distance <= 30.0) {
-            return 0.0;
-        } else if (distance <= 50.0) {
-            return 0.5;
-        } else if (distance <= 70.0) {
-            return 0.7;
-        } else if (distance <= 100.0) {
-            return 0.9;
-        } else {
-            return 1.0; // 150+ cm
-        }
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
-     * Вычисляет целевую velocity на основе расстояния до цели
-     * Расстояние в см, возвращает velocity в ticks/sec
-     * 0-30 см → 1300
-     * 30-60 см → 1500
-     * 60-150 см → 1800
-     * 150+ см → 2000
+     * Вычисляет target velocity на основе расстояния до цели
+     * Использует сигмоидную функцию: V = L / (1 + e^(-(k*d + b)))
+     * Формула из Desmos - калибровка для робота (в дюймах)
+     *
+     * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
+     * @return Target velocity в ticks/sec
      */
-    private double calculateTargetVelocity(double distance) {
-        if (distance <= 30.0) {
-            return 1200.0;
-        } else if (distance <= 60.0) {
-            return 1500.0;
-        } else if (distance <= 150.0) {
-            return 1700.0;
-        } else {
-            return 2000.0;
-        }
+    private double calculateTargetVelocity(double distanceInches) {
+        // Сигмоидная функция (логистическая регрессия)
+        // V = L / (1 + e^(-(k * distance + b)))
+        // distance уже в дюймах от Pedro Pathing
+        double exponent = -(VELOCITY_K * distanceInches + VELOCITY_B);
+        double velocity = VELOCITY_L / (1.0 + Math.exp(exponent));
+
+        // Clamp к физическим лимитам + offset + 100 boost
+        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 100.0;
+    }
+
+    /**
+     * Вычисляет hood angle на основе расстояния до цели
+     * Использует квадратичную формулу: angle = A*d² + B*d + C
+     * Формула из Desmos - калибровка для робота (в дюймах)
+     *
+     * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
+     * @return Hood servo position (0.0 - 1.0)
+     */
+    private double calculateHoodAngle(double distanceInches) {
+        // Квадратичная формула (парабола)
+        // angle = A * distance² + B * distance + C
+        // distance уже в дюймах от Pedro Pathing
+        double angle = HOOD_COEFF_A * Math.pow(distanceInches, 2)
+                     + HOOD_COEFF_B * distanceInches
+                     + HOOD_COEFF_C;
+
+        // Clamp к физическим лимитам servo + offset
+        return clamp(angle, MIN_HOOD_ANGLE, MAX_HOOD_ANGLE) + HOOD_OFFSET;
     }
 
     /**
      * Обновляет позицию Hood на основе расстояния до цели
-     * Расстояние в см
-     * Использует deadzone 3 см для предотвращения лишних движений
+     * Расстояние в дюймах (от Pedro Pathing odometry)
+     * Использует deadzone 10.0 units (~10 inches) для предотвращения лишних движений
+     * Использует динамическую формулу вместо ступенчатой
      */
     public void updateHood(double distance) {
         if (distance > 0) {
-            // Проверяем deadzone - обновляем только если изменение > 10 см
+            // Проверяем deadzone - обновляем только если изменение > 10 дюймов (~25 см)
             if (lastHoodDistance < 0 || Math.abs(distance - lastHoodDistance) > HOOD_DEADZONE) {
-                double targetPosition = calculateHoodPosition(distance);
+                // Используем квадратичную формулу из Desmos (парабола)
+                double targetPosition = calculateHoodAngle(distance);
 
                 // EMA сглаживание для уменьшения jittering
                 if (lastHoodDistance < 0) {
@@ -292,7 +325,10 @@ public class Shooter {
             case RESET:
                 // Возвращаем оба servo в обычные позиции (ТОЛЬКО ОДИН РАЗ)
                 if (!resetExecuted) {
-                    shooterStop.setPosition(STOP_CLOSE);
+                    // Закрываем shooterStop ТОЛЬКО если нет ручного override
+                    if (!manualStopOverride) {
+                        shooterStop.setPosition(STOP_CLOSE);
+                    }
                     intakeStop.setPosition(INTAKE_STOP_OFF);
                     // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
                     // off();
@@ -439,6 +475,7 @@ public class Shooter {
     public void reset() {
         // Полный сброс shooter в начальное состояние
         off(); // Выключаем моторы
+        manualStopOverride = false; // Сбрасываем manual override
         shooterStop.setPosition(STOP_CLOSE); // Закрываем stop
         intakeStop.setPosition(INTAKE_STOP_OFF); // Обычная позиция
         setHoodPosition(HoodPosition.CLOSE);
@@ -446,6 +483,37 @@ public class Shooter {
         stateTimer.reset();
         lastHoodDistance = -1; // Сбрасываем deadzone tracking
         lastVelocityDistance = -1; // Сбрасываем velocity deadzone tracking
+    }
+
+    /**
+     * Ручное управление shooterStop (приоритет над FSM)
+     * Когда активен - shooterStop остается открытым, FSM не может закрыть
+     *
+     * @param enabled true - держать открытым, false - FSM работает как обычно
+     */
+    public void setManualStopOverride(boolean enabled) {
+        manualStopOverride = enabled;
+
+        if (manualStopOverride) {
+            // Немедленно открываем shooterStop
+            shooterStop.setPosition(STOP_OPEN);
+        }
+        // Если disabled - FSM закроет shooterStop когда нужно (в RESET state)
+    }
+
+    /**
+     * Принудительно закрывает shooterStop (для dpad_down)
+     */
+    public void forceCloseStop() {
+        shooterStop.setPosition(STOP_CLOSE);
+    }
+
+    /**
+     * Устанавливает позицию hood напрямую (для fallback когда нет Vision tag)
+     * @param position позиция servo (0.0-1.0)
+     */
+    public void setHoodPosition(double position) {
+        hood.setPosition(clamp(position, MIN_HOOD_ANGLE, MAX_HOOD_ANGLE) + HOOD_OFFSET);
     }
 
     // Testing methods

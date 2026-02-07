@@ -31,7 +31,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
 
         // Set starting pose for Red alliance
-        Pose redStartPose = new Pose(103, 136, Math.toRadians(270));
+        Pose redStartPose = new Pose(119, 73, Math.toRadians(270));
         robot.follower.setStartingPose(redStartPose);
 
         // CRITICAL: Synchronize Localizer with Follower
@@ -43,8 +43,9 @@ public class RedAllianceTeleOp extends LinearOpMode {
             Math.toDegrees(syncPose.getHeading())
         );
 
+
         // Set goal (basket) for turret auto-aim
-        Pose redGoalPose = new Pose(136, 104, Math.toRadians(270));
+        Pose redGoalPose = new Pose(130, 135, Math.toRadians(270));
         robot.turret.setGoalPose(redGoalPose);
 
         // Enable Kalman Filter for sensor fusion
@@ -86,11 +87,12 @@ public class RedAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Target Tag ID", robot.vision.getTargetTagId());
         telemetry.addData("Target Visible", robot.vision.hasTargetTag() ? "YES" : "NO");
 
-        double distance = robot.vision.getTargetDistance();
-        if (distance > 0) {
-            telemetry.addData("Distance (cm)", "%.1f", distance);
+        double visionDistInches = robot.vision.getTargetDistance();
+        if (visionDistInches > 0) {
+            telemetry.addData("Vision Distance", "%.1f in (%.1f cm)",
+                visionDistInches, visionDistInches * 2.54);
         } else {
-            telemetry.addData("Distance", "---");
+            telemetry.addData("Vision Distance", "---");
         }
 
         double yaw = robot.vision.getTargetYaw();
@@ -140,9 +142,25 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Shooter
         telemetry.addLine();
         telemetry.addLine("=== SHOOTER ===");
+
+        // Показываем какой source используется для distance
+        telemetry.addData("Distance Source", robot.distanceSource);
+
+        // Vision distance (если виден)
+        double visionDist = robot.vision.getTargetDistance();
+        if (visionDist > 0) {
+            telemetry.addData("Vision Distance", "%.1f in (%.1f cm)", visionDist, visionDist * 2.54);
+        } else {
+            telemetry.addData("Vision Distance", "Tag not visible");
+        }
+
+        // Odometry distance (всегда доступен)
+        double odometryDist = robot.turret.getDistanceToGoal();
+        telemetry.addData("Odometry Distance", "%.1f in (%.1f cm)", odometryDist, odometryDist * 2.54);
+
         telemetry.addData("State", robot.shooterController.getCurrentState());
         telemetry.addData("Is Shooting", robot.shooterController.isShooting() ? "YES" : "NO");
-        telemetry.addData("Hood Position", robot.shooter.getCurrentHoodPosition());
+        telemetry.addData("Hood Servo Position", "%.2f", robot.shooter.getHoodServoPosition());
         telemetry.addData("ShooterStop Position", "%.2f", robot.shooter.getStopPosition());
         telemetry.addData("IntakeStop Position", "%.2f", robot.shooter.getIntakeStopPosition());
 
@@ -150,6 +168,8 @@ public class RedAllianceTeleOp extends LinearOpMode {
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
+        telemetry.addData("GP2 Dpad Up", "Manual Open ShooterStop");
+        telemetry.addData("GP2 Dpad Down", "Manual Close ShooterStop");
         telemetry.addData("GP2 Right Stick X", "Manual Turret (holds position)");
         telemetry.addData("GP2 Left Bumper", "Re-enable Auto-Aim");
         telemetry.addData("GP2 Options", "RESET ALL");

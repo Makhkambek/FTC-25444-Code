@@ -33,6 +33,9 @@ Robot {
     // Fire button state
     private boolean prevFireButton = false;
 
+    // Distance source для debug телеметрии (Vision или Odometry)
+    public String distanceSource = "N/A";
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance) {
         // Pedro Pathing Follower (одометрия)
         follower = Constants.createFollower(hardwareMap);
@@ -64,6 +67,9 @@ Robot {
         // Начальная настройка - убедимся что intake выключен
         intake.off();
 
+        // Турель сразу смотрит на goal при старте
+        turret.autoAim();
+
         // Запускаем shooter моторы с velocity на основе начального расстояния до цели
         double distanceToGoal = turret.getDistanceToGoal();
         if (distanceToGoal > 0) {
@@ -79,14 +85,20 @@ Robot {
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
-        // Динамически обновляем Hood на основе расстояния до цели (Vision)
-        shooter.updateHoodDynamic(vision);
+        // Динамически обновляем velocity и hood на основе расстояния до цели
+        // ТОЛЬКО Vision - если не видит тег, используем fallback значения
+        double distanceToGoal = vision.getTargetDistance();
 
-        // Динамически обновляем target velocity на основе расстояния до цели (Odometry)
-        double distanceToGoal = turret.getDistanceToGoal();
-        if (distanceToGoal > 0) {
+        if (distanceToGoal < 0) {
+            // Камера НЕ видит tag - fallback значения
+            shooter.setTargetVelocity(1000.0);
+            shooter.setHoodPosition(0.0);  // Hood на 0
+            distanceSource = "No tag (fallback)";
+        } else {
+            // Камера видит tag - используем формулы
             shooter.updateVelocity(distanceToGoal);
-            shooter.updateHood(distanceToGoal); // Также обновляем Hood
+            shooter.updateHood(distanceToGoal);
+            distanceSource = "Vision";
         }
 
         shooter.updatePID();

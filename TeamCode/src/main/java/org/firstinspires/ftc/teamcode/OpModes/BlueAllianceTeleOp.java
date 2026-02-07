@@ -95,7 +95,9 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Target Tag ID", robot.vision.getTargetTagId());
         telemetry.addData("Target Visible", robot.vision.hasTargetTag() ? "YES" : "NO");
         if (robot.vision.hasTargetTag()) {
-            telemetry.addData("Distance", "%.1f cm", robot.vision.getTargetDistance());
+            double visionDistInches = robot.vision.getTargetDistance();
+            telemetry.addData("Vision Distance", "%.1f in (%.1f cm)",
+                visionDistInches, visionDistInches * 2.54);
             telemetry.addData("Yaw", "%.1f°", robot.vision.getTargetYaw());
         }
 
@@ -145,10 +147,25 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         // Shooter
         telemetry.addLine();
         telemetry.addLine("=== SHOOTER ===");
-        telemetry.addData("Distance to Goal", "%.1f cm", robot.turret.getDistanceToGoal());
+
+        // Показываем какой source используется для distance
+        telemetry.addData("Distance Source", robot.distanceSource);
+
+        // Vision distance (если виден)
+        double visionDist = robot.vision.getTargetDistance();
+        if (visionDist > 0) {
+            telemetry.addData("Vision Distance", "%.1f in (%.1f cm)", visionDist, visionDist * 2.54);
+        } else {
+            telemetry.addData("Vision Distance", "Tag not visible");
+        }
+
+        // Odometry distance (всегда доступен)
+        double odometryDist = robot.turret.getDistanceToGoal();
+        telemetry.addData("Odometry Distance", "%.1f in (%.1f cm)", odometryDist, odometryDist * 2.54);
+
         telemetry.addData("State", robot.shooterController.getCurrentState());
         telemetry.addData("Is Shooting", robot.shooterController.isShooting() ? "YES" : "NO");
-        telemetry.addData("Hood Position", robot.shooter.getCurrentHoodPosition());
+        telemetry.addData("Hood Servo Position", "%.2f", robot.shooter.getHoodServoPosition());
         telemetry.addData("ShooterStop Position", "%.2f", robot.shooter.getStopPosition());
         telemetry.addData("IntakeStop Position", "%.2f", robot.shooter.getIntakeStopPosition());
         telemetry.addData("Target Velocity", "%.0f ticks/sec", robot.shooter.getTargetVelocity());
@@ -166,6 +183,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
+        telemetry.addData("GP2 Dpad Up", "Manual Open ShooterStop");
+        telemetry.addData("GP2 Dpad Down", "Manual Close ShooterStop");
         telemetry.addData("GP2 Right Stick X", "Manual Turret (holds position)");
         telemetry.addData("GP2 Left Bumper", "Re-enable Auto-Aim");
         telemetry.addData("GP2 Options", "RESET ALL");
