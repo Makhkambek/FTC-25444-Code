@@ -8,9 +8,16 @@ import org.firstinspires.ftc.teamcode.Controllers.HeadingController;
 public class DriveTrain {
     private DcMotor leftFront, rightFront, leftRear, rightRear;
     private HeadingController headingController;
+    private Localizer localizer;
     private boolean wasLeftBumperPressed = false;
 
     public DriveTrain(HardwareMap hardwareMap, Telemetry telemetry) {
+        this(hardwareMap, (Localizer) null);
+    }
+
+    public DriveTrain(HardwareMap hardwareMap, Localizer localizer) {
+        this.localizer = localizer;
+
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
@@ -70,5 +77,39 @@ public class DriveTrain {
 //        telemetry.addData("Front Right Power", frontRightPower);
 //        telemetry.addData("Back Right Power", backRightPower);
 //        telemetry.addData("X Input", x);
+    }
+
+    /**
+     * Упрощённый update для тестирования (без gamepad2 и telemetry)
+     * Robot-centric drive (без field-centric для простоты тестирования)
+     */
+    public void update(Gamepad gamepad1) {
+        double slowModeFactor = gamepad1.right_trigger > 0.1 ? 0.3 : 1.0;
+
+        // Получаем input (robot-centric - проще для тестирования turret)
+        double y = -gamepad1.left_stick_y * slowModeFactor;
+        double x = gamepad1.left_stick_x * 1.1 * slowModeFactor; // Strafe correction
+        double rx = gamepad1.right_stick_x * slowModeFactor;
+
+        // Mecanum drive (robot-centric)
+        double frontLeftPower = y + x + rx;
+        double backLeftPower = y - x + rx;
+        double frontRightPower = y - x - rx;
+        double backRightPower = y + x - rx;
+
+        // Normalize
+        double maxPower = Math.max(Math.abs(frontLeftPower), Math.max(Math.abs(backLeftPower),
+                Math.max(Math.abs(frontRightPower), Math.abs(backRightPower))));
+        if (maxPower > 1.0) {
+            frontLeftPower /= maxPower;
+            backLeftPower /= maxPower;
+            frontRightPower /= maxPower;
+            backRightPower /= maxPower;
+        }
+
+        leftFront.setPower(frontLeftPower);
+        leftRear.setPower(backLeftPower);
+        rightFront.setPower(frontRightPower);
+        rightRear.setPower(backRightPower);
     }
 }

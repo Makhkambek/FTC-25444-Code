@@ -8,20 +8,23 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 
 @Config
 @TeleOp(name="[PID] Shooter Motors Only", group="Testers")
 public class ShooterPIDTuner extends LinearOpMode {
 
     // PID коэффициенты (настраиваются через Dashboard)
-    public static double KP = 0.011; //checked
-    public static double KI = 0.0;
-    public static double KD = 0.0;
-    public static double KF = 0.00041;  //checked
+    public static double KP = 0.007; //checked
+    public static double KI = 0;
+    public static double KD = 0;
+    public static double KF = 0.00028;  //checked
 
     // Настройки
-    public static double TARGET_VELOCITY = 1700; // ticks/sec
+    public static double TARGET_VELOCITY = 2000; // ticks/sec
     public static double INTEGRAL_LIMIT = 100.0; // Anti-windup
 
     // PID защита от спайков
@@ -34,6 +37,12 @@ public class ShooterPIDTuner extends LinearOpMode {
 
     // Моторы
     private DcMotorEx shooterMotor1, shooterMotor2;
+
+    // Hood servo
+    private Servo hood;
+
+    // Intake subsystem
+    private Intake intake;
 
     // PID переменные
     private double lastError = 0;
@@ -50,6 +59,9 @@ public class ShooterPIDTuner extends LinearOpMode {
     private boolean prevB = false;
     private boolean prevDpadUp = false;
     private boolean prevDpadDown = false;
+    private boolean prevDpadLeft = false;
+    private boolean prevDpadRight = false;
+    private boolean prevLeftBumper = false;
 
     @Override
     public void runOpMode() {
@@ -60,10 +72,11 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
 
-        // Motor1 БЕЗ REVERSE - используется для чтения velocity в PID
+        // Motor1 в FORWARD - используется для чтения velocity в PID
         shooterMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor1.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Motor2 в REVERSE - для синхронного вращения
         shooterMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -72,14 +85,27 @@ public class ShooterPIDTuner extends LinearOpMode {
         shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
         pidTimer.reset();
 
+        // Инициализация Hood
+        hood = hardwareMap.get(Servo.class, "shooterHood");
+        hood.setPosition(0.0); // Start at CLOSE position
+
+        // Инициализация Intake
+        intake = new Intake(hardwareMap);
+
         telemetry.addLine("=== SHOOTER PID TUNER ===");
-        telemetry.addLine("Motors Only - No Servos");
+        telemetry.addLine("Motors + Hood + Intake Test");
         telemetry.addLine();
         telemetry.addLine("CONTROLS:");
         telemetry.addLine("A: Start Motors");
         telemetry.addLine("B: Stop Motors");
-        telemetry.addLine("Dpad Up: +100 velocity");
-        telemetry.addLine("Dpad Down: -100 velocity");
+        telemetry.addLine("Right Trigger: Intake ON");
+        telemetry.addLine();
+        telemetry.addLine("HOOD POSITIONS:");
+        telemetry.addLine("Dpad Down: 0.0 (≤30cm)");
+        telemetry.addLine("Dpad Left: 0.5 (≤50cm)");
+        telemetry.addLine("Dpad Right: 0.7 (≤70cm)");
+        telemetry.addLine("Dpad Up: 0.9 (≤100cm)");
+        telemetry.addLine("Left Bumper: 1.0 (≤150+cm)");
         telemetry.addLine();
         telemetry.addLine("Tune PID via FTC Dashboard");
         telemetry.addData("Status", "Ready!");
@@ -96,6 +122,7 @@ public class ShooterPIDTuner extends LinearOpMode {
 
         // Cleanup
         stopMotors();
+        intake.off();
     }
 
     private void handleControls() {
@@ -113,15 +140,28 @@ public class ShooterPIDTuner extends LinearOpMode {
             stopMotors();
         }
 
-        // Dpad Up: Increase velocity
-        if (gamepad1.dpad_up && !prevDpadUp) {
-            TARGET_VELOCITY += 100;
+        // Right Trigger: Intake control
+        if (gamepad1.right_trigger > 0.1) {
+            intake.on();
+        } else {
+            intake.off();
         }
 
-        // Dpad Down: Decrease velocity
+        // Hood controls
         if (gamepad1.dpad_down && !prevDpadDown) {
-            TARGET_VELOCITY -= 100;
-            if (TARGET_VELOCITY < 0) TARGET_VELOCITY = 0;
+            hood.setPosition(0.15); // ≤30 cm
+        }
+        if (gamepad1.dpad_left && !prevDpadLeft) {
+            hood.setPosition(0.5); // ≤50 cm
+        }
+        if (gamepad1.dpad_right && !prevDpadRight) {
+            hood.setPosition(0.7); // ≤70 cm
+        }
+        if (gamepad1.dpad_up && !prevDpadUp) {
+            hood.setPosition(0.9); // ≤100 cm
+        }
+        if (gamepad1.left_bumper && !prevLeftBumper) {
+            hood.setPosition(1.0); // ≤150+ cm
         }
 
         // Update button states
@@ -129,6 +169,9 @@ public class ShooterPIDTuner extends LinearOpMode {
         prevB = gamepad1.b;
         prevDpadUp = gamepad1.dpad_up;
         prevDpadDown = gamepad1.dpad_down;
+        prevDpadLeft = gamepad1.dpad_left;
+        prevDpadRight = gamepad1.dpad_right;
+        prevLeftBumper = gamepad1.left_bumper;
     }
 
     private void updatePID() {
@@ -138,6 +181,7 @@ public class ShooterPIDTuner extends LinearOpMode {
             return;
         }
 
+        // Motor1 в FORWARD, инверсия не нужна
         double currentVelocity = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVelocity;
 
@@ -193,12 +237,14 @@ public class ShooterPIDTuner extends LinearOpMode {
         targetVelocity = 0;
         shooterMotor1.setPower(0);
         shooterMotor2.setPower(0);
+        intake.off();
         lastError = 0;
         integralSum = 0;
         smoothedOutput = 0;
     }
 
     private void displayTelemetry() {
+        // Motor1 в FORWARD, инверсия не нужна
         double currentVel = shooterMotor1.getVelocity();
         double error = targetVelocity - currentVel;
 
@@ -208,7 +254,31 @@ public class ShooterPIDTuner extends LinearOpMode {
 
         // Status
         telemetry.addLine("--- STATUS ---");
-        telemetry.addData("Running", targetVelocity > 0 ? "YES" : "NO");
+        telemetry.addData("Shooter Running", targetVelocity > 0 ? "YES" : "NO");
+        telemetry.addData("Intake", gamepad1.right_trigger > 0.1 ? "ON" : "OFF");
+        telemetry.addLine();
+
+        // Hood Position
+        telemetry.addLine("--- HOOD ---");
+        double hoodPos = hood.getPosition();
+        telemetry.addData("Hood Servo Position", "%.2f", hoodPos);
+
+        // Показываем какой дистанции соответствует текущая позиция
+        String hoodDescription;
+        if (Math.abs(hoodPos - 0.0) < 0.05) {
+            hoodDescription = "≤30 cm (CLOSE)";
+        } else if (Math.abs(hoodPos - 0.5) < 0.05) {
+            hoodDescription = "≤50 cm";
+        } else if (Math.abs(hoodPos - 0.7) < 0.05) {
+            hoodDescription = "≤70 cm (MIDDLE)";
+        } else if (Math.abs(hoodPos - 0.9) < 0.05) {
+            hoodDescription = "≤100 cm";
+        } else if (Math.abs(hoodPos - 1.0) < 0.05) {
+            hoodDescription = "≤150+ cm (FAR)";
+        } else {
+            hoodDescription = "Custom";
+        }
+        telemetry.addData("Hood Angle", hoodDescription);
         telemetry.addLine();
 
         // Velocity
@@ -243,8 +313,14 @@ public class ShooterPIDTuner extends LinearOpMode {
         telemetry.addLine("--- CONTROLS ---");
         telemetry.addData("A", "Start motors");
         telemetry.addData("B", "Stop motors");
-        telemetry.addData("Dpad Up", "+100 velocity");
-        telemetry.addData("Dpad Down", "-100 velocity");
+        telemetry.addData("Right Trigger", "Intake ON");
+        telemetry.addLine();
+        telemetry.addLine("HOOD CONTROLS:");
+        telemetry.addData("Dpad Down", "0.0 (≤30cm)");
+        telemetry.addData("Dpad Left", "0.5 (≤50cm)");
+        telemetry.addData("Dpad Right", "0.7 (≤70cm)");
+        telemetry.addData("Dpad Up", "0.9 (≤100cm)");
+        telemetry.addData("Left Bumper", "1.0 (≤150+cm)");
         telemetry.addLine();
 
         // Tuning Tips

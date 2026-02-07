@@ -1,31 +1,41 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.vision.apriltag.*;
 
 import java.util.List;
 
 public class Vision {
 
-    private VisionPortal portal;
-    private AprilTagProcessor aprilTag;
+    private Limelight3A limelight;
     private boolean active = false;
 
     // ID тегов для разных альянсов
     public static final int RED_ALLIANCE_TAG = 24;   // AprilTag для красного альянса
-    public static final int BLUE_ALLIANCE_TAG = 21;  // AprilTag для синего альянса
+    public static final int BLUE_ALLIANCE_TAG = 20;  // AprilTag для синего альянса
 
     private int targetTagId = RED_ALLIANCE_TAG; // По умолчанию красный
 
-    public void init(HardwareMap hw) {
-        aprilTag = new AprilTagProcessor.Builder().build();
+    // Кэширование для оптимизации - предотвращает множественные запросы к Limelight за один loop
+    private FiducialResult cachedTargetFiducial = null;
+    private long cacheTimestamp = 0;
+    private static final long CACHE_VALIDITY_MS = 20; // 50Hz update rate
 
-        portal = new VisionPortal.Builder()
-                .setCamera(hw.get(WebcamName.class, "Webcam"))
-                .addProcessor(aprilTag)
-                .build();
+    // Vision Persistence Filter для устранения flickering на больших расстояниях
+    private static final int FRAMES_TO_CONFIRM = 3;  // Требуется 3 последовательных фрейма
+    private int consecutiveDetections = 0;  // Счетчик последовательных обнаружений
+    private int consecutiveLosses = 0;      // Счетчик последовательных потерь
+    private boolean stableTagVisible = false;  // Стабильное состояние видимости
+
+    public void init(HardwareMap hw) {
+        limelight = hw.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100); // Request data 100 times per second
+        limelight.start();
     }
 
     public void start() {
@@ -33,9 +43,8 @@ public class Vision {
     }
 
     public void stop() {
-        if (portal != null) {
-            portal.stopStreaming();
-            portal.close();
+        if (limelight != null) {
+            limelight.stop();
         }
         active = false;
     }
@@ -50,66 +59,256 @@ public class Vision {
      */
     public void setAlliance(boolean isRedAlliance) {
         targetTagId = isRedAlliance ? RED_ALLIANCE_TAG : BLUE_ALLIANCE_TAG;
+        // Инвалидируем кэш при смене альянса
+        cachedTargetFiducial = null;
+        cacheTimestamp = 0;
+        // Сбрасываем persistence filter
+        resetPersistenceFilter();
+    }
+
+    /**
+     * Внутренний helper: получает FiducialResult для текущего alliance tag
+     * Использует кэширование для предотвращения множественных запросов за один loop цикл
+     */
+    private FiducialResult getTargetFiducial() {
+        long now = System.currentTimeMillis();
+
+        // Возвращаем кэшированное значение если оно свежее
+        if (cachedTargetFiducial != null && (now - cacheTimestamp) < CACHE_VALIDITY_MS) {
+            return cachedTargetFiducial;
+        }
+
+        // Обновляем кэш
+        cachedTargetFiducial = null;
+        cacheTimestamp = now;
+
+        if (!active) return null;
+
+        LLResult result = limelight.getLatestResult();
+        if (result == null || !result.isValid()) return null;
+
+        List<FiducialResult> fiducials = result.getFiducialResults();
+        if (fiducials == null) return null;
+
+        // Фильтруем по targetTagId (24 для RED, 20 для BLUE)
+        // ВАЖНО: Явно игнорируем теги другого альянса для предотвращения tracking неправильных целей
+        for (FiducialResult f : fiducials) {
+            int fiducialId = f.getFiducialId();
+
+            // ТОЛЬКО наш alliance tag
+            if (fiducialId == targetTagId) {
+                cachedTargetFiducial = f;
+                break;
+            }
+
+            // Явно игнорируем тег противоположного альянса
+            int oppositeAllianceTag = (targetTagId == RED_ALLIANCE_TAG) ? BLUE_ALLIANCE_TAG : RED_ALLIANCE_TAG;
+            if (fiducialId == oppositeAllianceTag) {
+                // Пропускаем этот тег - он от другого альянса
+                continue;
+            }
+        }
+
+        return cachedTargetFiducial;
     }
 
     /**
      * Получает целевой AprilTag (для текущего альянса)
+     * Возвращает синтетический AprilTagDetection для обратной совместимости
      */
     public AprilTagDetection getTargetTag() {
-        if (!active) return null;
+        FiducialResult fiducial = getTargetFiducial();
+        if (fiducial == null) return null;
 
-        List<AprilTagDetection> detections = aprilTag.getDetections();
-        for (AprilTagDetection d : detections) {
-            if (d.id == targetTagId && d.ftcPose != null) {
-                return d;
-            }
-        }
-        return null;
+        return wrapFiducialAsAprilTag(fiducial);
     }
 
     /**
-     * Проверяет, виден ли целевой tag
+     * Преобразует FiducialResult в AprilTagDetection для совместимости с legacy code
+     */
+    private AprilTagDetection wrapFiducialAsAprilTag(FiducialResult fiducial) {
+        // Позиция тега относительно робота (Robot → Tag)
+        Pose3D pose = fiducial.getTargetPoseRobotSpace();
+        Position pos = pose.getPosition();
+
+        // 3D Euclidean distance
+        double range = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+        double yaw = fiducial.getTargetXDegrees();
+        double pitch = fiducial.getTargetYDegrees();
+
+        // Создаем AprilTagPoseFtc с правильным конструктором
+        AprilTagPoseFtc ftcPose = new AprilTagPoseFtc(
+            pos.x,                  // x
+            pos.y,                  // y
+            pos.z,                  // z
+            yaw,                    // yaw
+            0.0,                    // roll (не используется)
+            pitch,                  // pitch
+            range,                  // range (3D distance)
+            yaw,                    // bearing (approximation)
+            pitch                   // elevation (approximation)
+        );
+
+        // Создаем AprilTagDetection с правильным конструктором
+        return new AprilTagDetection(
+            fiducial.getFiducialId(),   // id
+            0,                          // hamming
+            0.0f,                       // decisionMargin
+            null,                       // center
+            null,                       // corners
+            null,                       // metadata
+            ftcPose,                    // ftcPose
+            null,                       // rawPose
+            pose,                       // fieldPosition (Pose3D)
+            System.nanoTime()           // frameAcquisitionNanoTime
+        );
+    }
+
+    /**
+     * Проверяет, виден ли целевой tag (с persistence фильтром)
+     *
+     * Persistence Filter:
+     * - Требуется 3 последовательных фрейма для подтверждения обнаружения/потери
+     * - Устраняет single-frame flickering на расстояниях 400-500см
+     * - ~60ms задержка при 50Hz loop rate (приемлемо для стабильности)
      */
     public boolean hasTargetTag() {
-        return getTargetTag() != null;
+        boolean rawDetection = getTargetFiducial() != null;
+
+        // Обновляем счетчики на основе raw detection
+        if (rawDetection) {
+            consecutiveDetections++;
+            consecutiveLosses = 0;  // Сброс счетчика потерь
+        } else {
+            consecutiveLosses++;
+            consecutiveDetections = 0;  // Сброс счетчика обнаружений
+        }
+
+        // Переключаемся на "виден" только после 3 последовательных обнаружений
+        if (consecutiveDetections >= FRAMES_TO_CONFIRM) {
+            stableTagVisible = true;
+        }
+
+        // Переключаемся на "не виден" только после 3 последовательных потерь
+        if (consecutiveLosses >= FRAMES_TO_CONFIRM) {
+            stableTagVisible = false;
+        }
+
+        return stableTagVisible;
+    }
+
+    /**
+     * Сбрасывает persistence filter (для тестирования или смены альянса)
+     */
+    public void resetPersistenceFilter() {
+        consecutiveDetections = 0;
+        consecutiveLosses = 0;
+        stableTagVisible = false;
     }
 
     /**
      * Получает расстояние до целевого тега в сантиметрах
+     * ВРЕМЕННО: возвращает примерное расстояние на основе ty (вертикальный угол)
+     * Нужна калибровка для точного расчета
      */
     public double getTargetDistance() {
-        AprilTagDetection tag = getTargetTag();
-        if (tag == null || tag.ftcPose == null) return -1;
-        return tag.ftcPose.range * 2.54; // дюймы в см
+        FiducialResult target = getTargetFiducial();
+        if (target == null) return -1;
+
+        // Используем ty (вертикальный угол) для примерной оценки
+        // Формула: distance ≈ height / tan(ty)
+        // Это временное решение - нужна калибровка
+        double ty = target.getTargetYDegrees();
+
+        // Примерная высота камеры над полом и высота тега
+        // Эти значения нужно откалибровать для вашего робота
+        double cameraHeightCm = 30.0; // Примерная высота камеры
+        double tagHeightCm = 40.0;    // Примерная высота тега
+        double heightDiff = Math.abs(tagHeightCm - cameraHeightCm);
+
+        if (Math.abs(ty) < 1.0) return 100.0; // Защита от деления на ноль
+
+        double distance = heightDiff / Math.tan(Math.toRadians(ty));
+        return Math.abs(distance);
+    }
+
+    /**
+     * DEBUG: Получает все доступные данные из Limelight для диагностики
+     */
+    public String getDebugLimelightData() {
+        if (!active) return "Vision not active";
+
+        LLResult result = limelight.getLatestResult();
+        if (result == null || !result.isValid()) return "No valid result";
+
+        StringBuilder debug = new StringBuilder();
+
+        // FiducialResult for target tag (используем только методы Limelight)
+        FiducialResult target = getTargetFiducial();
+        if (target != null) {
+            double tx = target.getTargetXDegrees(); // Horizontal offset
+            double ty = target.getTargetYDegrees(); // Vertical offset
+
+            debug.append(String.format("Tag ID=%d | tx=%.2f° | ty=%.2f°",
+                target.getFiducialId(), tx, ty));
+        } else {
+            debug.append("Target tag not found in fiducials list");
+        }
+
+        return debug.toString();
     }
 
     /**
      * Получает yaw ошибку для целевого тега (для turret)
+     * Возвращает горизонтальный угол в градусах (tx - horizontal offset)
+     * ВАЖНО: Это прямое значение из Limelight без обработки
      */
     public double getTargetYaw() {
-        AprilTagDetection tag = getTargetTag();
-        if (tag == null || tag.ftcPose == null) return Double.NaN;
-        return tag.ftcPose.yaw;
+        FiducialResult target = getTargetFiducial();
+        if (target == null) return Double.NaN;
+
+        // getTargetXDegrees() - это tx (horizontal offset в градусах)
+        // Limelight возвращает: отрицательное = слева, положительное = справа
+        double tx = target.getTargetXDegrees();
+        return tx;
     }
 
+    /**
+     * Получает вертикальный угол (ty) до целевого тега
+     */
+    public double getTargetPitch() {
+        FiducialResult target = getTargetFiducial();
+        if (target == null) return Double.NaN;
+        return target.getTargetYDegrees();
+    }
+
+    /**
+     * Получает ближайший AprilTag (любого альянса) для testing/fallback
+     */
     public AprilTagDetection getBestTag() {
         if (!active) return null;
 
-        List<AprilTagDetection> detections = aprilTag.getDetections();
-        if (detections.isEmpty()) return null;
+        LLResult result = limelight.getLatestResult();
+        if (result == null || !result.isValid()) return null;
 
-        AprilTagDetection best = null;
-        double bestRange = Double.MAX_VALUE;
+        List<FiducialResult> fiducials = result.getFiducialResults();
+        if (fiducials == null || fiducials.isEmpty()) return null;
 
-        for (AprilTagDetection d : detections) {
-            if (d.ftcPose == null) continue;
+        FiducialResult closest = null;
+        double closestDist = Double.MAX_VALUE;
 
-            if (d.ftcPose.range < bestRange) {
-                bestRange = d.ftcPose.range;
-                best = d;
+        for (FiducialResult f : fiducials) {
+            Pose3D pose = f.getRobotPoseTargetSpace();
+            Position pos = pose.getPosition();
+            double dist = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                closest = f;
             }
         }
-        return best;
+
+        return (closest != null) ? wrapFiducialAsAprilTag(closest) : null;
     }
 
     /**
@@ -122,21 +321,26 @@ public class Vision {
     }
 
     /**
-     * Получает дистанцию до ближайшего тега (в метрах)
+     * Получает дистанцию до ближайшего тега (в дюймах для совместимости)
      */
     public double getBestTagRange() {
         AprilTagDetection tag = getBestTag();
-        if (tag == null) return -1;
+        if (tag == null || tag.ftcPose == null) return -1;
         return tag.ftcPose.range;
     }
 
-
+    /**
+     * Получает yaw error для ближайшего тега
+     */
     public double getYawError() {
         AprilTagDetection tag = getBestTag();
         if (tag == null || tag.ftcPose == null) return Double.NaN;
         return tag.ftcPose.yaw;
     }
 
+    /**
+     * Проверяет наличие любого видимого тега
+     */
     public boolean hasTarget() {
         return getBestTag() != null;
     }

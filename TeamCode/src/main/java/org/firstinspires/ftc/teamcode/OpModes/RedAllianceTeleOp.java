@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Robot;
 import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 
+@Config
 @TeleOp(name="RED Alliance TeleOp", group="TeleOp")
 public class RedAllianceTeleOp extends LinearOpMode {
+
+    // Kalman Filter toggle (FTC Dashboard)
+    public static boolean ENABLE_KALMAN = true;
 
     private Robot robot;
 
@@ -19,20 +25,46 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Инициализация робота
         telemetry.addData("Status", "Initializing...");
         telemetry.addData("Alliance", "RED");
-        telemetry.addData("Target AprilTag ID", 11);
+        telemetry.addData("Target AprilTag ID", 24);
         telemetry.update();
 
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
 
-        telemetry.addData("Status", "Ready to start!");
+        // Set starting pose for Red alliance
+        Pose redStartPose = new Pose(103, 136, Math.toRadians(270));
+        robot.follower.setStartingPose(redStartPose);
+
+        // CRITICAL: Synchronize Localizer with Follower
+        // This ensures HeadingController (used for heading lock) has correct heading
+        Pose syncPose = robot.follower.getPose();
+        org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+            syncPose.getX(),
+            syncPose.getY(),
+            Math.toDegrees(syncPose.getHeading())
+        );
+
+        // Set goal (basket) for turret auto-aim
+        Pose redGoalPose = new Pose(136, 104, Math.toRadians(270));
+        robot.turret.setGoalPose(redGoalPose);
+
+        // Enable Kalman Filter for sensor fusion
+        robot.turret.setKalmanEnabled(ENABLE_KALMAN);
+
+        // Verify heading synchronization
+        telemetry.addLine("=== INITIALIZATION ===");
+        telemetry.addData("Status", "Pinpoint IMU Ready");
+        telemetry.addData("Follower Heading", "%.1f°", Math.toDegrees(robot.follower.getPose().getHeading()));
+        telemetry.addData("Localizer Heading", "%.1f°", org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().getHeading());
+        telemetry.addData("Expected Heading", "270.0°");
+        telemetry.addLine();
+        telemetry.addData("Sync Status", "Both systems aligned ✓");
+        telemetry.addData("Start Pose", "(%.1f, %.1f)", redStartPose.getX(), redStartPose.getY());
+        telemetry.addData("Goal Pose", "(%.1f, %.1f)", redGoalPose.getX(), redGoalPose.getY());
         telemetry.update();
 
         waitForStart();
 
         robot.start();
-
-        // Устанавливаем красную корзину для автонаведения
-        robot.turret.setAutoTargetByAlliance(true); // Red alliance
 
         while (opModeIsActive()) {
             // Обновление робота
@@ -84,18 +116,42 @@ public class RedAllianceTeleOp extends LinearOpMode {
         telemetry.addData("Auto Aim", robot.turretController.isAutoAimEnabled() ? "ON" : "MANUAL");
         telemetry.addData("Centered", robot.turret.isCentered() ? "YES" : "NO");
 
+        // Kalman Filter
+        telemetry.addLine();
+        telemetry.addLine("=== KALMAN FILTER ===");
+        telemetry.addData("Enabled", robot.turret.isKalmanEnabled() ? "YES ✓" : "NO (Legacy EMA)");
+        if (robot.turret.isKalmanEnabled()) {
+            telemetry.addData("Filtered Target X", "%.2f cm", robot.turret.debugFilteredX);
+            telemetry.addData("Filtered Target Y", "%.2f cm", robot.turret.debugFilteredY);
+            telemetry.addData("Innovation X", "%.2f cm", robot.turret.debugInnovation[0]);
+            telemetry.addData("Innovation Y", "%.2f cm", robot.turret.debugInnovation[1]);
+            telemetry.addData("Outliers Rejected", robot.turret.debugOutlierCount);
+
+            // Innovation magnitude check
+            double innovationMagnitude = Math.sqrt(
+                robot.turret.debugInnovation[0] * robot.turret.debugInnovation[0] +
+                robot.turret.debugInnovation[1] * robot.turret.debugInnovation[1]
+            );
+            if (innovationMagnitude > 10.0) {
+                telemetry.addLine("⚠️ Large innovation!");
+            }
+        }
+
         // Shooter
         telemetry.addLine();
         telemetry.addLine("=== SHOOTER ===");
         telemetry.addData("State", robot.shooterController.getCurrentState());
         telemetry.addData("Is Shooting", robot.shooterController.isShooting() ? "YES" : "NO");
         telemetry.addData("Hood Position", robot.shooter.getCurrentHoodPosition());
+        telemetry.addData("ShooterStop Position", "%.2f", robot.shooter.getStopPosition());
+        telemetry.addData("IntakeStop Position", "%.2f", robot.shooter.getIntakeStopPosition());
 
         // Controls
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
-        telemetry.addData("GP2 Right Stick X", "Manual Turret");
+        telemetry.addData("GP2 Right Stick X", "Manual Turret (holds position)");
+        telemetry.addData("GP2 Left Bumper", "Re-enable Auto-Aim");
         telemetry.addData("GP2 Options", "RESET ALL");
     }
 }

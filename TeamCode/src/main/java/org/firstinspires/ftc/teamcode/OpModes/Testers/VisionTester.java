@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.OpModes.Testers;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Vision;
+import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.List;
 public class VisionTester extends LinearOpMode {
 
     private Vision vision;
+    private Turret turret;
     private boolean isRedAlliance = true;
     private boolean prevDpadUp = false;
     private boolean prevDpadDown = false;
@@ -26,11 +29,17 @@ public class VisionTester extends LinearOpMode {
         vision.start();
         vision.setAlliance(isRedAlliance);
 
+        // Initialize turret with Vision ONLY (no Kalman Filter, no odometry)
+        turret = new Turret(hardwareMap, vision);
+
         telemetry.addData("Status", "Ready!");
         telemetry.addLine();
         telemetry.addLine("Controls:");
-        telemetry.addData("DPad Up", "Switch to RED Alliance");
-        telemetry.addData("DPad Down", "Switch to BLUE Alliance");
+        telemetry.addData("GP1 DPad Up", "Switch to RED Alliance");
+        telemetry.addData("GP1 DPad Down", "Switch to BLUE Alliance");
+        telemetry.addLine();
+        telemetry.addData("Turret", "Auto-aim ENABLED (Vision Only)");
+        telemetry.addData("Mode", "LEGACY - No Kalman Filter");
         telemetry.update();
 
         waitForStart();
@@ -49,13 +58,16 @@ public class VisionTester extends LinearOpMode {
             prevDpadUp = gamepad1.dpad_up;
             prevDpadDown = gamepad1.dpad_down;
 
+            // Turret auto-aim (Vision-only mode, no Kalman filter)
+            turret.autoAim();
+
             // Display telemetry
             displayTelemetry();
 
             telemetry.update();
-            sleep(50);
         }
 
+        turret.stop();
         vision.stop();
     }
 
@@ -93,14 +105,16 @@ public class VisionTester extends LinearOpMode {
 
         if (hasTarget) {
             double distance = vision.getTargetDistance();
-            double yaw = vision.getTargetYaw();
+            double tx = vision.getTargetYaw();        // Horizontal offset
+            double ty = vision.getTargetPitch();      // Vertical offset
 
-            telemetry.addData("Distance (cm)", "%.2f", distance);
-            telemetry.addData("Yaw (degrees)", "%.2f", yaw);
+            telemetry.addData("Distance (cm)", String.format("%.2f", distance));
+            telemetry.addData("tx (H offset)", String.format("%.2f°", tx));
+            telemetry.addData("ty (V offset)", String.format("%.2f°", ty));
 
             // Hood calculation based on distance (servo position 0.0-0.5)
             double hoodServoPos = calculateHoodPosition(distance);
-            telemetry.addData("Hood Servo Position", "%.3f", hoodServoPos);
+            telemetry.addData("Hood Servo", String.format("%.3f", hoodServoPos));
 
             // Range indicator
             String rangeIndicator;
@@ -116,8 +130,25 @@ public class VisionTester extends LinearOpMode {
             telemetry.addData("Range", rangeIndicator);
         } else {
             telemetry.addData("Distance", "---");
-            telemetry.addData("Yaw", "---");
-            telemetry.addData("Suggested Hood", "---");
+            telemetry.addData("tx (H offset)", "---");
+            telemetry.addData("ty (V offset)", "---");
+            telemetry.addData("Hood Servo", "---");
+        }
+
+        telemetry.addLine();
+
+        // Turret section
+        telemetry.addLine("--- TURRET ---");
+        telemetry.addData("Current Angle", "%.1f°", turret.getCurrentAngle());
+        telemetry.addData("Target Angle", "%.1f°", turret.getTargetAngle());
+        telemetry.addData("At Target", turret.atTarget() ? "YES" : "NO");
+        telemetry.addData("Motor Power", "%.3f", turret.getMotorPower());
+
+        // Tracking status
+        if (vision.hasTargetTag()) {
+            telemetry.addData("Status", "TRACKING TAG");
+        } else {
+            telemetry.addData("Status", "NO TARGET");
         }
 
         telemetry.addLine();
@@ -132,9 +163,39 @@ public class VisionTester extends LinearOpMode {
             telemetry.addData("All Tags", "None detected");
         }
 
+        // Debug: Limelight raw data (tx, ty)
+        telemetry.addLine();
+        telemetry.addLine("--- DEBUG: LIMELIGHT RAW DATA ---");
+        telemetry.addData("Data", vision.getDebugLimelightData());
+
+        // Vision-Only Mode
+        telemetry.addLine();
+        telemetry.addLine("--- VISION MODE ---");
+        telemetry.addData("Mode", "LEGACY (Vision Only, No Kalman)");
+        telemetry.addData("Smoothing Factor", String.format("%.2f", 0.15));
+
+        // Debug: Vision → Turret conversion
+        telemetry.addLine();
+        telemetry.addLine("--- DEBUG: VISION → TURRET ---");
+        if (vision.hasTargetTag()) {
+            double rawTx = vision.getTargetYaw();
+            double currentAngle = turret.getCurrentAngle();
+            double targetAngle = turret.getTargetAngle();
+            double error = targetAngle - currentAngle;
+
+            telemetry.addData("Vision tx (raw)", String.format("%.2f°", rawTx));
+            telemetry.addData("Current Turret Angle", String.format("%.2f°", currentAngle));
+            telemetry.addData("Smoothed Target", String.format("%.2f°", targetAngle));
+            telemetry.addData("Error (Target - Current)", String.format("%.2f°", error));
+        } else {
+            telemetry.addData("Vision tx", "NO TARGET");
+            telemetry.addData("Current Turret Angle", String.format("%.2f°", turret.getCurrentAngle()));
+        }
+
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
-        telemetry.addData("DPad Up", "RED Alliance");
-        telemetry.addData("DPad Down", "BLUE Alliance");
+        telemetry.addData("GP1 DPad Up/Down", "Switch alliance");
+        telemetry.addLine();
+        telemetry.addLine("NOTE: Robot stationary - move manually");
     }
 }

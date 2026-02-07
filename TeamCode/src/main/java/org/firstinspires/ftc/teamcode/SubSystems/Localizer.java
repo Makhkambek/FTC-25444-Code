@@ -28,13 +28,12 @@ public class Localizer {
 
     private Localizer(HardwareMap hardwareMap) {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(-107.95, -63.5, DistanceUnit.MM); // Твои оффсеты
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD); //change it
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD
-        );
-        pinpoint.resetPosAndIMU();
+        // NOTE: Do NOT call resetPosAndIMU() here!
+        // Follower (Pedro Pathing) already initialized the Pinpoint hardware.
+        // Calling reset here would override Follower's state and break setStartingPose()
+        //
+        // Configuration is NOT needed - Follower already configured Pinpoint via Constants.java
+        // We only need to get the hardware reference to read heading
     }
 
     /**
@@ -77,7 +76,8 @@ public class Localizer {
     }
 
     public void reset() {
-        pinpoint.resetPosAndIMU();
+        // DO NOT reset Pinpoint hardware - Follower manages it
+        // Only reset our internal tracking variables
         x = 0;
         y = 0;
         heading = 0;
