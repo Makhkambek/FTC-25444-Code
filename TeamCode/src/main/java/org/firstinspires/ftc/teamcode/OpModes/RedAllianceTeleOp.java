@@ -31,7 +31,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
         robot = new Robot(hardwareMap, telemetry, isRedAlliance);
 
         // Set starting pose for Red alliance
-        Pose redStartPose = new Pose(103, 136, Math.toRadians(270));
+        Pose redStartPose = new Pose(119, 73, Math.toRadians(270));
         robot.follower.setStartingPose(redStartPose);
 
         // CRITICAL: Synchronize Localizer with Follower
@@ -44,7 +44,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
         );
 
         // Set goal (basket) for turret auto-aim
-        Pose redGoalPose = new Pose(136, 104, Math.toRadians(270));
+        Pose redGoalPose = new Pose(130, 135, Math.toRadians(270));
         robot.turret.setGoalPose(redGoalPose);
 
         // Enable Kalman Filter for sensor fusion
