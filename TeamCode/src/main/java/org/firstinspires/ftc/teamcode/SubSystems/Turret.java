@@ -79,6 +79,11 @@ public class Turret {
     public double[] debugInnovation = new double[2];
     public int debugOutlierCount = 0;
 
+    // Pose validation to prevent odometry jumps
+    private Pose lastValidPose = null;
+    private static final double MAX_POSITION_JUMP_CM = 50.0;  // Max robot movement per loop
+    private int odometryJumpCount = 0;  // Debug counter for telemetry
+
     // Конструктор для TeleOp и Auto (с Vision и Localizer)
     public Turret(HardwareMap hardwareMap, Vision vision, Localizer localizer) {
         this.vision = vision;
@@ -197,16 +202,19 @@ public class Turret {
             return 0.0;
         }
 
-        Pose currentPose;
+        Pose rawPose;
 
         // Получаем текущую позицию робота
         if (follower != null) {
-            currentPose = follower.getPose(); // Используем существующий Pose!
+            rawPose = follower.getPose();
         } else if (localizer != null) {
-            currentPose = new Pose(localizer.getX(), localizer.getY(), 0);
+            rawPose = new Pose(localizer.getX(), localizer.getY(), 0);
         } else {
             return 0.0; // Нет локализации
         }
+
+        // VALIDATE pose before using
+        Pose currentPose = validatePose(rawPose);
 
         // Используем goalPose если доступен
         double targetX, targetY;
@@ -225,6 +233,43 @@ public class Turret {
     }
 
     /**
+     * Validates robot pose to reject impossible odometry jumps
+     * Returns previous valid pose if new pose jumped >50cm in one loop
+     *
+     * @param newPose Current pose from follower/localizer
+     * @return Validated pose (either newPose or lastValidPose if jump detected)
+     */
+    private Pose validatePose(Pose newPose) {
+        // First call - no previous pose to compare
+        if (lastValidPose == null) {
+            lastValidPose = newPose;
+            return newPose;
+        }
+
+        // Check for NaN/Infinity
+        if (Double.isNaN(newPose.getX()) || Double.isNaN(newPose.getY()) ||
+            Double.isInfinite(newPose.getX()) || Double.isInfinite(newPose.getY())) {
+            odometryJumpCount++;
+            return lastValidPose;  // Return previous valid pose
+        }
+
+        // Calculate distance from previous pose
+        double dx = newPose.getX() - lastValidPose.getX();
+        double dy = newPose.getY() - lastValidPose.getY();
+        double jumpDistance = Math.sqrt(dx * dx + dy * dy);
+
+        // Reject if jump too large (impossible for robot to move this far in one loop)
+        if (jumpDistance > MAX_POSITION_JUMP_CM) {
+            odometryJumpCount++;  // Increment counter for telemetry
+            return lastValidPose;  // Return previous valid pose instead
+        }
+
+        // Pose is valid - update lastValidPose and return
+        lastValidPose = newPose;
+        return newPose;
+    }
+
+    /**
      * Рассчитать угол турели для наведения на цель через одометрию
      *
      * ROBOT-CENTRIC SYSTEM (вид с робота, не с поля):
@@ -238,7 +283,7 @@ public class Turret {
      * 3. Calculate angle: turretAngle = atan2(robotY, robotX)
      * 4. Convert to degrees and clamp
      *
-     * IMPORTANT: This runs continuously every loop
+ * IMPORTANT: This runs continuously every looдp
      */
     private double calculateTargetAngle() {
         // Check if we have a goal
@@ -247,16 +292,19 @@ public class Turret {
         }
 
         // STEP 0: Get current pose from follower (source of truth)
-        Pose currentPose;
+        Pose rawPose;
         if (follower != null) {
-            currentPose = follower.getPose(); // Fresh coordinates from Pinpoint every loop!
+            rawPose = follower.getPose();
         } else if (localizer != null) {
             // Fallback to localizer
             double heading = Math.toRadians(localizer.getHeading());
-            currentPose = new Pose(localizer.getX(), localizer.getY(), heading);
+            rawPose = new Pose(localizer.getX(), localizer.getY(), heading);
         } else {
             return 0.0; // No localization available
         }
+
+        // VALIDATE pose before using
+        Pose currentPose = validatePose(rawPose);
 
         // Get target coordinates
         double targetX, targetY;
@@ -553,6 +601,31 @@ public class Turret {
     }
 
     /**
+     * Manual control с vision-based auto-correction
+     * Комбинирует joystick input и vision offset для vision-assisted manual control
+     *
+     * @param joystickInput Joystick value (-1.0 to +1.0) уже масштабирован sensitivity
+     * @param visionOffsetDegrees Vision correction в градусах (уже взвешен и ограничен)
+     */
+    public void manualControlWithVisionCorrection(double joystickInput, double visionOffsetDegrees) {
+        // Шаг 1: Применяем manual adjustment
+        if (Math.abs(joystickInput) > 0.1) {  // Deadzone
+            targetAngle += joystickInput * MANUAL_STEP;
+        }
+
+        // Шаг 2: Применяем vision correction (аддитивно)
+        targetAngle += visionOffsetDegrees;
+
+        // Шаг 3: Ограничиваем к физическим лимитам
+        targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, targetAngle));
+
+        // Шаг 4: Применяем PIDF для достижения target
+        double currentAngle = getCurrentAngle();
+        double power = calculatePIDF(targetAngle, currentAngle);
+        turretMotor.setPower(power);
+    }
+
+    /**
      * Поддерживает текущую целевую позицию турели
      * Используется в manual mode когда джойстик отпущен
      * Просто применяет PIDF к текущему targetAngle без пересчёта
@@ -655,6 +728,13 @@ public class Turret {
      */
     public boolean isTracking() {
         return (vision != null && vision.hasTargetTag()) || hasGoal();
+    }
+
+    /**
+     * Returns count of odometry jumps detected (for telemetry debug)
+     */
+    public int getOdometryJumpCount() {
+        return odometryJumpCount;
     }
 
     public void setPIDF(double p, double i, double d, double f) {

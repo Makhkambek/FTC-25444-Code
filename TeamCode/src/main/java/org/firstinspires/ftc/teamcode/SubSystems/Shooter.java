@@ -59,7 +59,8 @@ public class Shooter {
     private static final double MAX_OUTPUT_CHANGE = 0.05; // максимальное изменение за один цикл (rate limiter)
 
     // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
-    private static final double HOOD_DEADZONE = 3.0;
+    // Увеличено до 10.0 для уменьшения jittering
+    private static final double HOOD_DEADZONE = 10.0;
 
     // Velocity deadzone - минимальное изменение расстояния для обновления velocity (см)
     private static final double VELOCITY_DEADZONE = 5.0;
@@ -82,6 +83,10 @@ public class Shooter {
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
+    // Hood сглаживание для уменьшения jittering
+    private static final double HOOD_SMOOTHING = 0.6;  // EMA factor для hood servo
+    private double smoothedHoodPosition = 0.0;  // Текущая сглаженная позиция hood
+
     public Shooter(HardwareMap hardwareMap) {
         shooterMotor1 = hardwareMap.get(DcMotorEx.class, "shooterMotor1");
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooterMotor2");
@@ -101,6 +106,9 @@ public class Shooter {
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Инициализируем smoothed hood position перед первым setHoodPosition
+        smoothedHoodPosition = HoodPosition.CLOSE.position;
         setHoodPosition(HoodPosition.CLOSE);
 
         // Обычные позиции когда не стреляем
@@ -160,15 +168,25 @@ public class Shooter {
      */
     public void updateHood(double distance) {
         if (distance > 0) {
-            // Проверяем deadzone - обновляем только если изменение > 3 см
+            // Проверяем deadzone - обновляем только если изменение > 10 см
             if (lastHoodDistance < 0 || Math.abs(distance - lastHoodDistance) > HOOD_DEADZONE) {
-                double position = calculateHoodPosition(distance);
-                hood.setPosition(position);
+                double targetPosition = calculateHoodPosition(distance);
+
+                // EMA сглаживание для уменьшения jittering
+                if (lastHoodDistance < 0) {
+                    // Первое обновление - устанавливаем напрямую
+                    smoothedHoodPosition = targetPosition;
+                } else {
+                    // Применяем EMA фильтр
+                    smoothedHoodPosition += HOOD_SMOOTHING * (targetPosition - smoothedHoodPosition);
+                }
+
+                hood.setPosition(smoothedHoodPosition);
 
                 // Обновляем currentHoodPosition для телеметрии
-                if (position < 0.2) {
+                if (smoothedHoodPosition < 0.2) {
                     currentHoodPosition = HoodPosition.CLOSE;
-                } else if (position < 0.45) {
+                } else if (smoothedHoodPosition < 0.45) {
                     currentHoodPosition = HoodPosition.MIDDLE;
                 } else {
                     currentHoodPosition = HoodPosition.FAR;
@@ -391,7 +409,9 @@ public class Shooter {
 
     public void setHoodPosition(HoodPosition position) {
         if (position != null) {
-            hood.setPosition(position.position);
+            // Применяем сглаживание и для manual override
+            smoothedHoodPosition += HOOD_SMOOTHING * (position.position - smoothedHoodPosition);
+            hood.setPosition(smoothedHoodPosition);
             currentHoodPosition = position;
         }
     }
