@@ -86,16 +86,22 @@ Robot {
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
         // Динамически обновляем velocity и hood на основе расстояния до цели
-        // ТОЛЬКО Vision - если не видит тег, используем fallback значения
+        // ТОЛЬКО Vision - если не видит тег, используем fallback (но НЕ во время стрельбы!)
         double distanceToGoal = vision.getTargetDistance();
 
         if (distanceToGoal < 0) {
-            // Камера НЕ видит tag - fallback значения
-            shooter.setTargetVelocity(1000.0);
-            shooter.setHoodPosition(0.0);  // Hood на 0
-            distanceSource = "No tag (fallback)";
+            // Камера НЕ видит tag
+            if (!shooter.isShooting()) {
+                // Fallback ТОЛЬКО если НЕ стреляем (иначе мяч блокирует камеру и сбивает настройки!)
+                shooter.setTargetVelocity(1000.0);
+                shooter.setHoodPosition(0.0);  // Hood на 0
+                distanceSource = "No tag (fallback)";
+            } else {
+                // Стреляем - держим последние значения velocity/hood, не меняем
+                distanceSource = "Shooting (hold last)";
+            }
         } else {
-            // Камера видит tag - используем формулы
+            // Камера видит tag - обновляем всегда
             shooter.updateVelocity(distanceToGoal);
             shooter.updateHood(distanceToGoal);
             distanceSource = "Vision";

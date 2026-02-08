@@ -29,7 +29,8 @@ public class Shooter {
         IDLE,
         SPIN_UP,
         OPEN_STOP,
-        FEED,
+        FEED_SAMPLE,
+        PAUSE,
         RESET
     }
 
@@ -40,7 +41,13 @@ public class Shooter {
     private static final double INTAKE_STOP_OFF = 1.0;  // Обычная позиция (не стреляем)
     private static final double SPIN_UP_TIME = 0.2;
     private static final double OPEN_STOP_TIME = 0.3;
-    private static final double FEED_TIME = 2.5;
+
+    // Time-based feeding для 3 samples с паузами между ними
+    // ВАЖНО: Порядок стрельбы = ближний → средний → дальний (intake крутится в одну сторону)
+    public static double FEED_TIME_1 = 0.2;  // FIRST shot (closest ball to shooter, ~5cm)
+    public static double FEED_TIME_2 = 0.3;  // SECOND shot (middle ball, ~10cm)
+    public static double FEED_TIME_3 = 0.5;  // THIRD shot (farthest ball, ~15cm)
+    public static double PAUSE_DURATION = 0.35;  // Пауза между samples для восстановления velocity
 
     public double kP = 0.007;
     public double kI = 0.0;
@@ -105,9 +112,11 @@ public class Shooter {
     private ShooterState currentState = ShooterState.IDLE;
     private ElapsedTime stateTimer = new ElapsedTime();
     private boolean openStopExecuted = false;  // Флаг для OPEN_STOP state-entry
-    private boolean feedExecuted = false;      // Флаг для FEED state-entry
+    private boolean feedExecuted = false;      // Флаг для FEED_SAMPLE state-entry
+    private boolean pauseExecuted = false;     // Флаг для PAUSE state-entry
     private boolean resetExecuted = false;     // Флаг для RESET state-entry
     private boolean manualStopOverride = false; // Ручное открытие shooterStop (приоритет над FSM)
+    private int sampleCount = 0;  // Счётчик выстреленных samples (0, 1, 2, 3)
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
@@ -168,8 +177,8 @@ public class Shooter {
         double exponent = -(VELOCITY_K * distanceInches + VELOCITY_B);
         double velocity = VELOCITY_L / (1.0 + Math.exp(exponent));
 
-        // Clamp к физическим лимитам + offset + 100 boost
-        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 100.0;
+        // Clamp к физическим лимитам + offset + 200 boost
+        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 200.0;
     }
 
     /**
@@ -238,15 +247,12 @@ public class Shooter {
      */
     public void updateVelocity(double distance) {
         if (distance > 0) {
-            // Проверяем deadzone - обновляем только если изменение > 5 см
+            // Проверяем deadzone - обновляем только если изменение > 5 дюймов
             if (lastVelocityDistance < 0 || Math.abs(distance - lastVelocityDistance) > VELOCITY_DEADZONE) {
                 double newVelocity = calculateTargetVelocity(distance);
 
-                // Обновляем velocity только если моторы уже крутятся или собираются крутиться
-                // Не сбрасываем PID состояние если velocity не изменилась значительно
-                if (Math.abs(newVelocity - targetVelocity) > 50.0) {
-                    setTargetVelocity(newVelocity);
-                }
+                // Всегда обновляем velocity (аналогично hood)
+                setTargetVelocity(newVelocity);
 
                 // Сохраняем последнее расстояние
                 lastVelocityDistance = distance;
@@ -275,6 +281,7 @@ public class Shooter {
     public void startShoot() {
         if (currentState == ShooterState.IDLE) {
             currentState = ShooterState.SPIN_UP;
+            sampleCount = 0; // Сброс счётчика samples
             stateTimer.reset();
         }
     }
@@ -303,22 +310,56 @@ public class Shooter {
                     openStopExecuted = true;
                 }
                 if (stateTimer.seconds() >= OPEN_STOP_TIME) { //timer
-                    currentState = ShooterState.FEED;
+                    currentState = ShooterState.FEED_SAMPLE;
                     stateTimer.reset();
                     openStopExecuted = false; // Сброс для следующего раза
                 }
                 break;
 
-            case FEED:
+            case FEED_SAMPLE:
                 // Включаем intake (ТОЛЬКО ОДИН РАЗ)
                 if (!feedExecuted) {
                     intake.on();
+                    sampleCount++; // Увеличиваем счётчик
                     feedExecuted = true;
                 }
-                if (stateTimer.seconds() >= FEED_TIME) { //timer
-                    currentState = ShooterState.RESET;
+
+                // Выбираем время на основе sampleCount
+                double currentFeedTime;
+                if (sampleCount == 1) {
+                    currentFeedTime = FEED_TIME_1;
+                } else if (sampleCount == 2) {
+                    currentFeedTime = FEED_TIME_2;
+                } else {
+                    currentFeedTime = FEED_TIME_3;
+                }
+
+                if (stateTimer.seconds() >= currentFeedTime) {
+                    currentState = ShooterState.PAUSE;
                     stateTimer.reset();
                     feedExecuted = false; // Сброс для следующего раза
+                }
+                break;
+
+            case PAUSE:
+                // Выключаем intake для восстановления velocity (ТОЛЬКО ОДИН РАЗ)
+                if (!pauseExecuted) {
+                    intake.off();
+                    pauseExecuted = true;
+                }
+
+                if (stateTimer.seconds() >= PAUSE_DURATION) {
+                    if (sampleCount < 3) {
+                        // Ещё есть samples - продолжаем стрельбу
+                        currentState = ShooterState.FEED_SAMPLE;
+                        stateTimer.reset();
+                        pauseExecuted = false; // Сброс для следующего раза
+                    } else {
+                        // Все 3 sample выстрелены - переходим в RESET
+                        currentState = ShooterState.RESET;
+                        stateTimer.reset();
+                        pauseExecuted = false; // Сброс для следующего раза
+                    }
                 }
                 break;
 
@@ -428,11 +469,18 @@ public class Shooter {
     }
 
     public void setTargetVelocity(double velocity) {
-        targetVelocity = velocity;
-        lastError = 0;
-        integralSum = 0;
-        smoothedOutput = 0;
-        pidTimer.reset();
+        // CRITICAL FIX: Only reset PID state if target velocity actually changed
+        // Prevents PID reset spam when fallback sets same value every loop
+        if (Math.abs(targetVelocity - velocity) > 1.0) {
+            targetVelocity = velocity;
+            lastError = 0;
+            integralSum = 0;
+            smoothedOutput = 0;
+            pidTimer.reset();
+        } else {
+            // Target unchanged - just update the value without resetting PID
+            targetVelocity = velocity;
+        }
     }
 
     public double getCurrentVelocity() {
@@ -480,6 +528,7 @@ public class Shooter {
         intakeStop.setPosition(INTAKE_STOP_OFF); // Обычная позиция
         setHoodPosition(HoodPosition.CLOSE);
         currentState = ShooterState.IDLE; // Сбрасываем FSM
+        sampleCount = 0; // Сбрасываем счётчик samples
         stateTimer.reset();
         lastHoodDistance = -1; // Сбрасываем deadzone tracking
         lastVelocityDistance = -1; // Сбрасываем velocity deadzone tracking
@@ -535,5 +584,9 @@ public class Shooter {
 
     public double getIntakeStopPosition() {
         return intakeStop.getPosition();
+    }
+
+    public int getSampleCount() {
+        return sampleCount;
     }
 }
