@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class Shooter {
     private DcMotorEx shooterMotor1, shooterMotor2;
     private Servo hood;
@@ -29,7 +31,8 @@ public class Shooter {
         IDLE,
         SPIN_UP,
         OPEN_STOP,
-        FEED,
+        FEED_SAMPLE,  // Encoder-based feeding of one sample
+        PAUSE,        // Pause between samples
         RESET
     }
 
@@ -41,6 +44,14 @@ public class Shooter {
     private static final double SPIN_UP_TIME = 0.2;
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 2.5;
+
+    // Time-based feeding parameters (FTC Dashboard tunable)
+    // ВАЖНО: Порядок стрельбы = ближний → средний → дальний (intake крутится)
+    public static double FEED_TIME_1 = 0.2;             // FIRST shot (closest ball to shooter, ~5cm)
+    public static double FEED_TIME_2 = 0.3;             // SECOND shot (middle ball, ~10cm)
+    public static double FEED_TIME_3 = 0.5;             // THIRD shot (farthest ball, ~15cm)
+    public static double PAUSE_DURATION = 0.35;         // Seconds between shots (tunable)
+    private static final int TARGET_SAMPLES = 3;        // Always shoot 3 samples
 
     public double kP = 0.007;
     public double kI = 0.0;
@@ -111,6 +122,12 @@ public class Shooter {
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
 
+    // Time-based feeding state tracking
+    private int sampleCount = 0;               // Number of samples fed so far (0, 1, 2)
+    private boolean feedSampleExecuted = false; // Flag for FEED_SAMPLE state-entry
+    private boolean pauseExecuted = false;      // Flag for PAUSE state-entry
+    private double[] feedTimes = new double[3]; // Array of feed times for each sample
+
     // Hood сглаживание для уменьшения jittering
     private static final double HOOD_SMOOTHING = 0.6;  // EMA factor для hood servo
     private double smoothedHoodPosition = 0.0;  // Текущая сглаженная позиция hood
@@ -143,7 +160,20 @@ public class Shooter {
         shooterStop.setPosition(STOP_CLOSE);
         intakeStop.setPosition(INTAKE_STOP_OFF);
 
+        // Инициализируем массив времен для time-based feeding
+        updateFeedTimes();
+
         pidTimer.reset();
+    }
+
+    /**
+     * Обновляет массив времен подачи из статических переменных
+     * Вызывается при инициализации и перед каждым циклом стрельбы
+     */
+    private void updateFeedTimes() {
+        feedTimes[0] = FEED_TIME_1;
+        feedTimes[1] = FEED_TIME_2;
+        feedTimes[2] = FEED_TIME_3;
     }
 
     /**
@@ -303,22 +333,56 @@ public class Shooter {
                     openStopExecuted = true;
                 }
                 if (stateTimer.seconds() >= OPEN_STOP_TIME) { //timer
-                    currentState = ShooterState.FEED;
+                    currentState = ShooterState.FEED_SAMPLE;
                     stateTimer.reset();
                     openStopExecuted = false; // Сброс для следующего раза
+
+                    // Time-based feeding: reset sample counter and update feed times
+                    sampleCount = 0;
+                    updateFeedTimes(); // Обновляем времена на случай если изменили в FTC Dashboard
                 }
                 break;
 
-            case FEED:
-                // Включаем intake (ТОЛЬКО ОДИН РАЗ)
-                if (!feedExecuted) {
+            case FEED_SAMPLE:
+                // Time-based feeding of one sample
+                if (!feedSampleExecuted) {
+                    // Turn on intake
                     intake.on();
-                    feedExecuted = true;
+                    feedSampleExecuted = true;
                 }
-                if (stateTimer.seconds() >= FEED_TIME) { //timer
-                    currentState = ShooterState.RESET;
+
+                // Check timer - use time for CURRENT sample
+                double currentFeedTime = feedTimes[sampleCount];
+
+                if (stateTimer.seconds() >= currentFeedTime) {
+                    // Sample fed successfully (by time)
+                    intake.off();
+                    sampleCount++;  // Increment counter (0→1, 1→2, 2→3)
+                    feedSampleExecuted = false;
+
+                    if (sampleCount < TARGET_SAMPLES) {
+                        // More samples to feed (0→1→2) - go to pause
+                        currentState = ShooterState.PAUSE;
+                        stateTimer.reset();
+                    } else {
+                        // All 3 samples fed (sampleCount == 3) - go to reset
+                        currentState = ShooterState.RESET;
+                        stateTimer.reset();
+                    }
+                }
+                break;
+
+            case PAUSE:
+                // Pause between samples (intake already off from FEED_SAMPLE)
+                if (!pauseExecuted) {
+                    pauseExecuted = true;
+                }
+
+                if (stateTimer.seconds() >= PAUSE_DURATION) {
+                    // Pause complete - feed next sample
+                    currentState = ShooterState.FEED_SAMPLE;
                     stateTimer.reset();
-                    feedExecuted = false; // Сброс для следующего раза
+                    pauseExecuted = false;
                 }
                 break;
 
@@ -470,6 +534,10 @@ public class Shooter {
 
     public boolean isShooting() {
         return currentState != ShooterState.IDLE;
+    }
+
+    public int getSampleCount() {
+        return sampleCount;
     }
 
     public void reset() {
