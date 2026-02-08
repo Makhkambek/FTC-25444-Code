@@ -49,8 +49,8 @@ public class Shooter {
     // ВАЖНО: Порядок стрельбы = ближний → средний → дальний (intake крутится)
     public static double FEED_TIME_1 = 0.2;             // FIRST shot (closest ball to shooter, ~5cm)
     public static double FEED_TIME_2 = 0.3;             // SECOND shot (middle ball, ~10cm)
-    public static double FEED_TIME_3 = 0.5;             // THIRD shot (farthest ball, ~15cm)
-    public static double PAUSE_DURATION = 0.35;         // Seconds between shots (tunable)
+    public static double FEED_TIME_3 = 0.7;             // THIRD shot (farthest ball, ~15cm)
+    public static double PAUSE_DURATION = 0.15;         // Seconds between shots (tunable)
     private static final int TARGET_SAMPLES = 3;        // Always shoot 3 samples
 
     public double kP = 0.007;

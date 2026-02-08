@@ -23,7 +23,7 @@ public class BlueAuto extends OpMode {
     private int pathState = 0;
 
     private PathChain path1, path2, path3, path4, path5;
-    private final Pose startPose = new Pose(39.945, 135.779, Math.toRadians(270));
+    private final Pose startPose = new Pose(26, 129, Math.toRadians(135));
 
     private Intake intake;
     private Shooter shooter;
@@ -32,40 +32,37 @@ public class BlueAuto extends OpMode {
     private Localizer localizer;
 
     public void buildPaths() {
-        // Path 1: BezierLine (39.945, 135.779) -> (60.0, 84.0)
         path1 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(39.539, 134.763),
+                                new Pose(26, 129),
 
-                                new Pose(61.422, 93.343)
+                                new Pose(60.265, 93.275)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
                 .build();
 
-        // Path 2: BezierCurve (60.0, 84.0) -> (55.034, 55.046) -> (16.262, 58.841)
         path2 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(61.422, 93.343),
-                                new Pose(60.665, 60.894),
-                                new Pose(27.787, 60.035)
+                                new Pose(60.265, 93.275),
+                                new Pose(62.705, 58.111),
+                                new Pose(15.039, 59.709)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
-        // Path 3: BezierCurve (16.262, 58.841) -> (62.117, 66.660) -> (60.0, 84.0)
         path3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(27.787, 60.035),
-                                new Pose(50.979, 68.446),
-                                new Pose(61.412, 93.322)
+                                new Pose(15.039, 59.709),
+                                new Pose(57.421, 58.709),
+                                new Pose(59.712, 83.676)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(150))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         // Path 4: BezierCurve (60.0, 84.0) -> (61.915, 66.612) -> (16.503, 58.841)
@@ -94,17 +91,24 @@ public class BlueAuto extends OpMode {
 
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case 0: // Запуск Path 1 (turret направлен)
-                // Shooter already started in start() with fixed velocity
+            case 0:
                 follower.followPath(path1, true);
-                setPathState(11);
+                setPathState(50);
+                break;
+
+            case 50:
+                if (pathTimer.getElapsedTime() > 1.5) {
+                    shooter.startShoot();
+                    setPathState(1);
+                }
                 break;
 
             case 1: // Ожидание завершения Path 1
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
-                    shooter.startShoot();
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
+                    intake.on();
                     follower.followPath(path2, true);
-                    setPathState(2);
+                    turret.setTargetAngle(50.0);
+                    setPathState(22);
                 }
                 break;
 
@@ -180,11 +184,10 @@ public class BlueAuto extends OpMode {
         vision.start();
         pathTimer.resetTimer();
 
-        // Fixed hood and velocity for autonomous (not dynamic)
-        shooter.setHoodPosition(0.3);
-        shooter.setTargetVelocity(1350.0);
+        shooter.setHoodPosition(0.4);
+        shooter.setTargetVelocity(1450.0);
 
-        turret.setAutoTargetByAlliance(false); // Blue alliance
+        turret.setTargetAngle(0.0);
 
         setPathState(0);
     }
@@ -193,6 +196,7 @@ public class BlueAuto extends OpMode {
     public void loop() {
         follower.update();
         localizer.update();
+        turret.autoAim();
         shooter.updatePID();
         shooter.updateFSM(intake);
         autonomousPathUpdate();
