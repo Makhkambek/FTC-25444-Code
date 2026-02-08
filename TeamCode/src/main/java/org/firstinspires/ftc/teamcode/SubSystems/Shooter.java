@@ -198,8 +198,8 @@ public class Shooter {
         double exponent = -(VELOCITY_K * distanceInches + VELOCITY_B);
         double velocity = VELOCITY_L / (1.0 + Math.exp(exponent));
 
-        // Clamp к физическим лимитам + offset + 200 boost
-        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 200.0;
+        // Clamp к физическим лимитам + offset + velocity boost
+        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 50.0;
     }
 
     /**
@@ -589,6 +589,10 @@ public class Shooter {
      */
     public void setHoodPosition(double position) {
         hood.setPosition(clamp(position, MIN_HOOD_ANGLE, MAX_HOOD_ANGLE) + HOOD_OFFSET);
+        // CRITICAL FIX: Сбрасываем deadzone tracking чтобы следующий updateHood точно сработал
+        // Без этого если fallback установит hood=0, а потом Vision увидит тег на близком расстоянии,
+        // deadzone может блокировать обновление и hood останется на 0
+        lastHoodDistance = -1;
     }
 
     // Testing methods
