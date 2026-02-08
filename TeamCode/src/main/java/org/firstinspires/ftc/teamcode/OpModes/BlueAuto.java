@@ -25,11 +25,11 @@ public class BlueAuto extends OpMode {
     private PathChain path1, path2, path3, path4, path5;
     private final Pose startPose = new Pose(39.945, 135.779, Math.toRadians(270));
 
-//    private Intake intake;
-//    private Shooter shooter;
-//    private Turret turret;
-//    private Vision vision;
-//    private Localizer localizer;
+    private Intake intake;
+    private Shooter shooter;
+    private Turret turret;
+    private Vision vision;
+    private Localizer localizer;
 
     public void buildPaths() {
         // Path 1: BezierLine (39.945, 135.779) -> (60.0, 84.0)
@@ -95,14 +95,14 @@ public class BlueAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0: // Запуск Path 1 (turret направлен)
-//                shooter.on();
+                // Shooter already started in start() with fixed velocity
                 follower.followPath(path1, true);
                 setPathState(11);
                 break;
 
             case 1: // Ожидание завершения Path 1
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
-//                    shooter.startShoot();
+                    shooter.startShoot();
                     follower.followPath(path2, true);
                     setPathState(2);
                 }
@@ -132,11 +132,11 @@ public class BlueAuto extends OpMode {
 
             case 5: // Ожидание завершения Path 4 - завершение
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
-//                    intake.off();
-                        follower.followPath(path5, true);
+                    intake.off();
+                    follower.followPath(path5, true);
                     // Сохраняем финальную позицию робота для передачи в TeleOp
                     // Измените на фактические координаты конца автономки
-//                    localizer.setPosition(16.503, 58.841, 150);
+                    localizer.setPosition(16.503, 58.841, 150);
 
                     setPathState(9);
                 }
@@ -154,14 +154,14 @@ public class BlueAuto extends OpMode {
 
     @Override
     public void init() {
-//        localizer = Localizer.getInstance(hardwareMap);
-//
-//        intake = new Intake(hardwareMap);
-//        shooter = new Shooter(hardwareMap);
-//        vision = new Vision();
-//        vision.init(hardwareMap);
-//        vision.setAlliance(false); // Blue alliance
-//        turret = new Turret(hardwareMap, vision, localizer);
+        localizer = Localizer.getInstance(hardwareMap);
+
+        intake = new Intake(hardwareMap);
+        shooter = new Shooter(hardwareMap);
+        vision = new Vision();
+        vision.init(hardwareMap);
+        vision.setAlliance(false); // Blue alliance
+        turret = new Turret(hardwareMap, vision, localizer);
 
         follower = Constants.createFollower(hardwareMap);
 
@@ -177,12 +177,14 @@ public class BlueAuto extends OpMode {
 
     @Override
     public void start() {
-//        vision.start();
+        vision.start();
         pathTimer.resetTimer();
 
-//        turret.setAutoTargetByAlliance(false); // Blue alliance
-//
-//        turret.setTargetAngle(45.0); // Или используй setAutoTargetByAlliance выше
+        // Fixed hood and velocity for autonomous (not dynamic)
+        shooter.setHoodPosition(0.3);
+        shooter.setTargetVelocity(1350.0);
+
+        turret.setAutoTargetByAlliance(false); // Blue alliance
 
         setPathState(0);
     }
@@ -190,9 +192,9 @@ public class BlueAuto extends OpMode {
     @Override
     public void loop() {
         follower.update();
-//        localizer.update();
-//        shooter.updatePID();
-//        shooter.updateFSM(intake);
+        localizer.update();
+        shooter.updatePID();
+        shooter.updateFSM(intake);
         autonomousPathUpdate();
     }
 
@@ -201,17 +203,17 @@ public class BlueAuto extends OpMode {
         if (follower != null) {
             follower.breakFollowing();
         }
-//        if (intake != null) {
-//            intake.off();
-//        }
-//        if (shooter != null) {
-//            shooter.off();
-//        }
-//        if (turret != null) {
-//            turret.stop();
-//        }
-//        if (vision != null) {
-//            vision.stop();
-//        }
+        if (intake != null) {
+            intake.off();
+        }
+        if (shooter != null) {
+            shooter.off();
+        }
+        if (turret != null) {
+            turret.stop();
+        }
+        if (vision != null) {
+            vision.stop();
+        }
     }
 }

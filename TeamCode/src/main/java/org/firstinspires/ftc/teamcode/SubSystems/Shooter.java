@@ -500,6 +500,10 @@ public class Shooter {
             integralSum = 0;
             smoothedOutput = 0;
             pidTimer.reset();
+            // CRITICAL FIX: Сбрасываем deadzone tracking чтобы следующий updateVelocity точно сработал
+            // Без этого если fallback установит velocity=1000, а потом Vision увидит тег на близком расстоянии,
+            // deadzone может блокировать обновление и velocity останется на 1000
+            lastVelocityDistance = -1;
         } else {
             // Target unchanged - just update the value without resetting PID
             targetVelocity = velocity;
