@@ -93,7 +93,7 @@ Robot {
             // Камера НЕ видит tag
             if (!shooter.isShooting()) {
                 // Fallback ТОЛЬКО если НЕ стреляем (иначе мяч блокирует камеру и сбивает настройки!)
-                shooter.setTargetVelocity(1000.0);
+                shooter.setTargetVelocity(1200.0);
                 shooter.setHoodPosition(0.0);  // Hood на 0
                 distanceSource = "No tag (fallback)";
             } else {

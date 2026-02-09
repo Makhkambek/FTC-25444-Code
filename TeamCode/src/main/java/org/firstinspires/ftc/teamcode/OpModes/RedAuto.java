@@ -146,6 +146,7 @@ public class RedAuto extends OpMode {
         switch (pathState) {
             case 0:
                 follower.followPath(path1, true);
+//                follower.followPath(path1, 0.6,true);
                 setPathState(50);
 
                 break;

@@ -49,7 +49,7 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)    // Y-axis (forward/backward)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);   // X-axis (left/right)
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.8, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

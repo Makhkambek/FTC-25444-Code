@@ -68,9 +68,9 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         robot.start();
 
         while (opModeIsActive()) {
-            // Position reset on dpad_down (gamepad1)
-            if (gamepad1.dpad_down) {
-                // Reset to Blue alliance preset position
+            // Position reset #1 on dpad_up (gamepad1)
+            if (gamepad1.dpad_up) {
+                // Reset to Blue alliance preset position (basket side)
                 Pose resetPose = new Pose(40, 135, Math.toRadians(90));
                 robot.follower.setPose(resetPose);
 
@@ -82,6 +82,24 @@ public class BlueAllianceTeleOp extends LinearOpMode {
                 );
 
                 telemetry.addLine("⚠️ POSITION RESET TO (40, 135)");
+                telemetry.update();
+                sleep(500); // Prevent multiple resets
+            }
+
+            // Position reset #2 on dpad_down (gamepad1)
+            if (gamepad1.dpad_down) {
+                // Reset to Blue alliance preset position (submersible side)
+                Pose resetPose = new Pose(39.5, 7, Math.toRadians(90));
+                robot.follower.setPose(resetPose);
+
+                // Synchronize Localizer
+                org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+                    resetPose.getX(),
+                    resetPose.getY(),
+                    Math.toDegrees(resetPose.getHeading())
+                );
+
+                telemetry.addLine("⚠️ POSITION RESET TO (39.5, 7)");
                 telemetry.update();
                 sleep(500); // Prevent multiple resets
             }
@@ -201,7 +219,8 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         // Controls
         telemetry.addLine();
         telemetry.addLine("=== CONTROLS ===");
-        telemetry.addData("GP1 Dpad Down", "RESET POSITION (40, 135)");
+        telemetry.addData("GP1 Dpad Up", "RESET POSITION (40, 135) - Basket");
+        telemetry.addData("GP1 Dpad Down", "RESET POSITION (39.5, 7) - Submersible");
         telemetry.addData("GP2 Right Bumper", "Start Shoot");
         telemetry.addData("GP2 Dpad Up", "Manual Open ShooterStop");
         telemetry.addData("GP2 Dpad Down", "Manual Close ShooterStop");
