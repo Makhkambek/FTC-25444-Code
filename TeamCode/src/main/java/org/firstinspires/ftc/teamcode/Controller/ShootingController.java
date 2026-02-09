@@ -7,224 +7,234 @@ import org.firstinspires.ftc.teamcode.Subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystem.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystem.VisionSubsystem;
 
+/**
+ * ShootingController: Simple manual control for shooter system.
+ *
+ * GAMEPAD2 CONTROLS:
+ * - Right stick X: Manual turret rotation
+ * - B button: Gate sequence (open → run intake 3 sec → close)
+ * - Right bumper: Increase shooter speed
+ * - Left bumper: Decrease shooter speed
+ *
+ * DEFAULTS ON START:
+ * - Shooter: 1250 ticks/sec
+ * - Gate: 0.45 (closed)
+ */
 public class ShootingController {
-
-    private enum ShootingState {
-        MANUAL,
-        TARGET_MODE_SEARCHING,
-        TARGET_MODE_AUTO_AIM,
-        READY_TO_SHOOT,
-        SHOOTING
-    }
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
     private final VisionSubsystem vision;
     private final Telemetry telemetry;
 
-    private final Gamepad gamepad1;
     private final Gamepad gamepad2;
 
-    private ShootingState currentState;
+    // Gate sequence state
+    private boolean gateSequenceActive = false;
+    private ElapsedTime gateTimer;
+    private static final double GATE_SEQUENCE_DURATION = 3.0;  // 3 seconds
 
-    private boolean previousRightTrigger;
-    private boolean previousLeftTrigger;
+    // Default values (set on initialization)
+    private static final double DEFAULT_SHOOTER_VELOCITY = 1250.0;
+    private static final double DEFAULT_GATE_POSITION = 0.45;  // Closed
 
-    private static final double YAW_LOCK_THRESHOLD = 3.0;
-    private static final double TICKS_PER_DEGREE = 1.2;
-    private static final double JOYSTICK_DEADZONE = 0.1;
+    // Gate positions
+    private static final double GATE_OPEN = 0.25;
+    private static final double GATE_CLOSED = 0.45;
 
-    private static final double DISTANCE_STEP_CM = 15.0;
-    private static final double HOOD_INCREMENT = 0.03;
-    private static final double VELOCITY_BASE = 800.0;
-    private static final double VELOCITY_INCREMENT = 21.0;
+    // Shooter velocity control
+    private double currentShooterVelocity = DEFAULT_SHOOTER_VELOCITY;
+    private static final double VELOCITY_INCREMENT = 100.0;
 
-    private ElapsedTime shootingTimer;
-    private static final double SHOOTING_DURATION_SECONDS = 5.0;
-
-    private double targetHoodPosition;
-    private double targetShooterVelocity;
-
-    private static final int RUMBLE_DURATION_MS = 500;
+    // Button edge detection
+    private boolean previousB = false;
+    private boolean previousRightBumper = false;
+    private boolean previousLeftBumper = false;
 
     public ShootingController(
             ShooterSubsystem shooter,
             IntakeSubsystem intake,
             VisionSubsystem vision,
-            Gamepad gamepad1,
             Gamepad gamepad2,
             Telemetry telemetry
     ) {
         this.shooter = shooter;
         this.intake = intake;
         this.vision = vision;
-        this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
         this.telemetry = telemetry;
 
-        this.currentState = ShootingState.MANUAL;
-        this.previousRightTrigger = false;
-        this.previousLeftTrigger = false;
-        this.shootingTimer = new ElapsedTime();
+        this.gateTimer = new ElapsedTime();
 
-        this.targetHoodPosition = 0.0;
-        this.targetShooterVelocity = ShooterSubsystem.DEFAULT_VELOCITY;
+        // Initialize to defaults
+        initializeDefaults();
     }
 
+    /**
+     * Initialize all systems to default values.
+     */
+    private void initializeDefaults() {
+        shooter.setShooterVelocity(DEFAULT_SHOOTER_VELOCITY);
+        shooter.setGatePosition(DEFAULT_GATE_POSITION);
+
+        currentShooterVelocity = DEFAULT_SHOOTER_VELOCITY;
+    }
+
+    /**
+     * Main update loop - call this every cycle.
+     */
     public void update() {
+        // Update vision (for future auto-aim use)
         vision.update();
 
-        boolean rightTriggerPressed = detectEdge(gamepad2.right_trigger > 0.1, previousRightTrigger);
-        boolean leftTriggerPressed = detectEdge(gamepad2.left_trigger > 0.1, previousLeftTrigger);
+        // ===== TURRET MANUAL CONTROL =====
+        double turretInput = gamepad2.right_stick_x;
 
-        previousRightTrigger = gamepad2.right_trigger > 0.1;
-        previousLeftTrigger = gamepad2.left_trigger > 0.1;
-
-        switch (currentState) {
-            case MANUAL:
-                handleManualState(rightTriggerPressed);
-                break;
-
-            case TARGET_MODE_SEARCHING:
-                handleSearchingState();
-                break;
-
-            case TARGET_MODE_AUTO_AIM:
-                handleAutoAimState();
-                break;
-
-            case READY_TO_SHOOT:
-                handleReadyState(leftTriggerPressed);
-                break;
-
-            case SHOOTING:
-                handleShootingState();
-                break;
+        // Hold position with PIDF when joystick is released (prevents drift)
+        if (Math.abs(turretInput) < 0.1) {
+            shooter.holdTurretPosition();  // Lock in place with PIDF
+        } else {
+            shooter.manualControl(turretInput);  // Manual control
         }
 
+        // ===== SHOOTER VELOCITY CONTROL =====
+        handleShooterVelocityControl();
+
+        // ===== GATE SEQUENCE (B BUTTON) =====
+        handleGateSequence();
+
+        // ===== SHOOTER + TURRET UPDATE (CRITICAL - MUST BE CALLED EVERY LOOP) =====
+        shooter.update();  // Updates both shooter velocity and turret position hold
+
+        // ===== TELEMETRY =====
         updateTelemetry();
     }
 
-    private void handleManualState(boolean rightTriggerPressed) {
-        double turretPower = -gamepad2.right_stick_x;
-        if (Math.abs(turretPower) > JOYSTICK_DEADZONE) {
-            shooter.setTurretManualPower(turretPower * 0.5);
-        } else {
-            shooter.setTurretManualPower(0.0);
-        }
+    /**
+     * Handle shooter velocity adjustment with bumpers.
+     */
+    private void handleShooterVelocityControl() {
+        boolean rightBumperPressed = detectEdge(gamepad2.right_bumper, previousRightBumper);
+        boolean leftBumperPressed = detectEdge(gamepad2.left_bumper, previousLeftBumper);
 
-        if (rightTriggerPressed) {
-            currentState = ShootingState.TARGET_MODE_SEARCHING;
-            telemetry.addLine("Entering target mode - search for tag");
-        }
-    }
+        previousRightBumper = gamepad2.right_bumper;
+        previousLeftBumper = gamepad2.left_bumper;
 
-    private void handleSearchingState() {
-        double turretPower = -gamepad2.right_stick_x;
-        if (Math.abs(turretPower) > JOYSTICK_DEADZONE) {
-            shooter.setTurretManualPower(turretPower * 0.5);
-        } else {
-            shooter.setTurretManualPower(0.0);
-        }
-
-        if (vision.hasTarget()) {
-            calculateTargetingParameters();
-
-            shooter.setHoodPosition(targetHoodPosition);
-            shooter.setShooterVelocity(targetShooterVelocity);
-
-            currentState = ShootingState.TARGET_MODE_AUTO_AIM;
-            telemetry.addLine("Target acquired - auto-aiming");
+        if (rightBumperPressed) {
+            // Increase shooter velocity
+            currentShooterVelocity += VELOCITY_INCREMENT;
+            currentShooterVelocity = Math.min(currentShooterVelocity, 2500.0);  // Max limit
+            shooter.setShooterVelocity(currentShooterVelocity);
+        } else if (leftBumperPressed) {
+            // Decrease shooter velocity
+            currentShooterVelocity -= VELOCITY_INCREMENT;
+            currentShooterVelocity = Math.max(currentShooterVelocity, 0.0);  // Min limit
+            shooter.setShooterVelocity(currentShooterVelocity);
         }
     }
 
-    private void handleAutoAimState() {
-        if (!vision.hasTarget()) {
-            currentState = ShootingState.TARGET_MODE_SEARCHING;
-            return;
-        }
+    /**
+     * Handle gate sequence (gamepad2 B button).
+     * NEW SEQUENCE:
+     * 1. Intake starts
+     * 2. Gate opens immediately
+     * 3. After 3 seconds: intake stops AND gate closes
+     */
+    private void handleGateSequence() {
+        boolean bPressed = detectEdge(gamepad2.b, previousB);
+        previousB = gamepad2.b;
 
-        double yawDegrees = vision.getYawDegrees();
-
-        int deltaTicks = (int) Math.round(yawDegrees * TICKS_PER_DEGREE);
-        int currentTicks = shooter.getTurretCurrentTicks();
-        int targetTicks = currentTicks + deltaTicks;
-
-        shooter.setTurretTargetTicks(targetTicks);
-
-        if (Math.abs(yawDegrees) < YAW_LOCK_THRESHOLD) {
-            currentState = ShootingState.READY_TO_SHOOT;
-
-            rumbleGamepads();
-
-            telemetry.addLine("LOCKED ON - Press left trigger to shoot");
-        }
-    }
-
-    private void handleReadyState(boolean leftTriggerPressed) {
-        shooter.holdTurretPosition();
-
-        if (leftTriggerPressed) {
-            currentState = ShootingState.SHOOTING;
-            shootingTimer.reset();
-
+        // Start sequence on B button press
+        if (bPressed && !gateSequenceActive) {
+            // STEP 1: Start intake FIRST
             intake.intakeIn();
 
-            telemetry.addLine("SHOOTING - 5 second sequence started");
+            // STEP 2: Open gate IMMEDIATELY
+            shooter.setGatePosition(GATE_OPEN);
+
+            // STEP 3: Start timer
+            gateTimer.reset();
+            gateSequenceActive = true;
+
+            telemetry.addLine("GATE SEQUENCE STARTED");
+        }
+
+        // Update sequence if active - stop everything after 3 seconds
+        if (gateSequenceActive) {
+            if (gateTimer.seconds() >= GATE_SEQUENCE_DURATION) {
+                // Stop intake and close gate at same time
+                intake.stop();
+                shooter.setGatePosition(GATE_CLOSED);
+                gateSequenceActive = false;
+
+                telemetry.addLine("GATE SEQUENCE COMPLETE");
+            }
         }
     }
 
-    private void handleShootingState() {
-        if (shootingTimer.seconds() < SHOOTING_DURATION_SECONDS) {
+    /**
+     * Check if gate sequence is currently active.
+     * Use this to avoid intake control conflicts.
+     * @return true if gate sequence is running
+     */
+    public boolean isGateSequenceActive() {
+        return gateSequenceActive;
+    }
 
+    /**
+     * Update telemetry with current status.
+     */
+    private void updateTelemetry() {
+        telemetry.addLine("=== MANUAL SHOOTING CONTROL ===");
+
+        // Turret
+        telemetry.addData("Turret Angle", "%.1f deg", shooter.getCurrentAngle());
+        telemetry.addData("Turret Ticks", shooter.getTurretCurrentTicks());
+
+        // Shooter/Flywheel motors (Mentor's one-encoder PIDF approach)
+        telemetry.addData("Flywheel Target", "%.0f tps", currentShooterVelocity);
+        telemetry.addData("Flywheel Current", "%.0f tps", shooter.getCurrentShooterVelocity());
+        telemetry.addData("Flywheel Power", "%.3f", shooter.getShooterPower());
+        telemetry.addData("Flywheel Error", "%.0f tps", shooter.getShooterError());
+
+        // Gate
+        telemetry.addData("Gate", gateSequenceActive ? "OPEN (feeding)" : "CLOSED");
+
+        // Gate sequence
+        if (gateSequenceActive) {
+            telemetry.addData("Gate Timer", "%.1f / %.1f sec",
+                    gateTimer.seconds(), GATE_SEQUENCE_DURATION);
+        }
+
+        // Vision - AprilTag info
+        telemetry.addLine();
+        telemetry.addLine("=== APRILTAG VISION ===");
+        telemetry.addData("Alliance Tag Visible", vision.hasStableTarget());
+        if (vision.hasStableTarget()) {
+            double distance = vision.getTargetDistance();
+            if (!Double.isNaN(distance)) {
+                telemetry.addData("Tag Distance", "%.1f cm (%.1f in)", distance, distance / 2.54);
+            }
+            double yaw = vision.getYaw();
+            if (!Double.isNaN(yaw)) {
+                telemetry.addData("Tag Yaw", "%.1f deg", yaw);
+            }
+            telemetry.addData("Tag ID", vision.getTargetTagId());
         } else {
-            intake.stop();
-
-            shooter.setShooterDefaultVelocity();
-
-            currentState = ShootingState.MANUAL;
-
-            telemetry.addLine("Shooting complete - returning to manual mode");
+            telemetry.addData("Tag Status", "NOT VISIBLE");
         }
+
+        // Controls reminder
+        telemetry.addLine("--- CONTROLS ---");
+        telemetry.addLine("Right Stick X: Turret");
+        telemetry.addLine("Bumpers: Shooter speed");
+        telemetry.addLine("B: Gate sequence (3 sec)");
     }
 
-    private void calculateTargetingParameters() {
-        double distanceCm = vision.getDistanceCm();
-
-        int stepIndex = Math.max(1, (int) Math.ceil(distanceCm / DISTANCE_STEP_CM));
-
-        targetHoodPosition = HOOD_INCREMENT * stepIndex;
-        targetHoodPosition = Math.min(targetHoodPosition, ShooterSubsystem.HOOD_MAX);
-
-        targetShooterVelocity = VELOCITY_BASE + (VELOCITY_INCREMENT * stepIndex);
-
-        telemetry.addData("Distance", "%.1f cm", distanceCm);
-        telemetry.addData("Step Index", stepIndex);
-        telemetry.addData("Target Hood", "%.2f", targetHoodPosition);
-        telemetry.addData("Target Velocity", "%.0f tps", targetShooterVelocity);
-    }
-
-    private void rumbleGamepads() {
-        gamepad1.rumble(RUMBLE_DURATION_MS);
-        gamepad2.rumble(RUMBLE_DURATION_MS);
-    }
-
+    /**
+     * Edge detection for button presses.
+     */
     private boolean detectEdge(boolean current, boolean previous) {
         return current && !previous;
-    }
-
-    private void updateTelemetry() {
-        telemetry.addData("Shooting State", currentState);
-        telemetry.addData("Has Target", vision.hasTarget());
-
-        if (vision.hasTarget()) {
-            telemetry.addData("Yaw", "%.2f deg", vision.getYawDegrees());
-            telemetry.addData("Distance", "%.1f cm", vision.getDistanceCm());
-        }
-
-        if (currentState == ShootingState.SHOOTING) {
-            telemetry.addData("Shooting Time", "%.1f / %.1f sec",
-                    shootingTimer.seconds(), SHOOTING_DURATION_SECONDS);
-        }
     }
 }

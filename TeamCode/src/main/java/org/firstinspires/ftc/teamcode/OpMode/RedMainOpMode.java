@@ -58,8 +58,7 @@ public class RedMainOpMode extends LinearOpMode {
                 shooterSubsystem,
                 intakeSubsystem,
                 visionSubsystem,
-                gamepad1,
-                gamepad2,
+                gamepad2,  // Only gamepad2 for shooting
                 telemetry
         );
 
@@ -74,7 +73,12 @@ public class RedMainOpMode extends LinearOpMode {
         while (opModeIsActive()) {
             // Update all controllers
             driveController.update(gamepad1);
-            intakeController.update(gamepad1);
+
+            // Only update intake if gate sequence is NOT active (avoid conflict)
+            if (!shootingController.isGateSequenceActive()) {
+                intakeController.update(gamepad1);
+            }
+
             shootingController.update();
 
             // Update telemetry

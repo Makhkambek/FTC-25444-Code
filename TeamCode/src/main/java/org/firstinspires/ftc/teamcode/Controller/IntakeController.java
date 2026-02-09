@@ -5,8 +5,8 @@ import org.firstinspires.ftc.teamcode.Subsystem.IntakeSubsystem;
 
 /**
  * IntakeController: Manages intake control based on gamepad1 input.
- * Right trigger → intake in
- * Right bumper → outtake
+ * Right trigger → intake inwards (collect)
+ * Left trigger → intake outwards (eject)
  */
 public class IntakeController {
 
@@ -30,10 +30,10 @@ public class IntakeController {
      */
     public void update(Gamepad gamepad1) {
         if (gamepad1.right_trigger > TRIGGER_THRESHOLD) {
-            // Right trigger pressed → intake in
+            // Right trigger → intake inwards (collect)
             intake.intakeIn();
-        } else if (gamepad1.right_bumper) {
-            // Right bumper pressed → outtake
+        } else if (gamepad1.left_trigger > TRIGGER_THRESHOLD) {
+            // Left trigger → intake outwards (eject)
             intake.intakeOut();
         } else {
             // No input → stop

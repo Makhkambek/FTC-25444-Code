@@ -14,8 +14,8 @@ public class IntakeSubsystem {
     private final DcMotorEx intakeMotor;
 
     // Power constants
-    private static final double IN_POWER = 1.0;
-    private static final double OUT_POWER = -1.0;
+    private static final double IN_POWER = -1.0;
+    private static final double OUT_POWER = 1.0;
 
     /**
      * Constructs an IntakeSubsystem.
