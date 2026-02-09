@@ -16,14 +16,14 @@ import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name="Blue Auto", group="Autonomous")
-public class BlueAuto extends OpMode {
+@Autonomous(name="Red Auto", group="Autonomous")
+public class RedAuto extends OpMode {
     private Follower follower;
     private Timer pathTimer;
     private int pathState = 0;
 
     private PathChain path1, path2, path3, path4, path5, path6, path7, path8, path9;
-    private final Pose startPose = new Pose(26, 129, Math.toRadians(135));
+    private final Pose startPose = new Pose(118, 129, Math.toRadians(43));
 
     private Intake intake;
     private Shooter shooter;
@@ -36,108 +36,109 @@ public class BlueAuto extends OpMode {
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierLine(
-                                new Pose(26, 129),
+                                new Pose(118.000, 129.000),
 
-                                new Pose(53.157, 98.150)
+                                new Pose(90.554, 99.886)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
+                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(43))
                 .build();
 
         path2 = follower.pathBuilder()
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(53.157, 98.150),
-                                new Pose(58.236, 59.533),
-                                new Pose(4, 62.147)
+                                new Pose(90.554, 99.886),
+                                new Pose(91.033, 69.166),
+                                new Pose(97.680, 53.238),
+                                new Pose(117.024, 55.100)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
                 .build();
 
         path3 = follower.pathBuilder() //стреляет шестой
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(4, 62.147),
-                                new Pose(49.500, 61.350),
-                                new Pose(47.932, 82.660)
+                                new Pose(117.024, 55.100),
+                                new Pose(90.658, 67.362),
+                                new Pose(93.821, 83.920)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         path4 = follower.pathBuilder() //едет за девятым
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(47.932, 82.660),
-                                new Pose(46.051, 61.554),
-                                new Pose(10, 67.5)
+                                new Pose(93.821, 83.920),
+                                new Pose(100.772, 65.779),
+                                new Pose(121.252, 61.946)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(167))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(15))
                 .build();
 
         path5 = follower.pathBuilder() //девятый мяч
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(10, 67.5),
-                                new Pose(49.691, 67.511),
-                                new Pose(47.962, 82.419)
+                                new Pose(121.252, 61.946),
+                                new Pose(97.974, 67.501),
+                                new Pose(93.770, 84.100)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(170), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(15), Math.toRadians(0))
                 .build();
 
         path6 = follower.pathBuilder() //едет за 12
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(47.932, 82.660),
-                                new Pose(46.051, 61.554),
-                                new Pose(10, 67.5)
+                                new Pose(93.770, 84.100),
+                                new Pose(102.504, 64.360),
+                                new Pose(121.252, 62.150)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(170))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(15))
                 .build();
 
         path7 = follower.pathBuilder() //стреляет 12
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(10, 67.5),
-                                new Pose(49.691, 67.511),
-                                new Pose(47.962, 84.419)
+                                new Pose(121.252, 62.150),
+                                new Pose(103.369, 65.658),
+                                new Pose(93.750, 83.728)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(170), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(15), Math.toRadians(0))
                 .build();
 
         path8 = follower.pathBuilder() //едет за 15
                 .setGlobalDeceleration()
                 .addPath(
                         new BezierLine(
-                                new Pose(47.962, 84.419),
+                                new Pose(93.750, 83.728),
 
-                                new Pose(18.714, 86.188)
+                                new Pose(114.182, 83.571)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         path9 = follower.pathBuilder() //стреляет 15
                 .setGlobalDeceleration()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(18.714, 86.188),
-                                new Pose(49.691, 67.511),
-                                new Pose(47.962, 82.419)
+                        new BezierLine(
+                                new Pose(114.182, 83.571),
+
+                                new Pose(93.832, 84.014)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
     }
 
@@ -160,7 +161,7 @@ public class BlueAuto extends OpMode {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
                     intake.on();
                     follower.followPath(path2, true);
-                    turret.setTargetAngle(55);
+                    turret.setTargetAngle(-55);
                     setPathState(2);
                 }
                 break;
@@ -273,7 +274,7 @@ public class BlueAuto extends OpMode {
         shooter = new Shooter(hardwareMap);
         vision = new Vision();
         vision.init(hardwareMap);
-        vision.setAlliance(false); // Blue alliance
+        vision.setAlliance(true); // Red alliance
         turret = new Turret(hardwareMap, vision, localizer);
 
         follower = Constants.createFollower(hardwareMap);

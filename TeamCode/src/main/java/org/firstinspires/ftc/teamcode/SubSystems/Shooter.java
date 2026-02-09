@@ -309,6 +309,10 @@ public class Shooter {
         }
     }
 
+    public boolean isIdle() {
+        return currentState == ShooterState.IDLE;
+    }
+
     public void updateFSM(Intake intake) {
         switch (currentState) {
             case IDLE:
