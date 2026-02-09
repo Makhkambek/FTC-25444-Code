@@ -15,21 +15,20 @@ import org.firstinspires.ftc.teamcode.Subsystem.VisionSubsystem;
 /**
  * FixedOpMode: Manual control for all robot systems.
  *
- * GAMEPAD 1 (DRIVER) OR GAMEPAD 2 (OPERATOR):
+ * GAMEPAD 1 & 2 (BOTH):
  * - Left stick Y: Forward/backward
  * - Right stick X: Strafe left/right
  * - Left stick X: Turn left/right
  * - Left trigger: Slow mode
- *
- * GAMEPAD 1 ONLY:
  * - Right trigger: Intake inwards
  * - Right bumper: Intake outwards (outtake)
  *
- * GAMEPAD 2 ONLY:
- * - Right stick X: Turret rotation
+ * GAMEPAD 2 ONLY (SHOOTER):
+ * - Right stick X: Turret rotation (when not driving)
  * - B button: Gate sequence (open → intake 3 sec → close)
- * - Right bumper: Increase shooter speed (+100 tps)
  * - Left bumper: Decrease shooter speed (-100 tps)
+ *
+ * NOTE: Gamepad2 right bumper does BOTH outtake AND shooter speed increase
  *
  * DEFAULTS ON START:
  * - Shooter: 1250 ticks/sec
@@ -52,7 +51,7 @@ public class FixedOpMode extends LinearOpMode {
         public static double TRIGGER_THRESHOLD = 0.1;
 
         // Shooter defaults
-        public static double DEFAULT_SHOOTER_VELOCITY = 1700.0;
+        public static double DEFAULT_SHOOTER_VELOCITY = 1400.0;  // Default to close shot
         public static double DEFAULT_GATE_POSITION = 0.45;  // Closed
 
         // Gate sequence
@@ -76,6 +75,10 @@ public class FixedOpMode extends LinearOpMode {
     private boolean gateSequenceActive = false;
     private ElapsedTime gateTimer;
     private double currentShooterVelocity;
+
+    // Auto-velocity state - remembers last detected distance
+    private double lastDetectedDistanceCm = -1.0;  // -1 means no detection yet
+    private boolean hasDetectedTag = false;
 
     // Button edge detection
     private boolean previousB = false;
@@ -114,6 +117,9 @@ public class FixedOpMode extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            // ===== VISION UPDATE =====
+            vision.update();  // Update AprilTag detection
+
             // ===== GAMEPAD 1: DRIVE + INTAKE =====
             updateDrive();
             updateIntake();
@@ -162,7 +168,7 @@ public class FixedOpMode extends LinearOpMode {
     }
 
     /**
-     * Intake control (gamepad1).
+     * Intake control (gamepad1 OR gamepad2).
      * Right trigger = inwards, right bumper = outwards.
      * SKIPS if gate sequence is active (to avoid conflict).
      */
@@ -172,12 +178,12 @@ public class FixedOpMode extends LinearOpMode {
             return;  // Gate sequence has control
         }
 
-        // Normal intake control
-        if (gamepad1.right_trigger > Params.TRIGGER_THRESHOLD) {
-            // Right trigger → intake inwards
+        // Normal intake control - either gamepad can control
+        if (gamepad1.right_trigger > Params.TRIGGER_THRESHOLD || gamepad2.right_trigger > Params.TRIGGER_THRESHOLD) {
+            // Right trigger (either gamepad) → intake inwards
             intake.intakeIn();
-        } else if (gamepad1.right_bumper) {
-            // Right bumper → intake outwards (outtake)
+        } else if (gamepad1.right_bumper || gamepad2.right_bumper) {
+            // Right bumper (either gamepad) → intake outwards (outtake)
             intake.intakeOut();
         } else {
             intake.stop();
@@ -225,23 +231,42 @@ public class FixedOpMode extends LinearOpMode {
 
     /**
      * Auto-adjust shooter velocity based on AprilTag distance.
+     * Works with ANY AprilTag (Red or Blue alliance).
+     *
+     * MEMORY BEHAVIOR:
+     * - Remembers last detected distance
+     * - Continues using last distance until new detection
+     * - Only resets to default (1400) if no tag ever detected
+     *
+     * VELOCITY RULES:
      * - Distance > 230 cm: 1700 tps (far shot)
      * - Distance ≤ 230 cm: 1400 tps (close shot)
-     * Overrides manual velocity when tag is visible.
      */
     private void updateAutoVelocity() {
-        // Only auto-adjust if AprilTag is visible
-        if (!vision.hasStableTarget()) {
-            return;  // No tag visible, keep current velocity
+        // Check if ANY AprilTag is visible (not just alliance-specific)
+        if (vision.hasAnyTarget()) {
+            // Tag is visible - get fresh distance
+            double distanceInches = vision.getBestTagRange();
+
+            if (distanceInches >= 0) {
+                // Valid distance - convert and remember it
+                lastDetectedDistanceCm = distanceInches * 2.54;
+                hasDetectedTag = true;
+            }
         }
 
-        double distance = vision.getTargetDistance();
-        if (Double.isNaN(distance)) {
-            return;  // No valid distance, keep current velocity
+        // Use last known distance (or default if never detected)
+        double distanceToUse;
+        if (hasDetectedTag && lastDetectedDistanceCm >= 0) {
+            // Use last detected distance (even if tag not currently visible)
+            distanceToUse = lastDetectedDistanceCm;
+        } else {
+            // Never detected a tag yet - use close distance (safe default)
+            distanceToUse = 200.0;  // Assumes close shot, gives 1400 tps
         }
 
         // Auto-set velocity based on distance
-        if (distance > 230.0) {
+        if (distanceToUse > 230.0) {
             // Far shot (> 230 cm)
             currentShooterVelocity = 1700.0;
         } else {
@@ -300,14 +325,23 @@ public class FixedOpMode extends LinearOpMode {
         telemetry.addData("Turret Angle", "%.1f deg", shooter.getCurrentAngle());
 
         // Shooter/Flywheel (Mentor's one-encoder PIDF approach)
-        String velocityMode = "MANUAL";
-        if (vision.hasStableTarget()) {
-            double distance = vision.getTargetDistance();
-            if (!Double.isNaN(distance)) {
-                velocityMode = (distance > 230.0) ? "AUTO-FAR (>230cm)" : "AUTO-CLOSE (≤230cm)";
+        String velocityMode = "DEFAULT (no tag)";
+        if (hasDetectedTag && lastDetectedDistanceCm >= 0) {
+            boolean isCurrentlyDetecting = vision.hasAnyTarget();
+            String detectionStatus = isCurrentlyDetecting ? "LIVE" : "LAST";
+
+            if (lastDetectedDistanceCm > 230.0) {
+                velocityMode = String.format("AUTO-FAR [%s]", detectionStatus);
+            } else {
+                velocityMode = String.format("AUTO-CLOSE [%s]", detectionStatus);
             }
         }
         telemetry.addData("Velocity Mode", velocityMode);
+
+        // Show last detected distance
+        if (hasDetectedTag && lastDetectedDistanceCm >= 0) {
+            telemetry.addData("Last Distance", "%.1f cm", lastDetectedDistanceCm);
+        }
         telemetry.addData("Flywheel Target", "%.0f tps", currentShooterVelocity);
         telemetry.addData("Flywheel Current", "%.0f tps", shooter.getCurrentShooterVelocity());
         telemetry.addData("Flywheel Power", "%.3f", shooter.getShooterPower());
@@ -321,35 +355,37 @@ public class FixedOpMode extends LinearOpMode {
                     gateTimer.seconds(), Params.GATE_SEQUENCE_DURATION);
         }
 
-        // Vision - AprilTag distance
+        // Vision - AprilTag distance (ANY tag detected)
         telemetry.addLine();
         telemetry.addLine("=== APRILTAG VISION ===");
-        if (vision.hasStableTarget()) {
-            double distance = vision.getTargetDistance();
-            if (!Double.isNaN(distance)) {
-                telemetry.addData("Tag Distance", "%.1f cm (%.1f in)", distance, distance / 2.54);
-            }
-            double yaw = vision.getTargetYaw();
+        if (vision.hasAnyTarget()) {
+            // Show closest tag (any alliance)
+            int tagId = vision.getBestTagId();
+            double distanceInches = vision.getBestTagRange();
+            double distanceCm = distanceInches * 2.54;
+
+            telemetry.addData("Tag Status", "DETECTED");
+            telemetry.addData("Tag ID", tagId);
+            telemetry.addData("Tag Distance", "%.1f cm (%.1f in)", distanceCm, distanceInches);
+
+            double yaw = vision.getYawError();
             if (!Double.isNaN(yaw)) {
                 telemetry.addData("Tag Yaw", "%.1f deg", yaw);
             }
-            telemetry.addData("Tag ID", vision.getTargetTagId());
         } else {
             telemetry.addData("Tag Status", "NOT VISIBLE");
         }
 
         // Controls
         telemetry.addLine("--- GAMEPAD 1 & 2 (BOTH) ---");
-        telemetry.addLine("Sticks: Drive (either gamepad)");
+        telemetry.addLine("Sticks: Drive");
         telemetry.addLine("Left Trigger: Slow mode");
-
-        telemetry.addLine("--- GAMEPAD 1 ONLY ---");
         telemetry.addLine("Right Trigger: Intake IN");
         telemetry.addLine("Right Bumper: Intake OUT");
 
-        telemetry.addLine("--- GAMEPAD 2 ONLY ---");
+        telemetry.addLine("--- GAMEPAD 2 (SHOOTER) ---");
         telemetry.addLine("Right Stick X: Turret");
-        telemetry.addLine("Bumpers: Shooter speed");
+        telemetry.addLine("Left Bumper: Shooter -100");
         telemetry.addLine("B: Gate (3 sec)");
 
         telemetry.update();

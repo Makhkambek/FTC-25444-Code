@@ -51,7 +51,7 @@ public class ShooterSubsystem {
      */
     @Config
     public static class TurretHold {
-        public static double P = 0.015;   // Very strong - resists position error
+        public static double P = 0.010;   // Very strong - resists position error
         public static double I = 0;    // Small integral to eliminate steady-state error
         public static double D = 0;    // Damping to prevent oscillation
         public static double F = 0.07;    // Not needed for position control
