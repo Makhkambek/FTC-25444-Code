@@ -40,6 +40,9 @@ Robot {
     // TeleOp mode (NORMAL or EMERGENCY)
     private TeleOpMode teleOpMode;
 
+    // Manual hood control flag
+    public boolean manualHoodMode = false;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance, TeleOpMode mode) {
         this.teleOpMode = mode;
         // Pedro Pathing Follower (одометрия)
@@ -105,24 +108,41 @@ Robot {
 
         // Динамически обновляем velocity и hood на основе расстояния до цели
         // ТОЛЬКО Vision - если не видит тег, используем fallback (но НЕ во время стрельбы!)
+        // SKIP hood updates if in manual mode
         double distanceToGoal = vision.getTargetDistance();
 
-        if (distanceToGoal < 0) {
-            // Камера НЕ видит tag
-            if (!shooter.isShooting()) {
-                // Fallback ТОЛЬКО если НЕ стреляем (иначе мяч блокирует камеру и сбивает настройки!)
-                shooter.setTargetVelocity(1200.0);
-                shooter.setHoodPosition(0.0);  // Hood на 0
-                distanceSource = "No tag (fallback)";
+        if (!manualHoodMode) {
+            // Auto mode - update hood based on distance
+            if (distanceToGoal < 0) {
+                // Камера НЕ видит tag
+                if (!shooter.isShooting()) {
+                    // Fallback ТОЛЬКО если НЕ стреляем (иначе мяч блокирует камеру и сбивает настройки!)
+                    shooter.setTargetVelocity(1200.0);
+                    shooter.setHoodPosition(0.0);  // Hood на 0
+                    distanceSource = "No tag (fallback)";
+                } else {
+                    // Стреляем - держим последние значения velocity/hood, не меняем
+                    distanceSource = "Shooting (hold last)";
+                }
             } else {
-                // Стреляем - держим последние значения velocity/hood, не меняем
-                distanceSource = "Shooting (hold last)";
+                // Камера видит tag - обновляем всегда
+                shooter.updateVelocity(distanceToGoal);
+                shooter.updateHood(distanceToGoal);
+                distanceSource = "Vision";
             }
         } else {
-            // Камера видит tag - обновляем всегда
-            shooter.updateVelocity(distanceToGoal);
-            shooter.updateHood(distanceToGoal);
-            distanceSource = "Vision";
+            // Manual hood mode - only update velocity, not hood
+            if (distanceToGoal > 0) {
+                shooter.updateVelocity(distanceToGoal);
+                distanceSource = "Vision (manual hood)";
+            } else {
+                if (!shooter.isShooting()) {
+                    shooter.setTargetVelocity(1200.0);
+                    distanceSource = "No tag (manual hood)";
+                } else {
+                    distanceSource = "Shooting (manual hood)";
+                }
+            }
         }
 
         shooter.updatePID();
@@ -149,6 +169,11 @@ private void updateControllers(Gamepad gamepad1, Gamepad gamepad2) {
         }
 
         resetController.handleResetButton(gamepad2);
+
+        // Reset manual hood mode when Options button pressed
+        if (gamepad2.options) {
+            manualHoodMode = false;
+        }
     }
 
     private void handleFireButton(Gamepad gamepad2, Telemetry telemetry) {

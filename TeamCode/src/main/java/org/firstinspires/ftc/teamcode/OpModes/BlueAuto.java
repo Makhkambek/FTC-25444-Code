@@ -22,7 +22,7 @@ public class BlueAuto extends OpMode {
     private Timer pathTimer;
     private int pathState = 0;
 
-    private PathChain path1, path2, path3, path4, path5, path6, path7, path8, path9;
+    private PathChain path1, path2, path3, path4, path5, path6, path7, path8, path9, path11;
     private final Pose startPose = new Pose(26, 129, Math.toRadians(135));
 
     private Intake intake;
@@ -33,67 +33,63 @@ public class BlueAuto extends OpMode {
 
     public void buildPaths() {
         path1 = follower.pathBuilder()
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierLine(
-                                new Pose(26, 129),
+                                new Pose(26.000, 129.000),
 
-                                new Pose(53.157, 98.150)
+                                new Pose(47.922, 104.702)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
                 .build();
 
         path2 = follower.pathBuilder()
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(53.157, 98.150),
-                                new Pose(58.236, 59.533),
-                                new Pose(4, 62.147)
+                                new Pose(47.922, 104.702),
+                                new Pose(52.597, 58.964),
+                                new Pose(10.807, 61.048)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
                 .build();
 
+
+
         path3 = follower.pathBuilder() //стреляет шестой
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
-                                new Pose(4, 62.147),
-                                new Pose(49.500, 61.350),
-                                new Pose(47.932, 82.660)
+                                new Pose(10.807, 61.048),
+                                new Pose(42.653, 60.226),
+                                new Pose(42.330, 84.762)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         path4 = follower.pathBuilder() //едет за девятым
-                .setGlobalDeceleration()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(47.932, 82.660),
-                                new Pose(46.051, 61.554),
-                                new Pose(10, 67.5)
+                        new BezierLine(
+                                new Pose(42.330, 84.762),
+
+                                new Pose(18.168, 84.966)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(167))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         path5 = follower.pathBuilder() //девятый мяч
-                .setGlobalDeceleration()
                 .addPath(
-                        new BezierCurve(
-                                new Pose(10, 67.5),
-                                new Pose(49.691, 67.511),
-                                new Pose(47.962, 82.419)
+                        new BezierLine(
+                                new Pose(18.168, 84.966),
+
+                                new Pose(42.420, 84.838)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(170), Math.toRadians(180))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         path6 = follower.pathBuilder() //едет за 12
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
                                 new Pose(47.932, 82.660),
@@ -101,11 +97,10 @@ public class BlueAuto extends OpMode {
                                 new Pose(10, 67.5)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(170))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
 
         path7 = follower.pathBuilder() //стреляет 12
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierCurve(
                                 new Pose(10, 67.5),
@@ -117,7 +112,6 @@ public class BlueAuto extends OpMode {
                 .build();
 
         path8 = follower.pathBuilder() //едет за 15
-                .setGlobalDeceleration()
                 .addPath(
                         new BezierLine(
                                 new Pose(47.962, 84.419),
@@ -156,16 +150,16 @@ public class BlueAuto extends OpMode {
                 }
                 break;
 
-            case 1: // Ожидание завершения Path 1
+            case 1: // едет брать 6
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
                     intake.on();
-                    follower.followPath(path2, true);
+                    follower.followPath(path2,0.8, true);
                     turret.setTargetAngle(55);
                     setPathState(2);
                 }
                 break;
 
-            case 2: //
+            case 2: //стреляет 6й
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
 //                    intake.off();
                     follower.followPath(path3, true);
@@ -184,13 +178,13 @@ public class BlueAuto extends OpMode {
             case 4: // Ожидание завершения Path 3
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5 && shooter.isIdle()) {
                     intake.on();
-                    follower.followPath(path4, true);
+                    follower.followPath(path4,0.99, true);
                     setPathState(5);
                 }
                 break;
 
             case 5: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 3.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
                     follower.followPath(path5, true);
 //                    localizer.setPosition(16.503, 58.841, 150);
 
@@ -202,7 +196,7 @@ public class BlueAuto extends OpMode {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0) {
                     intake.off();
                     shooter.startShoot();
-                    setPathState(7);
+                    setPathState(77);
                 }
                 break;
 
