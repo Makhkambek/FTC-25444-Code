@@ -62,7 +62,7 @@ public class ShooterSubsystem {
      */
     @Config
     public static class Servos {
-        public static double GATE_CLOSED = 0.25;
+        public static double GATE_CLOSED = 0.22;
         public static double GATE_OPEN = 0.45;
     }
 

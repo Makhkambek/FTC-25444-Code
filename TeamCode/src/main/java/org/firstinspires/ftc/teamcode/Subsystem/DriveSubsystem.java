@@ -20,7 +20,7 @@ public class DriveSubsystem {
         // Verified directions: all positive power = forward
 
         rightFront.setDirection(DcMotorEx.Direction.REVERSE);
-        leftRear.setDirection(DcMotorEx.Direction.REVERSE);
+        rightRear.setDirection(DcMotorEx.Direction.REVERSE);
         // rightRear stays FORWARD (default)
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

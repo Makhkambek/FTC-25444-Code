@@ -16,8 +16,8 @@ public class DriveController {
 
     public void update(Gamepad gamepad1) {
         double y    = -gamepad1.left_stick_y;   // Positive = forward
-        double x    =  gamepad1.right_stick_x;   // Positive = strafe right
-        double turn =  gamepad1.left_stick_x;  // Positive = turn right
+        double x    =  gamepad1.left_stick_x;   // Positive = strafe right
+        double turn =  gamepad1.right_stick_x;  // Positive = turn right
 
         // Apply deadzone
         y    = applyDeadzone(y);
