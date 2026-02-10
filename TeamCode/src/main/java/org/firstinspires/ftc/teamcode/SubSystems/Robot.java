@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Controllers.IntakeController;
 import org.firstinspires.ftc.teamcode.Controllers.ShooterController;
 import org.firstinspires.ftc.teamcode.Controllers.TurretController;
 import org.firstinspires.ftc.teamcode.Controllers.ResetController;
+import org.firstinspires.ftc.teamcode.OpModes.TeleOpMode;
 
 public class
 Robot {
@@ -36,7 +37,11 @@ Robot {
     // Distance source для debug телеметрии (Vision или Odometry)
     public String distanceSource = "N/A";
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance) {
+    // TeleOp mode (NORMAL or EMERGENCY)
+    private TeleOpMode teleOpMode;
+
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance, TeleOpMode mode) {
+        this.teleOpMode = mode;
         // Pedro Pathing Follower (одометрия)
         follower = Constants.createFollower(hardwareMap);
         follower.update(); // CRITICAL: Initialize before setting pose
@@ -61,22 +66,35 @@ Robot {
         shooterController = new ShooterController(null, shooter, vision); // Vision enabled
         turretController = new TurretController(null, turret, vision); // Vision enabled
         resetController = new ResetController(headingController, intakeController, shooterController, turretController, intake, shooter, turret);
+
+        // Set initial auto-aim state based on mode
+        if (mode == TeleOpMode.EMERGENCY) {
+            turretController.disableAutoAim();
+        }
+        // NORMAL mode keeps default autoAimEnabled=true
     }
 
     public void start() {
         // Начальная настройка - убедимся что intake выключен
         intake.off();
 
-        // Турель сразу смотрит на goal при старте
-        turret.autoAim();
+        // Only auto-aim on startup in NORMAL mode
+        if (teleOpMode == TeleOpMode.NORMAL) {
+            // Турель сразу смотрит на goal при старте
+            turret.autoAim();
 
-        // Запускаем shooter моторы с velocity на основе начального расстояния до цели
-        double distanceToGoal = turret.getDistanceToGoal();
-        if (distanceToGoal > 0) {
-            shooter.updateVelocity(distanceToGoal); // Устанавливает правильную velocity
-            shooter.updateHood(distanceToGoal); // Устанавливает правильную hood позицию
+            // Запускаем shooter моторы с velocity на основе начального расстояния до цели
+            double distanceToGoal = turret.getDistanceToGoal();
+            if (distanceToGoal > 0) {
+                shooter.updateVelocity(distanceToGoal); // Устанавливает правильную velocity
+                shooter.updateHood(distanceToGoal); // Устанавливает правильную hood позицию
+            } else {
+                shooter.on(); // Fallback: стандартная velocity = 2000 ticks/sec
+            }
         } else {
-            shooter.on(); // Fallback: стандартная velocity = 2000 ticks/sec
+            // EMERGENCY mode: just turn on shooter with fallback settings
+            shooter.on();
+            // Turret stays at current encoder position (0° if just powered on)
         }
     }
 
@@ -110,17 +128,18 @@ Robot {
         shooter.updatePID();
 
         // Автоматическая регулировка Hood и Turret происходит внутри контроллеров
-        updateControllers(gamepad2);
+        updateControllers(gamepad1, gamepad2);
 
         // Fire button
         handleFireButton(gamepad2, telemetry);
     }
 
-private void updateControllers(Gamepad gamepad2) {
+private void updateControllers(Gamepad gamepad1, Gamepad gamepad2) {
         shooterController.gamepad = gamepad2;
         shooterController.update(intake);
 
         turretController.gamepad = gamepad2;
+        turretController.gamepad1 = gamepad1; // Для dpad calibration
         turretController.update();
 
         // IntakeController управляет intake только если Shooter НЕ активен

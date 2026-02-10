@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 
 public class TurretController {
     public Gamepad gamepad;
+    public Gamepad gamepad1; // Для калибровки (dpad left/right)
     private Turret turret;
     private Vision vision;
 
@@ -18,6 +19,11 @@ public class TurretController {
     // Deadzone для джойстика
     private static final double JOYSTICK_DEADZONE = 0.1;
 
+    // Ручная калибровка (dpad left/right на gamepad1)
+    private static final double CALIBRATION_POWER = 0.3;
+    private boolean prevDpadLeft = false;
+    private boolean prevDpadRight = false;
+
     public TurretController(Gamepad gamepad, Turret turret, Vision vision) {
         this.gamepad = gamepad;
         this.turret = turret;
@@ -26,6 +32,39 @@ public class TurretController {
 
     public void update() {
         if (gamepad == null) return;
+
+        // DPAD CALIBRATION MODE - приоритет над всеми другими режимами
+        // Dpad Left (gamepad1) - вращение влево без энкодеров
+        // Dpad Right (gamepad1) - вращение вправо без энкодеров
+        // При отпускании - сброс энкодера (текущая позиция = 0°)
+
+        if (gamepad1 != null && gamepad1.dpad_left) {
+            // Вращение влево
+            turret.manualRotateRaw(-CALIBRATION_POWER);
+            autoAimEnabled = false; // Отключаем auto-aim в режиме калибровки
+            prevDpadLeft = true;
+            return; // Пропускаем остальную логику
+        } else if (gamepad1 != null && prevDpadLeft && !gamepad1.dpad_left) {
+            // Dpad left отпущен - останавливаем и сбрасываем энкодер
+            turret.manualRotateRaw(0.0);
+            turret.resetEncoder();
+            prevDpadLeft = false;
+            return;
+        }
+
+        if (gamepad1 != null && gamepad1.dpad_right) {
+            // Вращение вправо
+            turret.manualRotateRaw(CALIBRATION_POWER);
+            autoAimEnabled = false; // Отключаем auto-aim в режиме калибровки
+            prevDpadRight = true;
+            return; // Пропускаем остальную логику
+        } else if (gamepad1 != null && prevDpadRight && !gamepad1.dpad_right) {
+            // Dpad right отпущен - останавливаем и сбрасываем энкодер
+            turret.manualRotateRaw(0.0);
+            turret.resetEncoder();
+            prevDpadRight = false;
+            return;
+        }
 
         double manualInput = gamepad.right_stick_x;
 
