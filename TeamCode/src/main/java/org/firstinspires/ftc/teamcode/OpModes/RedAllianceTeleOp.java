@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Turret;
 public class RedAllianceTeleOp extends LinearOpMode {
 
     // Kalman Filter toggle (FTC Dashboard)
-    public static boolean ENABLE_KALMAN = true;
+    public static boolean ENABLE_KALMAN = false;
 
     private Robot robot;
 
@@ -75,14 +75,31 @@ public class RedAllianceTeleOp extends LinearOpMode {
         // Initialize robot with selected mode
         robot = new Robot(hardwareMap, telemetry, isRedAlliance, selectedMode);
 
-        // Set starting pose for Red alliance
-        Pose redStartPose = new Pose(119, 73, Math.toRadians(270));
-        robot.follower.setStartingPose(redStartPose);
+        // Check if Auto set a position - if so, use it. Otherwise use default.
+        org.firstinspires.ftc.teamcode.SubSystems.Localizer localizer =
+            org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance();
 
-        // CRITICAL: Synchronize Localizer with Follower
-        // This ensures HeadingController (used for heading lock) has correct heading
+        double lastX = localizer.getX();
+        double lastY = localizer.getY();
+        double lastHeading = localizer.getHeading();
+
+        Pose startPose;
+        if (Math.abs(lastX) > 1.0 || Math.abs(lastY) > 1.0) {
+            // Auto ran and set position - use it
+            startPose = new Pose(lastX, lastY, Math.toRadians(lastHeading));
+            telemetry.addLine("✓ Using position from Auto");
+            telemetry.addData("Auto End Pos", "(%.1f, %.1f, %.0f°)", lastX, lastY, lastHeading);
+        } else {
+            // No Auto ran - use default Red start
+            startPose = new Pose(119, 73, Math.toRadians(270));
+            telemetry.addLine("Using default Red start position");
+        }
+
+        robot.follower.setStartingPose(startPose);
+
+        // Synchronize Localizer with Follower (in case we used default)
         Pose syncPose = robot.follower.getPose();
-        org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+        localizer.setPosition(
             syncPose.getX(),
             syncPose.getY(),
             Math.toDegrees(syncPose.getHeading())
@@ -99,7 +116,29 @@ public class RedAllianceTeleOp extends LinearOpMode {
         robot.start();
 
         while (opModeIsActive()) {
-            // Position reset on dpad_down (gamepad1)
+            // Position reset #1 on dpad_up (gamepad1)
+            if (gamepad1.dpad_up) {
+                // Reset to Red alliance preset position (submersible side)
+                Pose resetPose = new Pose(88, 8, Math.toRadians(90));
+                robot.follower.setPose(resetPose);
+
+                // Synchronize Localizer
+                org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+                    resetPose.getX(),
+                    resetPose.getY(),
+                    Math.toDegrees(resetPose.getHeading())
+                );
+
+                // Force turret to auto-aim mode and point to goal
+                robot.turretController.enableAutoAim();
+                robot.turret.autoAim();
+
+                telemetry.addLine("⚠️ POSITION RESET TO (88, 8)");
+                telemetry.update();
+                sleep(500); // Prevent multiple resets
+            }
+
+            // Position reset #2 on dpad_down (gamepad1)
             if (gamepad1.dpad_down) {
                 // Reset to Red alliance preset position
                 Pose resetPose = new Pose(104, 135, Math.toRadians(90));
@@ -111,6 +150,10 @@ public class RedAllianceTeleOp extends LinearOpMode {
                     resetPose.getY(),
                     Math.toDegrees(resetPose.getHeading())
                 );
+
+                // Force turret to auto-aim mode and point to goal
+                robot.turretController.enableAutoAim();
+                robot.turret.autoAim();
 
                 telemetry.addLine("⚠️ POSITION RESET TO (104, 135)");
                 telemetry.update();

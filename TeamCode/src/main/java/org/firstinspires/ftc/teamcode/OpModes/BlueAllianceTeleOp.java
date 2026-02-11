@@ -68,14 +68,31 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         // Initialize robot with selected mode
         robot = new Robot(hardwareMap, telemetry, isRedAlliance, selectedMode);
 
-        // Set starting pose for Blue alliance
-        Pose blueStartPose = new Pose(50, 95, Math.toRadians(270));
-        robot.follower.setStartingPose(blueStartPose);
+        // Check if Auto set a position - if so, use it. Otherwise use default.
+        org.firstinspires.ftc.teamcode.SubSystems.Localizer localizer =
+            org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance();
 
-        // CRITICAL: Synchronize Localizer with Follower
-        // This ensures HeadingController (used for heading lock) has correct heading
+        double lastX = localizer.getX();
+        double lastY = localizer.getY();
+        double lastHeading = localizer.getHeading();
+
+        Pose startPose;
+        if (Math.abs(lastX) > 1.0 || Math.abs(lastY) > 1.0) {
+            // Auto ran and set position - use it
+            startPose = new Pose(lastX, lastY, Math.toRadians(lastHeading));
+            telemetry.addLine("✓ Using position from Auto");
+            telemetry.addData("Auto End Pos", "(%.1f, %.1f, %.0f°)", lastX, lastY, lastHeading);
+        } else {
+            // No Auto ran - use default Blue start
+            startPose = new Pose(50, 95, Math.toRadians(270));
+            telemetry.addLine("Using default Blue start position");
+        }
+
+        robot.follower.setStartingPose(startPose);
+
+        // Synchronize Localizer with Follower (in case we used default)
         Pose syncPose = robot.follower.getPose();
-        org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
+        localizer.setPosition(
             syncPose.getX(),
             syncPose.getY(),
             Math.toDegrees(syncPose.getHeading())
@@ -104,6 +121,10 @@ public class BlueAllianceTeleOp extends LinearOpMode {
                     Math.toDegrees(resetPose.getHeading())
                 );
 
+                // Force turret to auto-aim mode and point to goal
+                robot.turretController.enableAutoAim();
+                robot.turret.autoAim();
+
                 telemetry.addLine("⚠️ POSITION RESET TO (40, 135)");
                 telemetry.update();
                 sleep(500); // Prevent multiple resets
@@ -121,6 +142,10 @@ public class BlueAllianceTeleOp extends LinearOpMode {
                     resetPose.getY(),
                     Math.toDegrees(resetPose.getHeading())
                 );
+
+                // Force turret to auto-aim mode and point to goal
+                robot.turretController.enableAutoAim();
+                robot.turret.autoAim();
 
                 telemetry.addLine("⚠️ POSITION RESET TO (39.5, 7)");
                 telemetry.update();

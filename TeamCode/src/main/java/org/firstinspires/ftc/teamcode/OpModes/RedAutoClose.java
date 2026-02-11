@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name="Red Auto", group="Autonomous")
-public class RedAuto extends OpMode {
+public class RedAutoClose extends OpMode {
     private Follower follower;
     private Timer pathTimer;
     private int pathState = 0;
@@ -50,7 +50,7 @@ public class RedAuto extends OpMode {
                         new BezierCurve(
                                 new Pose(92.006, 100.739),
                                 new Pose(89.585, 51.681),
-                                new Pose(119.755, 54.711)
+                                new Pose(121.755, 53.711)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))  // 180 - 135, 180 - 180
@@ -60,7 +60,7 @@ public class RedAuto extends OpMode {
         path3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(119.755, 54.711),
+                                new Pose(121.755, 53.711),
                                 new Pose(98.054, 64.989),
                                 new Pose(93.790, 80.549)
                         )
@@ -96,49 +96,36 @@ public class RedAuto extends OpMode {
         path6 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(96.068, 82.660),     // 144 - 47.932
-                                new Pose(97.949, 61.554),     // 144 - 46.051
-                                new Pose(134, 67.5)           // 144 - 10
+                                new Pose(93.886, 80.616),
+                                new Pose(82.215, 29.421),
+                                new Pose(125.258, 35.594)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
-        // Mirror path7 - стреляет 12
         path7 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(134, 67.5),          // 144 - 10
-                                new Pose(94.309, 67.511),     // 144 - 49.691
-                                new Pose(96.038, 84.419)      // 144 - 47.962
+                                new Pose(125.258, 35.594),
+                                new Pose(91.585, 41.111),
+                                new Pose(93.886, 80.626)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(10), Math.toRadians(0))  // 180 - 170
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
-        // Mirror path8 - едет за 15
         path8 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(96.038, 84.419),     // 144 - 47.962
-                                new Pose(125.286, 86.188)     // 144 - 18.714
+                                new Pose(93.886, 80.626),
+
+                                new Pose(105, 80.656)
                         )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
                 .build();
 
-        // Mirror path9 - стреляет 15
-        path9 = follower.pathBuilder()
-                .setGlobalDeceleration()
-                .addPath(
-                        new BezierCurve(
-                                new Pose(125.286, 86.188),    // 144 - 18.714
-                                new Pose(94.309, 67.511),     // 144 - 49.691
-                                new Pose(96.038, 82.419)      // 144 - 47.962
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                .build();
     }
 
     public void autonomousPathUpdate() {
@@ -166,7 +153,7 @@ public class RedAuto extends OpMode {
                 break;
 
             case 2: //стреляет 6й
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0) {
 //                    intake.off();
                     follower.followPath(path3, true);
                     setPathState(3);
@@ -201,21 +188,25 @@ public class RedAuto extends OpMode {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0) {
                     intake.off();
                     shooter.startShoot();
-                    setPathState(77);
+                    setPathState(7);
                 }
                 break;
 
-            case 7: // Ожидание завершения Path 3
+
+            case 7: // Ожидание завершения Path 4 - завершение
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5 && shooter.isIdle()) {
                     intake.on();
                     follower.followPath(path6, true);
+//                    disableAutoAim = true;  // Stop autoAim from overwriting
+//                    turret.setTargetAngle(0);
                     setPathState(8);
                 }
                 break;
 
             case 8: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 3.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
                     follower.followPath(path7, true);
+
                     setPathState(9);
                 }
                 break;
@@ -228,33 +219,16 @@ public class RedAuto extends OpMode {
                 }
                 break;
 
-            case 10: // Ожидание завершения Path 3
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5 && shooter.isIdle()) {
-                    intake.on();
+            case 10: // Ожидание завершения Path 4 - завершение
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
                     follower.followPath(path8, true);
-                    setPathState(11);
-                }
-                break;
-
-            case 11: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.5) {
-                    follower.followPath(path9, true);
-                    setPathState(12);
-                }
-                break;
-
-            case 12: // Запуск
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0) {
-                    intake.off();
-                    shooter.startShoot();
+                    turret.setTargetAngle(0);
                     setPathState(13);
                 }
                 break;
 
-
-
             case 13: // Завершено
-                localizer.setPosition(127.497, 58.841, 30);  // Mirror: 144 - 16.503 = 127.497, 180 - 150 = 30
+                localizer.setPosition(105, 80.656, 270);
                 break;
         }
     }
@@ -304,7 +278,7 @@ public class RedAuto extends OpMode {
     public void loop() {
         follower.update();
         localizer.update();
-        turret.autoAim();
+        turret.maintainTarget();
         shooter.updatePID();
         shooter.updateFSM(intake);
         autonomousPathUpdate();
