@@ -54,7 +54,7 @@ public class ShooterPIDTuner extends LinearOpMode {
     private double smoothedOutput = 0;
     private static final double SMOOTHING_FACTOR = 0.9; // 0.0 = нет сглаживания, 1.0 = максимальное
 
-    // Button states
+    // Button states (gamepad1)
     private boolean prevA = false;
     private boolean prevB = false;
     private boolean prevDpadUp = false;
@@ -62,6 +62,13 @@ public class ShooterPIDTuner extends LinearOpMode {
     private boolean prevDpadLeft = false;
     private boolean prevDpadRight = false;
     private boolean prevLeftBumper = false;
+    private boolean prevRightBumper = false;
+
+    // Button states (gamepad2 - fine control)
+    private boolean prevDpadUp2 = false;
+    private boolean prevDpadDown2 = false;
+    private boolean prevDpadLeft2 = false;
+    private boolean prevDpadRight2 = false;
 
     @Override
     public void runOpMode() {
@@ -100,12 +107,19 @@ public class ShooterPIDTuner extends LinearOpMode {
         telemetry.addLine("B: Stop Motors");
         telemetry.addLine("Right Trigger: Intake ON");
         telemetry.addLine();
-        telemetry.addLine("HOOD POSITIONS:");
-        telemetry.addLine("Dpad Down: 0.0 (≤30cm)");
-        telemetry.addLine("Dpad Left: 0.5 (≤50cm)");
-        telemetry.addLine("Dpad Right: 0.7 (≤70cm)");
-        telemetry.addLine("Dpad Up: 0.9 (≤100cm)");
-        telemetry.addLine("Left Bumper: 1.0 (≤150+cm)");
+        telemetry.addLine("HOOD GAMEPAD1 (шаг 0.3):");
+        telemetry.addLine("Dpad Down: 0.0");
+        telemetry.addLine("Dpad Left: 0.3");
+        telemetry.addLine("Right Bumper: 0.5");
+        telemetry.addLine("Dpad Right: 0.6");
+        telemetry.addLine("Dpad Up: 0.9");
+        telemetry.addLine("Left Bumper: 1.0");
+        telemetry.addLine();
+        telemetry.addLine("HOOD GAMEPAD2 (шаг 0.1):");
+        telemetry.addLine("Dpad Down: 0.1");
+        telemetry.addLine("Dpad Left: 0.2");
+        telemetry.addLine("Dpad Right: 0.4");
+        telemetry.addLine("Dpad Up: 0.7");
         telemetry.addLine();
         telemetry.addLine("Tune PID via FTC Dashboard");
         telemetry.addData("Status", "Ready!");
@@ -147,21 +161,38 @@ public class ShooterPIDTuner extends LinearOpMode {
             intake.off();
         }
 
-        // Hood controls
+        // Hood controls - gamepad1 (крупный шаг 0.3)
         if (gamepad1.dpad_down && !prevDpadDown) {
-            hood.setPosition(0.15); // ≤30 cm
+            hood.setPosition(0); // ≤30 cm
         }
         if (gamepad1.dpad_left && !prevDpadLeft) {
-            hood.setPosition(0.5); // ≤50 cm
+            hood.setPosition(0.3); // ≤50 cm
         }
         if (gamepad1.dpad_right && !prevDpadRight) {
-            hood.setPosition(0.7); // ≤70 cm
+            hood.setPosition(0.6); // ≤70 cm
         }
         if (gamepad1.dpad_up && !prevDpadUp) {
             hood.setPosition(0.9); // ≤100 cm
         }
         if (gamepad1.left_bumper && !prevLeftBumper) {
             hood.setPosition(1.0); // ≤150+ cm
+        }
+        if (gamepad1.right_bumper && !prevRightBumper) {
+            hood.setPosition(0.5); // ≤150+ cm
+        }
+
+        // Hood controls - gamepad2 (точный шаг 0.1)
+        if (gamepad2.dpad_down && !prevDpadDown2) {
+            hood.setPosition(0.1); // Fine control
+        }
+        if (gamepad2.dpad_left && !prevDpadLeft2) {
+            hood.setPosition(0.2); // Fine control
+        }
+        if (gamepad2.dpad_right && !prevDpadRight2) {
+            hood.setPosition(0.4); // Fine control
+        }
+        if (gamepad2.dpad_up && !prevDpadUp2) {
+            hood.setPosition(0.7); // Fine control
         }
 
         // Update button states
@@ -172,6 +203,12 @@ public class ShooterPIDTuner extends LinearOpMode {
         prevDpadLeft = gamepad1.dpad_left;
         prevDpadRight = gamepad1.dpad_right;
         prevLeftBumper = gamepad1.left_bumper;
+        prevRightBumper = gamepad1.right_bumper;
+
+        prevDpadUp2 = gamepad2.dpad_up;
+        prevDpadDown2 = gamepad2.dpad_down;
+        prevDpadLeft2 = gamepad2.dpad_left;
+        prevDpadRight2 = gamepad2.dpad_right;
     }
 
     private void updatePID() {
@@ -315,12 +352,12 @@ public class ShooterPIDTuner extends LinearOpMode {
         telemetry.addData("B", "Stop motors");
         telemetry.addData("Right Trigger", "Intake ON");
         telemetry.addLine();
-        telemetry.addLine("HOOD CONTROLS:");
-        telemetry.addData("Dpad Down", "0.0 (≤30cm)");
-        telemetry.addData("Dpad Left", "0.5 (≤50cm)");
-        telemetry.addData("Dpad Right", "0.7 (≤70cm)");
-        telemetry.addData("Dpad Up", "0.9 (≤100cm)");
-        telemetry.addData("Left Bumper", "1.0 (≤150+cm)");
+        telemetry.addLine("HOOD GP1 (шаг 0.3):");
+        telemetry.addLine("↓ 0.0 | ← 0.3 | → 0.6 | ↑ 0.9");
+        telemetry.addLine("LB: 1.0 | RB: 0.5");
+        telemetry.addLine();
+        telemetry.addLine("HOOD GP2 (шаг 0.1):");
+        telemetry.addLine("↓ 0.1 | ← 0.2 | → 0.4 | ↑ 0.7");
         telemetry.addLine();
 
         // Tuning Tips

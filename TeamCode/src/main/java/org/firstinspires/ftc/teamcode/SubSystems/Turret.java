@@ -780,6 +780,15 @@ public class Turret {
     }
 
     /**
+     * Прямое управление мотором для ручной калибровки
+     * Используется с dpad left/right для вращения турели без энкодеров
+     * @param power Мощность мотора (-1.0 до +1.0, + = вправо, - = влево)
+     */
+    public void manualRotateRaw(double power) {
+        turretMotor.setPower(power);
+    }
+
+    /**
      * Returns count of odometry jumps detected (for telemetry debug)
      */
     public int getJumpCount() {

@@ -43,7 +43,7 @@ public class ResetController {
     }
 
     private void resetControls() {
-        // Сброс контроллеров
+        // Сброс контроллеров - включаем auto-aim обратно
         turretController.enableAutoAim();
 
         // Сброс heading контроллера

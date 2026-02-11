@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class Shooter {
     private DcMotorEx shooterMotor1, shooterMotor2;
     private Servo hood;
@@ -29,7 +31,8 @@ public class Shooter {
         IDLE,
         SPIN_UP,
         OPEN_STOP,
-        FEED,
+        FEED_SAMPLE,  // Encoder-based feeding of one sample
+        PAUSE,        // Pause between samples
         RESET
     }
 
@@ -42,10 +45,44 @@ public class Shooter {
     private static final double OPEN_STOP_TIME = 0.3;
     private static final double FEED_TIME = 2.5;
 
+    // Time-based feeding parameters (FTC Dashboard tunable)
+    // ВАЖНО: Порядок стрельбы = ближний → средний → дальний (intake крутится)
+    public static double FEED_TIME_1 = 0.2;             // FIRST shot (closest ball to shooter, ~5cm)
+    public static double FEED_TIME_2 = 0.3;             // SECOND shot (middle ball, ~10cm)
+    public static double FEED_TIME_3 = 0.8;             // THIRD shot (farthest ball, ~15cm)
+    public static double PAUSE_DURATION = 0.15;         // Seconds between shots (tunable)
+    private static final int TARGET_SAMPLES = 3;        // Always shoot 3 samples
+
     public double kP = 0.007;
     public double kI = 0.0;
     public double kD = 0;
     public double kF = 0.00028;
+
+    // Flywheel velocity formula coefficients (sigmoid)
+    // V = L / (1 + e^(-(k * distance + b)))
+    // Формула из Desmos - калибровка для робота (в дюймах)
+    // ВАЖНО: Pedro Pathing использует дюймы (DistanceUnit.INCH)
+    public static double VELOCITY_L = 2045.06422;      // Максимальная velocity (асимптота)
+    public static double VELOCITY_K = 0.0195391;       // Скорость роста кривой
+    public static double VELOCITY_B = -0.348709;       // Сдвиг (k*x0)
+
+    // Velocity limits (clamp)
+    private static final double MIN_VELOCITY = 0.0;        // Минимальная velocity
+    private static final double MAX_VELOCITY = 2100.0;     // Увеличено для сигмоида
+    public static double FLYWHEEL_OFFSET = 0.0;           // Offset для калибровки (tunable)
+
+    // Hood angle formula coefficients (quadratic)
+    // hoodAngle = A * distance² + B * distance + C
+    // Формула из Desmos - калибровка для робота (в дюймах)
+    // y = -0.0000985709x² + 0.0227599x - 0.584238
+    public static double HOOD_COEFF_A = -0.0000985709;  // Коэффициент при x²
+    public static double HOOD_COEFF_B = 0.0227599;      // Коэффициент при x
+    public static double HOOD_COEFF_C = -0.584238;      // Свободный член
+
+    // Hood angle limits
+    private static final double MIN_HOOD_ANGLE = 0.0;   // Обновлено: min 0.0
+    private static final double MAX_HOOD_ANGLE = 0.69;  // Обновлено: max 0.69 (velocity ~1800)
+    public static double HOOD_OFFSET = 0.0;             // Offset для калибровки (tunable)
 
     // Anti-windup limit для integral
     private static final double INTEGRAL_LIMIT = 100.0;
@@ -58,11 +95,12 @@ public class Shooter {
     private static final double OUTPUT_DEADBAND = 0.005; // минимальное изменение output для применения
     private static final double MAX_OUTPUT_CHANGE = 0.05; // максимальное изменение за один цикл (rate limiter)
 
-    // Hood deadzone - минимальное изменение расстояния для обновления hood (см)
-    // Увеличено до 10.0 для уменьшения jittering
+    // Hood deadzone - минимальное изменение расстояния для обновления hood (inches)
+    // 10 дюймов = ~25 см - уменьшает jittering
     private static final double HOOD_DEADZONE = 10.0;
 
-    // Velocity deadzone - минимальное изменение расстояния для обновления velocity (см)
+    // Velocity deadzone - минимальное изменение расстояния для обновления velocity (inches)
+    // 5 дюймов = ~13 см
     private static final double VELOCITY_DEADZONE = 5.0;
 
     private double lastError = 0;
@@ -80,8 +118,15 @@ public class Shooter {
     private boolean openStopExecuted = false;  // Флаг для OPEN_STOP state-entry
     private boolean feedExecuted = false;      // Флаг для FEED state-entry
     private boolean resetExecuted = false;     // Флаг для RESET state-entry
+    private boolean manualStopOverride = false; // Ручное открытие shooterStop (приоритет над FSM)
     private double lastHoodDistance = -1; // Последнее расстояние для hood (-1 = не инициализировано)
     private double lastVelocityDistance = -1; // Последнее расстояние для velocity (-1 = не инициализировано)
+
+    // Time-based feeding state tracking
+    private int sampleCount = 0;               // Number of samples fed so far (0, 1, 2)
+    private boolean feedSampleExecuted = false; // Flag for FEED_SAMPLE state-entry
+    private boolean pauseExecuted = false;      // Flag for PAUSE state-entry
+    private double[] feedTimes = new double[3]; // Array of feed times for each sample
 
     // Hood сглаживание для уменьшения jittering
     private static final double HOOD_SMOOTHING = 0.6;  // EMA factor для hood servo
@@ -115,62 +160,80 @@ public class Shooter {
         shooterStop.setPosition(STOP_CLOSE);
         intakeStop.setPosition(INTAKE_STOP_OFF);
 
+        // Инициализируем массив времен для time-based feeding
+        updateFeedTimes();
+
         pidTimer.reset();
     }
 
     /**
-     * Вычисляет динамическую позицию Hood на основе расстояния
-     * Ступенчатая система углов:
-     * ≤30 см → 0.0
-     * ≤50 см → 0.5
-     * ≤70 см → 0.7
-     * ≤100 см → 0.9
-     * ≤150+ см → 1.0
+     * Обновляет массив времен подачи из статических переменных
+     * Вызывается при инициализации и перед каждым циклом стрельбы
      */
-    private double calculateHoodPosition(double distance) {
-        if (distance <= 30.0) {
-            return 0.0;
-        } else if (distance <= 50.0) {
-            return 0.5;
-        } else if (distance <= 70.0) {
-            return 0.7;
-        } else if (distance <= 100.0) {
-            return 0.9;
-        } else {
-            return 1.0; // 150+ cm
-        }
+    private void updateFeedTimes() {
+        feedTimes[0] = FEED_TIME_1;
+        feedTimes[1] = FEED_TIME_2;
+        feedTimes[2] = FEED_TIME_3;
     }
 
     /**
-     * Вычисляет целевую velocity на основе расстояния до цели
-     * Расстояние в см, возвращает velocity в ticks/sec
-     * 0-30 см → 1300
-     * 30-60 см → 1500
-     * 60-150 см → 1800
-     * 150+ см → 2000
+     * Helper: Clamp value between min and max
      */
-    private double calculateTargetVelocity(double distance) {
-        if (distance <= 30.0) {
-            return 1200.0;
-        } else if (distance <= 60.0) {
-            return 1500.0;
-        } else if (distance <= 150.0) {
-            return 1700.0;
-        } else {
-            return 2000.0;
-        }
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * Вычисляет target velocity на основе расстояния до цели
+     * Использует сигмоидную функцию: V = L / (1 + e^(-(k*d + b)))
+     * Формула из Desmos - калибровка для робота (в дюймах)
+     *
+     * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
+     * @return Target velocity в ticks/sec
+     */
+    private double calculateTargetVelocity(double distanceInches) {
+        // Сигмоидная функция (логистическая регрессия)
+        // V = L / (1 + e^(-(k * distance + b)))
+        // distance уже в дюймах от Pedro Pathing
+        double exponent = -(VELOCITY_K * distanceInches + VELOCITY_B);
+        double velocity = VELOCITY_L / (1.0 + Math.exp(exponent));
+
+        // Clamp к физическим лимитам + offset + velocity boost
+        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 50.0;
+    }
+
+    /**
+     * Вычисляет hood angle на основе расстояния до цели
+     * Использует квадратичную формулу: angle = A*d² + B*d + C
+     * Формула из Desmos - калибровка для робота (в дюймах)
+     *
+     * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
+     * @return Hood servo position (0.0 - 1.0)
+     */
+    private double calculateHoodAngle(double distanceInches) {
+        // Квадратичная формула (парабола)
+        // angle = A * distance² + B * distance + C
+        // distance уже в дюймах от Pedro Pathing
+        double angle = HOOD_COEFF_A * Math.pow(distanceInches, 2)
+                     + HOOD_COEFF_B * distanceInches
+                     + HOOD_COEFF_C;
+
+        // Clamp к физическим лимитам servo + offset
+        return clamp(angle, MIN_HOOD_ANGLE, MAX_HOOD_ANGLE) + HOOD_OFFSET;
     }
 
     /**
      * Обновляет позицию Hood на основе расстояния до цели
-     * Расстояние в см
-     * Использует deadzone 3 см для предотвращения лишних движений
+     * Расстояние в дюймах (от Pedro Pathing odometry)
+     * Использует deadzone 10.0 units (~10 inches) для предотвращения лишних движений
+     * Использует динамическую формулу вместо ступенчатой
      */
     public void updateHood(double distance) {
         if (distance > 0) {
-            // Проверяем deadzone - обновляем только если изменение > 10 см
+            // Проверяем deadzone - обновляем только если изменение > 10 дюймов (~25 см)
             if (lastHoodDistance < 0 || Math.abs(distance - lastHoodDistance) > HOOD_DEADZONE) {
-                double targetPosition = calculateHoodPosition(distance);
+                // Используем квадратичную формулу из Desmos (парабола)
+                double targetPosition = calculateHoodAngle(distance);
 
                 // EMA сглаживание для уменьшения jittering
                 if (lastHoodDistance < 0) {
@@ -246,6 +309,10 @@ public class Shooter {
         }
     }
 
+    public boolean isIdle() {
+        return currentState == ShooterState.IDLE;
+    }
+
     public void updateFSM(Intake intake) {
         switch (currentState) {
             case IDLE:
@@ -270,29 +337,66 @@ public class Shooter {
                     openStopExecuted = true;
                 }
                 if (stateTimer.seconds() >= OPEN_STOP_TIME) { //timer
-                    currentState = ShooterState.FEED;
+                    currentState = ShooterState.FEED_SAMPLE;
                     stateTimer.reset();
                     openStopExecuted = false; // Сброс для следующего раза
+
+                    // Time-based feeding: reset sample counter and update feed times
+                    sampleCount = 0;
+                    updateFeedTimes(); // Обновляем времена на случай если изменили в FTC Dashboard
                 }
                 break;
 
-            case FEED:
-                // Включаем intake (ТОЛЬКО ОДИН РАЗ)
-                if (!feedExecuted) {
+            case FEED_SAMPLE:
+                // Time-based feeding of one sample
+                if (!feedSampleExecuted) {
+                    // Turn on intake
                     intake.on();
-                    feedExecuted = true;
+                    feedSampleExecuted = true;
                 }
-                if (stateTimer.seconds() >= FEED_TIME) { //timer
-                    currentState = ShooterState.RESET;
+
+                // Check timer - use time for CURRENT sample
+                double currentFeedTime = feedTimes[sampleCount];
+
+                if (stateTimer.seconds() >= currentFeedTime) {
+                    // Sample fed successfully (by time)
+                    intake.off();
+                    sampleCount++;  // Increment counter (0→1, 1→2, 2→3)
+                    feedSampleExecuted = false;
+
+                    if (sampleCount < TARGET_SAMPLES) {
+                        // More samples to feed (0→1→2) - go to pause
+                        currentState = ShooterState.PAUSE;
+                        stateTimer.reset();
+                    } else {
+                        // All 3 samples fed (sampleCount == 3) - go to reset
+                        currentState = ShooterState.RESET;
+                        stateTimer.reset();
+                    }
+                }
+                break;
+
+            case PAUSE:
+                // Pause between samples (intake already off from FEED_SAMPLE)
+                if (!pauseExecuted) {
+                    pauseExecuted = true;
+                }
+
+                if (stateTimer.seconds() >= PAUSE_DURATION) {
+                    // Pause complete - feed next sample
+                    currentState = ShooterState.FEED_SAMPLE;
                     stateTimer.reset();
-                    feedExecuted = false; // Сброс для следующего раза
+                    pauseExecuted = false;
                 }
                 break;
 
             case RESET:
                 // Возвращаем оба servo в обычные позиции (ТОЛЬКО ОДИН РАЗ)
                 if (!resetExecuted) {
-                    shooterStop.setPosition(STOP_CLOSE);
+                    // Закрываем shooterStop ТОЛЬКО если нет ручного override
+                    if (!manualStopOverride) {
+                        shooterStop.setPosition(STOP_CLOSE);
+                    }
                     intakeStop.setPosition(INTAKE_STOP_OFF);
                     // НЕ выключаем shooter моторы - пусть крутятся постоянно в TeleOp
                     // off();
@@ -392,11 +496,22 @@ public class Shooter {
     }
 
     public void setTargetVelocity(double velocity) {
-        targetVelocity = velocity;
-        lastError = 0;
-        integralSum = 0;
-        smoothedOutput = 0;
-        pidTimer.reset();
+        // CRITICAL FIX: Only reset PID state if target velocity actually changed
+        // Prevents PID reset spam when fallback sets same value every loop
+        if (Math.abs(targetVelocity - velocity) > 1.0) {
+            targetVelocity = velocity;
+            lastError = 0;
+            integralSum = 0;
+            smoothedOutput = 0;
+            pidTimer.reset();
+            // CRITICAL FIX: Сбрасываем deadzone tracking чтобы следующий updateVelocity точно сработал
+            // Без этого если fallback установит velocity=1000, а потом Vision увидит тег на близком расстоянии,
+            // deadzone может блокировать обновление и velocity останется на 1000
+            lastVelocityDistance = -1;
+        } else {
+            // Target unchanged - just update the value without resetting PID
+            targetVelocity = velocity;
+        }
     }
 
     public double getCurrentVelocity() {
@@ -436,9 +551,14 @@ public class Shooter {
         return currentState != ShooterState.IDLE;
     }
 
+    public int getSampleCount() {
+        return sampleCount;
+    }
+
     public void reset() {
         // Полный сброс shooter в начальное состояние
         off(); // Выключаем моторы
+        manualStopOverride = false; // Сбрасываем manual override
         shooterStop.setPosition(STOP_CLOSE); // Закрываем stop
         intakeStop.setPosition(INTAKE_STOP_OFF); // Обычная позиция
         setHoodPosition(HoodPosition.CLOSE);
@@ -446,6 +566,41 @@ public class Shooter {
         stateTimer.reset();
         lastHoodDistance = -1; // Сбрасываем deadzone tracking
         lastVelocityDistance = -1; // Сбрасываем velocity deadzone tracking
+    }
+
+    /**
+     * Ручное управление shooterStop (приоритет над FSM)
+     * Когда активен - shooterStop остается открытым, FSM не может закрыть
+     *
+     * @param enabled true - держать открытым, false - FSM работает как обычно
+     */
+    public void setManualStopOverride(boolean enabled) {
+        manualStopOverride = enabled;
+
+        if (manualStopOverride) {
+            // Немедленно открываем shooterStop
+            shooterStop.setPosition(STOP_OPEN);
+        }
+        // Если disabled - FSM закроет shooterStop когда нужно (в RESET state)
+    }
+
+    /**
+     * Принудительно закрывает shooterStop (для dpad_down)
+     */
+    public void forceCloseStop() {
+        shooterStop.setPosition(STOP_CLOSE);
+    }
+
+    /**
+     * Устанавливает позицию hood напрямую (для fallback когда нет Vision tag)
+     * @param position позиция servo (0.0-1.0)
+     */
+    public void setHoodPosition(double position) {
+        hood.setPosition(clamp(position, MIN_HOOD_ANGLE, MAX_HOOD_ANGLE) + HOOD_OFFSET);
+        // CRITICAL FIX: Сбрасываем deadzone tracking чтобы следующий updateHood точно сработал
+        // Без этого если fallback установит hood=0, а потом Vision увидит тег на близком расстоянии,
+        // deadzone может блокировать обновление и hood останется на 0
+        lastHoodDistance = -1;
     }
 
     // Testing methods

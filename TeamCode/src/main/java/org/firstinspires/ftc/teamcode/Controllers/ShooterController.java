@@ -23,18 +23,24 @@ public class ShooterController {
     public void update(Intake intake) {
         if (gamepad == null) return;
 
+        // === Dpad Up - ручное открытие shooterStop (приоритет над FSM) ===
+        if (gamepad.dpad_up) {
+            // Зажата - держим shooterStop открытым, FSM не может закрыть
+            shooter.setManualStopOverride(true);
+        } else if (gamepad.dpad_down) {
+            // Dpad Down - ручное закрытие shooterStop
+            shooter.forceCloseStop();
+        } else {
+            // Отпущена - FSM работает как обычно
+            shooter.setManualStopOverride(false);
+        }
+
         // === Right Bumper - запуск стрельбы ===
         if (gamepad.right_bumper && !prevRightBumper) {
             shooter.startShoot();
         }
 
-        // Автоматическая регулировка hood на основе расстояния от Vision
-        if (vision != null && vision.hasTargetTag()) {
-            double distance = vision.getTargetDistance();
-            if (distance > 0) {
-                shooter.updateHood(distance);
-            }
-        }
+        // Hood обновляется только от Odometry в Robot.update() - НЕ от Vision
 
         // Обновление FSM шутера
         shooter.updateFSM(intake);

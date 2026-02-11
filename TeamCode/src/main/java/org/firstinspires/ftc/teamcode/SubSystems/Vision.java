@@ -207,29 +207,96 @@ public class Vision {
     }
 
     /**
-     * Получает расстояние до целевого тега в сантиметрах
-     * ВРЕМЕННО: возвращает примерное расстояние на основе ty (вертикальный угол)
-     * Нужна калибровка для точного расчета
+     * Получает расстояние до целевого тега в ДЮЙМАХ
+     * Использует встроенный 3D Euclidean distance от Limelight 3A
+     * Результат в дюймах для совместимости с Pedro Pathing odometry
+     *
+     * @return Расстояние в дюймах, или -1 если тег не найден
      */
     public double getTargetDistance() {
         FiducialResult target = getTargetFiducial();
         if (target == null) return -1;
 
-        // Используем ty (вертикальный угол) для примерной оценки
-        // Формула: distance ≈ height / tan(ty)
-        // Это временное решение - нужна калибровка
+        // Try to get 3D pose from Limelight 3A
+        Pose3D pose = target.getTargetPoseRobotSpace();
+        if (pose == null) {
+            // Fallback: use trigonometric calculation with ty angle
+            return calculateDistanceFromAngle(target);
+        }
+
+        Position pos = pose.getPosition();
+        if (pos == null) {
+            // Fallback: use trigonometric calculation
+            return calculateDistanceFromAngle(target);
+        }
+
+        // 3D Euclidean distance в метрах
+        // distance = sqrt(x² + y² + z²)
+        double rangeMeters = Math.sqrt(
+            pos.x * pos.x +
+            pos.y * pos.y +
+            pos.z * pos.z
+        );
+
+        // Конвертируем метры в дюймы (для совместимости с odometry)
+        // 1 метр = 39.3701 дюймов
+        double distanceInches = rangeMeters * 39.3701;
+
+        return distanceInches;
+    }
+
+    /**
+     * Fallback метод: расчет расстояния по углу ty (trigonometry)
+     * Используется если Pose3D недоступен
+     */
+    private double calculateDistanceFromAngle(FiducialResult target) {
         double ty = target.getTargetYDegrees();
 
-        // Примерная высота камеры над полом и высота тега
-        // Эти значения нужно откалибровать для вашего робота
-        double cameraHeightCm = 30.0; // Примерная высота камеры
-        double tagHeightCm = 40.0;    // Примерная высота тега
-        double heightDiff = Math.abs(tagHeightCm - cameraHeightCm);
+        // Измеренные высоты (нужно откалибровать!)
+        double cameraHeightInches = 12.0;  // Высота камеры от пола
+        double tagHeightInches = 16.0;     // Высота AprilTag от пола
+        double heightDiffInches = Math.abs(tagHeightInches - cameraHeightInches);
 
-        if (Math.abs(ty) < 1.0) return 100.0; // Защита от деления на ноль
+        // Защита от деления на ноль
+        if (Math.abs(ty) < 1.0) {
+            return 100.0; // Примерное значение если угол очень маленький
+        }
 
-        double distance = heightDiff / Math.tan(Math.toRadians(ty));
-        return Math.abs(distance);
+        // distance = heightDiff / tan(ty)
+        double distanceInches = heightDiffInches / Math.tan(Math.toRadians(ty));
+
+        return Math.abs(distanceInches);
+    }
+
+    /**
+     * DEBUG: Расширенная информация о Pose3D для диагностики distance calculation
+     */
+    public String getDebugPose3DInfo() {
+        FiducialResult target = getTargetFiducial();
+        if (target == null) return "No target";
+
+        StringBuilder debug = new StringBuilder();
+
+        // Проверка RobotSpace Pose
+        Pose3D robotSpace = target.getTargetPoseRobotSpace();
+        if (robotSpace == null) {
+            debug.append("RobotSpace: NULL\n");
+        } else {
+            Position pos = robotSpace.getPosition();
+            if (pos == null) {
+                debug.append("RobotSpace: OK, Position: NULL\n");
+            } else {
+                double distMeters = Math.sqrt(pos.x*pos.x + pos.y*pos.y + pos.z*pos.z);
+                double distInches = distMeters * 39.3701;
+                debug.append(String.format("RobotSpace: X:%.2fm Y:%.2fm Z:%.2fm\n", pos.x, pos.y, pos.z));
+                debug.append(String.format("  Distance: %.2f in (%.1f cm)\n", distInches, distInches * 2.54));
+            }
+        }
+
+        // Note: Limelight FiducialResult только предоставляет RobotSpace pose
+        // FieldSpace coordinates не доступны напрямую через API
+
+        return debug.toString().trim();
     }
 
     /**
