@@ -43,6 +43,10 @@ Robot {
     // Manual hood control flag
     public boolean manualHoodMode = false;
 
+    // Hood jitter prevention
+    private double lastHoodDistance = -1.0;
+    private static final double HOOD_UPDATE_THRESHOLD_CM = 3.0; // Only update hood if distance changes by 3cm
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance, TeleOpMode mode) {
         this.teleOpMode = mode;
         // Pedro Pathing Follower (одометрия)
@@ -125,10 +129,18 @@ Robot {
                     distanceSource = "Shooting (hold last)";
                 }
             } else {
-                // Камера видит tag - обновляем всегда
+                // Камера видит tag - обновляем velocity всегда, hood только если изменение > 3см
                 shooter.updateVelocity(distanceToGoal);
-                shooter.updateHood(distanceToGoal);
-                distanceSource = "Vision";
+
+                // Hood jitter prevention - only update if distance changed significantly
+                double distanceCm = distanceToGoal * 2.54; // Convert inches to cm
+                if (lastHoodDistance < 0 || Math.abs(distanceCm - lastHoodDistance) >= HOOD_UPDATE_THRESHOLD_CM) {
+                    shooter.updateHood(distanceToGoal);
+                    lastHoodDistance = distanceCm;
+                    distanceSource = "Vision (hood updated)";
+                } else {
+                    distanceSource = "Vision (hood held)";
+                }
             }
         } else {
             // Manual hood mode - only update velocity, not hood

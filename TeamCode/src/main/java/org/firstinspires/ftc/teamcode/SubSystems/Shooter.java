@@ -81,7 +81,7 @@ public class Shooter {
 
     // Hood angle limits
     private static final double MIN_HOOD_ANGLE = 0.0;   // Обновлено: min 0.0
-    private static final double MAX_HOOD_ANGLE = 1.0;   // Обновлено: max 1.0
+    private static final double MAX_HOOD_ANGLE = 0.69;  // Обновлено: max 0.69 (velocity ~1800)
     public static double HOOD_OFFSET = 0.0;             // Offset для калибровки (tunable)
 
     // Anti-windup limit для integral
