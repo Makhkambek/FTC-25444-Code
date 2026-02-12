@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Vision;
 import org.firstinspires.ftc.teamcode.SubSystems.Localizer;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name="Red Auto", group="Autonomous")
+@Autonomous(name="Red AutoClose", group="Autonomous")
 public class RedAutoClose extends OpMode {
     private Follower follower;
     private Timer pathTimer;
@@ -49,20 +49,31 @@ public class RedAutoClose extends OpMode {
                 .addPath(
                         new BezierCurve(
                                 new Pose(92.006, 100.739),
-                                new Pose(89.585, 51.681),
-                                new Pose(121.755, 53.711)
+                                new Pose(89.954, 57.804),
+                                new Pose(94.385, 59.521)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))  // 180 - 135, 180 - 180
+                .build();
+
+        path9 = follower.pathBuilder()
+                .addPath(
+                        new BezierLine(
+                                new Pose(94.385, 59.521),
+
+                                new Pose(126.121, 59.521)
+                        )
+                )
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))  // 180 - 135, 180 - 180
                 .build();
 
         // Mirror path3 - стреляет шестой
         path3 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(121.755, 53.711),
+                                new Pose(126.121, 59.521),
                                 new Pose(98.054, 64.989),
-                                new Pose(93.790, 80.549)
+                                new Pose(92, 80.549)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
@@ -72,7 +83,7 @@ public class RedAutoClose extends OpMode {
         path4 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(93.790, 80.549),
+                                new Pose(92, 80.549),
 
                                 new Pose(117.487, 80.539)
                         )
@@ -86,7 +97,7 @@ public class RedAutoClose extends OpMode {
                         new BezierLine(
                                 new Pose(117.487, 80.539),
 
-                                new Pose(93.886, 80.616)
+                                new Pose(92, 80.616)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
@@ -96,7 +107,7 @@ public class RedAutoClose extends OpMode {
         path6 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(93.886, 80.616),
+                                new Pose(92, 80.616),
                                 new Pose(82.215, 29.421),
                                 new Pose(125.258, 35.594)
                         )
@@ -109,7 +120,7 @@ public class RedAutoClose extends OpMode {
                         new BezierCurve(
                                 new Pose(125.258, 35.594),
                                 new Pose(91.585, 41.111),
-                                new Pose(93.886, 80.626)
+                                new Pose(92.886, 80.626)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
@@ -118,9 +129,9 @@ public class RedAutoClose extends OpMode {
         path8 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(93.886, 80.626),
+                                new Pose(92.886, 80.626),
 
-                                new Pose(105, 80.656)
+                                new Pose(103.632, 80.626)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
@@ -137,7 +148,7 @@ public class RedAutoClose extends OpMode {
                 break;
 
             case 50:
-                if (!follower.isBusy() ) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0 ) {
                     shooter.startShoot();
                     setPathState(1);
                 }
@@ -146,7 +157,16 @@ public class RedAutoClose extends OpMode {
             case 1: // едет брать 6
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.5) {
                     intake.on();
-                    follower.followPath(path2,0.8, true);
+                    follower.followPath(path2,0.9, true);
+                    turret.setTargetAngle(-55);  // Mirror: -55 instead of 55
+                    setPathState(100);
+                }
+                break;
+
+            case 100: // едет брать 6
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.6) {
+                    intake.on();
+                    follower.followPath(path9,0.6, true);
                     turret.setTargetAngle(-55);  // Mirror: -55 instead of 55
                     setPathState(2);
                 }
@@ -171,13 +191,14 @@ public class RedAutoClose extends OpMode {
             case 4: // Ожидание завершения Path 3
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5 && shooter.isIdle()) {
                     intake.on();
+                    turret.setTargetAngle(-55);
                     follower.followPath(path4,0.8, true);
                     setPathState(5);
                 }
                 break;
 
             case 5: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0) {
                     follower.followPath(path5, true);
 
                     setPathState(6);
@@ -204,7 +225,7 @@ public class RedAutoClose extends OpMode {
                 break;
 
             case 8: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.3) {
                     follower.followPath(path7, true);
 
                     setPathState(9);
@@ -220,7 +241,7 @@ public class RedAutoClose extends OpMode {
                 break;
 
             case 10: // Ожидание завершения Path 4 - завершение
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.5) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.9) {
                     follower.followPath(path8, true);
                     turret.setTargetAngle(0);
                     setPathState(13);
@@ -228,7 +249,7 @@ public class RedAutoClose extends OpMode {
                 break;
 
             case 13: // Завершено
-                localizer.setPosition(105, 80.656, 270);
+                localizer.setPosition(103.632, 80.626, 270);
                 break;
         }
     }
@@ -266,8 +287,8 @@ public class RedAutoClose extends OpMode {
         vision.start();
         pathTimer.resetTimer();
 
-        shooter.setHoodPosition(0.38);
-        shooter.setTargetVelocity(1450.0);
+        shooter.setHoodPosition(0.43);
+        shooter.setTargetVelocity(1400.0);
 
         turret.setTargetAngle(0.0);
 
