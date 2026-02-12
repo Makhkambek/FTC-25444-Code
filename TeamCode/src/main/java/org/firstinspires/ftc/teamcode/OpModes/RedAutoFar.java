@@ -22,7 +22,7 @@ public class RedAutoFar extends OpMode {
     private Timer pathTimer;
     private int pathState = 0;
 
-    private PathChain path1, path2, path3, path4, path5, path6, path7, path8, path9, path11;
+    private PathChain path1, path2, path3, path4, path5, path6, path7, path8, path9, path11, path33, path333;
     // Mirror: 144 - 26 = 118, 180 - 135 = 45
     private final Pose startPose = new Pose(87.914, 8.100, Math.toRadians(0));
 
@@ -68,6 +68,28 @@ public class RedAutoFar extends OpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
+        path33 = follower.pathBuilder()
+                .addPath(
+                        new BezierLine(
+                                new Pose(87.798, 8.951),
+
+                                new Pose(128.061, 8.031)
+                        )
+                )
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
+                .build();
+
+        path333 = follower.pathBuilder()
+                .addPath(
+                        new BezierLine(
+                                new Pose(87.798, 8.951),
+
+                                new Pose(128.061, 8.031)
+                        )
+                )
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-20))
+                .build();
+
         // Mirror path4 -
         path4 = follower.pathBuilder()
                 .addPath(
@@ -84,9 +106,9 @@ public class RedAutoFar extends OpMode {
         path5 = follower.pathBuilder()
                 .addPath(
                         new BezierLine(
-                                new Pose(88.320, 10.537),
+                                new Pose(87.805, 8.017),
 
-                                new Pose(101.643, 24.113)
+                                new Pose(100, 45)
                         )
                 )
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
@@ -109,7 +131,7 @@ public class RedAutoFar extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                turret.setTargetAngle(-67);
+                turret.setTargetAngle(-70);
                 if(pathTimer.getElapsedTimeSeconds() >= 1) {
                     shooter.startShoot();
                     setPathState(50);
@@ -126,7 +148,7 @@ public class RedAutoFar extends OpMode {
 
             case 1: // едет брать 6
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
-                    turret.setTargetAngle(-67);
+                    turret.setTargetAngle(-62);
                     intake.off();
                     follower.followPath(path2,0.8, true);
                     setPathState(2);
@@ -141,9 +163,25 @@ public class RedAutoFar extends OpMode {
                 break;
 
             case 3: // Запуск Path 3
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0 && shooter.isIdle()) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0 && shooter.isIdle()) {
                     intake.on();
-                    follower.followPath(path3,0.8, true);
+                    follower.followPath(path3,0.6, true);
+                    setPathState(33);
+                }
+                break;
+
+            case 33: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.5) {
+                    intake.on();
+                    follower.followPath(path33,0.5, true);
+                    setPathState(333);
+                }
+                break;
+
+            case 333: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.5 ) {
+                    intake.on();
+                    follower.followPath(path333,0.5, true);
                     setPathState(4);
                 }
                 break;
@@ -151,7 +189,7 @@ public class RedAutoFar extends OpMode {
             case 4: // Ожидание завершения Path 3
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 3.5 && shooter.isIdle()) {
                     follower.followPath(path4,0.8, true);
-                    turret.setTargetAngle(-67);
+                    turret.setTargetAngle(-62);
                     setPathState(5);
                 }
                 break;
@@ -174,7 +212,7 @@ public class RedAutoFar extends OpMode {
 
 
             case 13: // Завершено
-                localizer.setPosition(97.175, 19.848, 90);
+                localizer.setPosition(100, 45, 90);
                 break;
         }
     }
@@ -212,8 +250,8 @@ public class RedAutoFar extends OpMode {
         vision.start();
         pathTimer.resetTimer();
 
-        shooter.setHoodPosition(0.7);
-        shooter.setTargetVelocity(1830);
+        shooter.setHoodPosition(0.72);
+        shooter.setTargetVelocity(1850);
 
         turret.setTargetAngle(0.0);
 
