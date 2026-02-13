@@ -116,32 +116,10 @@ public class RedAllianceTeleOp extends LinearOpMode {
         robot.start();
 
         while (opModeIsActive()) {
-            // Position reset #1 on dpad_up (gamepad1)
+            // Position reset on dpad_up (gamepad1)
             if (gamepad1.dpad_up) {
-                // Reset to Red alliance preset position (submersible side)
-                Pose resetPose = new Pose(88, 8, Math.toRadians(90));
-                robot.follower.setPose(resetPose);
-
-                // Synchronize Localizer
-                org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
-                    resetPose.getX(),
-                    resetPose.getY(),
-                    Math.toDegrees(resetPose.getHeading())
-                );
-
-                // Force turret to auto-aim mode and point to goal
-                robot.turretController.enableAutoAim();
-                robot.turret.autoAim();
-
-                telemetry.addLine("⚠️ POSITION RESET TO (88, 8)");
-                telemetry.update();
-                sleep(500); // Prevent multiple resets
-            }
-
-            // Position reset #2 on dpad_down (gamepad1)
-            if (gamepad1.dpad_down) {
                 // Reset to Red alliance preset position
-                Pose resetPose = new Pose(104, 135, Math.toRadians(90));
+                Pose resetPose = new Pose(8.282087447108605, 8.153485190409029, Math.toRadians(90));
                 robot.follower.setPose(resetPose);
 
                 // Synchronize Localizer
@@ -155,7 +133,7 @@ public class RedAllianceTeleOp extends LinearOpMode {
                 robot.turretController.enableAutoAim();
                 robot.turret.autoAim();
 
-                telemetry.addLine("⚠️ POSITION RESET TO (104, 135)");
+                telemetry.addLine("⚠️ POSITION RESET TO (8.28, 8.15)");
                 telemetry.update();
                 sleep(500); // Prevent multiple resets
             }

@@ -108,10 +108,10 @@ public class BlueAllianceTeleOp extends LinearOpMode {
         robot.start();
 
         while (opModeIsActive()) {
-            // Position reset #1 on dpad_up (gamepad1)
+            // Position reset on dpad_up (gamepad1)
             if (gamepad1.dpad_up) {
-                // Reset to Blue alliance preset position (basket side)
-                Pose resetPose = new Pose(40, 135, Math.toRadians(90));
+                // Reset to Blue alliance preset position
+                Pose resetPose = new Pose(135.8758815232722, 8.124118476727789, Math.toRadians(90));
                 robot.follower.setPose(resetPose);
 
                 // Synchronize Localizer
@@ -125,29 +125,7 @@ public class BlueAllianceTeleOp extends LinearOpMode {
                 robot.turretController.enableAutoAim();
                 robot.turret.autoAim();
 
-                telemetry.addLine("⚠️ POSITION RESET TO (40, 135)");
-                telemetry.update();
-                sleep(500); // Prevent multiple resets
-            }
-
-            // Position reset #2 on dpad_down (gamepad1)
-            if (gamepad1.dpad_down) {
-                // Reset to Blue alliance preset position (submersible side)
-                Pose resetPose = new Pose(39.5, 7, Math.toRadians(90));
-                robot.follower.setPose(resetPose);
-
-                // Synchronize Localizer
-                org.firstinspires.ftc.teamcode.SubSystems.Localizer.getInstance().setPosition(
-                    resetPose.getX(),
-                    resetPose.getY(),
-                    Math.toDegrees(resetPose.getHeading())
-                );
-
-                // Force turret to auto-aim mode and point to goal
-                robot.turretController.enableAutoAim();
-                robot.turret.autoAim();
-
-                telemetry.addLine("⚠️ POSITION RESET TO (39.5, 7)");
+                telemetry.addLine("⚠️ POSITION RESET TO (135.88, 8.12)");
                 telemetry.update();
                 sleep(500); // Prevent multiple resets
             }
