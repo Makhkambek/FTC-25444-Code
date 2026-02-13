@@ -62,9 +62,9 @@ public class Shooter {
     // V = m * distance + b
     // Формула из Desmos - калибровка для робота (в дюймах)
     // ВАЖНО: Pedro Pathing использует дюймы (DistanceUnit.INCH)
-    // y = 7.71388x + 940.14085
-    public static double VELOCITY_M = 7.71388;         // Slope (коэффициент наклона)
-    public static double VELOCITY_B = 940.14085;       // Y-intercept (свободный член)
+    // y = 7.00426x + 974.9169
+    public static double VELOCITY_M = 7.00426;         // Slope (коэффициент наклона)
+    public static double VELOCITY_B = 974.9169;        // Y-intercept (свободный член)
 
     // Velocity limits (clamp)
     private static final double MIN_VELOCITY = 0.0;        // Минимальная velocity
@@ -187,7 +187,7 @@ public class Shooter {
      * Вычисляет target velocity на основе расстояния до цели
      * Использует линейную функцию: V = m * distance + b
      * Формула из Desmos - калибровка для робота (в дюймах)
-     * y = 7.71388x + 940.14085
+     * y = 7.00426x + 974.9169
      *
      * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
      * @return Target velocity в ticks/sec
