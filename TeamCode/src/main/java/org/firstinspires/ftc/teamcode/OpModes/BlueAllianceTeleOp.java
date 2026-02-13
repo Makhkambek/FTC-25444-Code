@@ -111,7 +111,7 @@ public class BlueAllianceTeleOp extends LinearOpMode {
             // Position reset on dpad_up (gamepad1)
             if (gamepad1.dpad_up) {
                 // Reset to Blue alliance preset position
-                Pose resetPose = new Pose(135.8758815232722, 8.124118476727789, Math.toRadians(90));
+                Pose resetPose = new Pose(135.8758815232722, 8.124118476727789, Math.toRadians(0));
                 robot.follower.setPose(resetPose);
 
                 // Synchronize Localizer

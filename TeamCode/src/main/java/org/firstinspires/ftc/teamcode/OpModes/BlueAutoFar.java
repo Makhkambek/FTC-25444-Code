@@ -105,7 +105,7 @@ public class BlueAutoFar extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                turret.setTargetAngle(67);
+                turret.setTargetAngle(70);
                 if(pathTimer.getElapsedTimeSeconds() >= 1) {
                     shooter.startShoot();
                     setPathState(50);
@@ -122,7 +122,7 @@ public class BlueAutoFar extends OpMode {
 
             case 1: // едет брать 6
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
-                    turret.setTargetAngle(65);
+                    turret.setTargetAngle(70);
                     intake.off();
                     follower.followPath(path2,0.8, true);
                     setPathState(2);
