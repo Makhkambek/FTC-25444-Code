@@ -43,9 +43,19 @@ Robot {
     // Manual hood control flag
     public boolean manualHoodMode = false;
 
+    // Fixed shooter mode (dpad_down on gamepad1)
+    private boolean fixedShooterMode = false;
+    private boolean prevDpadDown = false;
+    private static final double FIXED_HOOD_POSITION = 0.50;
+    private static final double FIXED_VELOCITY = 1400.0;
+
     // Hood jitter prevention
     private double lastHoodDistance = -1.0;
     private static final double HOOD_UPDATE_THRESHOLD_CM = 3.0; // Only update hood if distance changes by 3cm
+
+    // Vision correction weight (0.0 = только odometry, 1.0 = только vision)
+    // 0.15 = плавная коррекция без jittering
+    private static final double VISION_CORRECTION_WEIGHT = 0.15;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, boolean isRedAlliance, TeleOpMode mode) {
         this.teleOpMode = mode;
@@ -110,52 +120,83 @@ Robot {
 
         driveTrain.drive(gamepad1, gamepad2, telemetry);
 
+        // Fixed shooter mode - dpad_down на gamepad1
+        // Hood = 0.50, Velocity = 1500 (фиксированные значения)
+        if (gamepad1.dpad_down && !prevDpadDown) {
+            fixedShooterMode = true;
+            shooter.setHoodPosition(FIXED_HOOD_POSITION);
+            shooter.setTargetVelocity(FIXED_VELOCITY);
+            distanceSource = "Fixed mode (dpad_down)";
+        }
+        prevDpadDown = gamepad1.dpad_down;
+
         // Динамически обновляем velocity и hood на основе расстояния до цели
-        // ТОЛЬКО Vision - если не видит тег, используем fallback (но НЕ во время стрельбы!)
-        // SKIP hood updates if in manual mode
-        double distanceToGoal = vision.getTargetDistance();
+        // ПРИОРИТЕТ: Odometry (основа) + Vision (плавная коррекция)
+        // SKIP hood updates if in manual mode or fixed shooter mode
 
-        if (!manualHoodMode) {
-            // Auto mode - update hood based on distance
-            if (distanceToGoal < 0) {
-                // Камера НЕ видит tag
-                if (!shooter.isShooting()) {
-                    // Fallback ТОЛЬКО если НЕ стреляем (иначе мяч блокирует камеру и сбивает настройки!)
-                    shooter.setTargetVelocity(1250.0);
-                    shooter.setHoodPosition(0.0);  // Hood на 0
-                    distanceSource = "No tag (fallback)";
-                } else {
-                    // Стреляем - держим последние значения velocity/hood, не меняем
-                    distanceSource = "Shooting (hold last)";
-                }
-            } else {
-                // Камера видит tag - обновляем velocity всегда, hood только если изменение > 3см
-                shooter.updateVelocity(distanceToGoal);
+        // ODOMETRY-based distance (основной источник)
+        double odometryDistance = turret.getDistanceToGoal();
+        double distanceToGoal = odometryDistance;
 
-                // Hood jitter prevention - only update if distance changed significantly
-                double distanceCm = distanceToGoal * 2.54; // Convert inches to cm
-                if (lastHoodDistance < 0 || Math.abs(distanceCm - lastHoodDistance) >= HOOD_UPDATE_THRESHOLD_CM) {
-                    shooter.updateHood(distanceToGoal);
-                    lastHoodDistance = distanceCm;
-                    distanceSource = "Vision (hood updated)";
-                } else {
-                    distanceSource = "Vision (hood held)";
-                }
-            }
+        // Vision correction - плавно корректирует odometry без jittering
+        if (vision.hasTargetTag() && odometryDistance > 0) {
+            double visionDistance = vision.getTargetDistance();
+            // Weighted average: mostly odometry, slight vision correction
+            distanceToGoal = odometryDistance * (1.0 - VISION_CORRECTION_WEIGHT)
+                           + visionDistance * VISION_CORRECTION_WEIGHT;
+            distanceSource = String.format("Odo+Vision (%.0f\" odo, %.0f\" vis)", odometryDistance, visionDistance);
+        } else if (odometryDistance > 0) {
+            distanceSource = "Odometry only";
         } else {
-            // Manual hood mode - only update velocity, not hood
-            if (distanceToGoal > 0) {
-                shooter.updateVelocity(distanceToGoal);
-                distanceSource = "Vision (manual hood)";
-            } else {
-                if (!shooter.isShooting()) {
-                    shooter.setTargetVelocity(1050.0);
-                    distanceSource = "No tag (manual hood)";
+            distanceToGoal = 0;
+            distanceSource = "No distance";
+        }
+
+        if (!fixedShooterMode) {
+            // НЕ в fixed mode - обычное поведение
+            if (!manualHoodMode) {
+                // Auto mode - update hood based on distance
+                if (distanceToGoal <= 0) {
+                    // Нет расстояния (ни Vision, ни Odometry)
+                    if (!shooter.isShooting()) {
+                        // Fallback ТОЛЬКО если НЕ стреляем
+                        shooter.setTargetVelocity(1250.0);
+                        shooter.setHoodPosition(0.0);  // Hood на 0
+                        distanceSource = "No distance (fallback)";
+                    } else {
+                        // Стреляем - держим последние значения velocity/hood, не меняем
+                        distanceSource += " (hold last)";
+                    }
                 } else {
-                    distanceSource = "Shooting (manual hood)";
+                    // Есть расстояние (Vision или Odometry) - обновляем velocity всегда
+                    shooter.updateVelocity(distanceToGoal);
+
+                    // Hood jitter prevention - only update if distance changed significantly
+                    double distanceCm = distanceToGoal * 2.54; // Convert inches to cm
+                    if (lastHoodDistance < 0 || Math.abs(distanceCm - lastHoodDistance) >= HOOD_UPDATE_THRESHOLD_CM) {
+                        shooter.updateHood(distanceToGoal);
+                        lastHoodDistance = distanceCm;
+                        distanceSource += " (hood updated)";
+                    } else {
+                        distanceSource += " (hood held)";
+                    }
+                }
+            } else {
+                // Manual hood mode - only update velocity, not hood
+                if (distanceToGoal > 0) {
+                    shooter.updateVelocity(distanceToGoal);
+                    distanceSource += " (manual hood)";
+                } else {
+                    if (!shooter.isShooting()) {
+                        shooter.setTargetVelocity(1050.0);
+                        distanceSource = "No distance (manual hood)";
+                    } else {
+                        distanceSource += " (shooting, manual hood)";
+                    }
                 }
             }
         }
+        // Если в fixed mode - НЕ обновляем hood и velocity автоматически
 
         shooter.updatePID();
 
@@ -174,6 +215,12 @@ private void updateControllers(Gamepad gamepad1, Gamepad gamepad2) {
         turretController.gamepad1 = gamepad1; // Для dpad calibration
         turretController.update();
 
+        // Left bumper (auto-aim) отключает fixed shooter mode
+        if (gamepad2.left_bumper && fixedShooterMode) {
+            fixedShooterMode = false;
+            distanceSource = "Auto-aim enabled";
+        }
+
         // IntakeController управляет intake только если Shooter НЕ активен
         intakeController.gamepad = gamepad2;
         if (!shooterController.isShooting()) {
@@ -182,9 +229,10 @@ private void updateControllers(Gamepad gamepad1, Gamepad gamepad2) {
 
         resetController.handleResetButton(gamepad2);
 
-        // Reset manual hood mode when Options button pressed
+        // Reset manual hood mode and fixed shooter mode when Options button pressed
         if (gamepad2.options) {
             manualHoodMode = false;
+            fixedShooterMode = false;
         }
     }
 

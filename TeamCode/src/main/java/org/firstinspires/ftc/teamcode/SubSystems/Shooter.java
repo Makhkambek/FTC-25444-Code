@@ -58,13 +58,13 @@ public class Shooter {
     public double kD = 0;
     public double kF = 0.00028;
 
-    // Flywheel velocity formula coefficients (sigmoid)
-    // V = L / (1 + e^(-(k * distance + b)))
+    // Flywheel velocity formula coefficients (linear)
+    // V = m * distance + b
     // Формула из Desmos - калибровка для робота (в дюймах)
     // ВАЖНО: Pedro Pathing использует дюймы (DistanceUnit.INCH)
-    public static double VELOCITY_L = 2045.06422;      // Максимальная velocity (асимптота)
-    public static double VELOCITY_K = 0.0195391;       // Скорость роста кривой
-    public static double VELOCITY_B = -0.348709;       // Сдвиг (k*x0)
+    // y = 7.00426x + 974.9169
+    public static double VELOCITY_M = 7.00426;         // Slope (коэффициент наклона)
+    public static double VELOCITY_B = 974.9169;        // Y-intercept (свободный член)
 
     // Velocity limits (clamp)
     private static final double MIN_VELOCITY = 0.0;        // Минимальная velocity
@@ -74,10 +74,10 @@ public class Shooter {
     // Hood angle formula coefficients (quadratic)
     // hoodAngle = A * distance² + B * distance + C
     // Формула из Desmos - калибровка для робота (в дюймах)
-    // y = -0.0000985709x² + 0.0227599x - 0.584238
-    public static double HOOD_COEFF_A = -0.0000985709;  // Коэффициент при x²
-    public static double HOOD_COEFF_B = 0.0227599;      // Коэффициент при x
-    public static double HOOD_COEFF_C = -0.584238;      // Свободный член
+    // y = -0.0000976164x² + 0.0226446x - 0.581147
+    public static double HOOD_COEFF_A = -0.0000976164;  // Коэффициент при x²
+    public static double HOOD_COEFF_B = 0.0226446;      // Коэффициент при x
+    public static double HOOD_COEFF_C = -0.581147;      // Свободный член
 
     // Hood angle limits
     private static final double MIN_HOOD_ANGLE = 0.0;   // Обновлено: min 0.0
@@ -185,21 +185,21 @@ public class Shooter {
 
     /**
      * Вычисляет target velocity на основе расстояния до цели
-     * Использует сигмоидную функцию: V = L / (1 + e^(-(k*d + b)))
+     * Использует линейную функцию: V = m * distance + b
      * Формула из Desmos - калибровка для робота (в дюймах)
+     * y = 7.00426x + 974.9169
      *
      * @param distanceInches Расстояние до цели в дюймах (от Pedro Pathing odometry)
      * @return Target velocity в ticks/sec
      */
     private double calculateTargetVelocity(double distanceInches) {
-        // Сигмоидная функция (логистическая регрессия)
-        // V = L / (1 + e^(-(k * distance + b)))
+        // Линейная функция
+        // V = m * distance + b
         // distance уже в дюймах от Pedro Pathing
-        double exponent = -(VELOCITY_K * distanceInches + VELOCITY_B);
-        double velocity = VELOCITY_L / (1.0 + Math.exp(exponent));
+        double velocity = VELOCITY_M * distanceInches + VELOCITY_B;
 
-        // Clamp к физическим лимитам + offset + velocity boost
-        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET + 50.0;
+        // Clamp к физическим лимитам + offset
+        return clamp(velocity, MIN_VELOCITY, MAX_VELOCITY) + FLYWHEEL_OFFSET;
     }
 
     /**
@@ -285,9 +285,12 @@ public class Shooter {
     }
 
     /**
-     * Динамически обновляет Hood на основе расстояния от Vision
+     * ЗАКОММЕНТИРОВАНО: Динамически обновляет Hood на основе расстояния от Vision
      * Вызывать в loop() для автоматической настройки
+     *
+     * СЕЙЧАС ИСПОЛЬЗУЕТСЯ ТОЛЬКО ODOMETRY в Robot.java
      */
+    /*
     public void updateHoodDynamic(Vision vision) {
         double distance = 0;
 
@@ -301,6 +304,7 @@ public class Shooter {
             updateHood(distance);
         }
     }
+    */
 
     public void startShoot() {
         if (currentState == ShooterState.IDLE) {

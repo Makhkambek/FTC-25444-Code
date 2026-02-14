@@ -40,7 +40,7 @@ public class ShooterController {
             shooter.startShoot();
         }
 
-        // Hood обновляется только от Odometry в Robot.update() - НЕ от Vision
+        // Hood и Velocity обновляются от Vision (приоритет) с fallback на Odometry в Robot.update()
 
         // Обновление FSM шутера
         shooter.updateFSM(intake);
