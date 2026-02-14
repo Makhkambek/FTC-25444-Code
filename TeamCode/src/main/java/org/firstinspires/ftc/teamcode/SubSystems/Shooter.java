@@ -285,9 +285,12 @@ public class Shooter {
     }
 
     /**
-     * Динамически обновляет Hood на основе расстояния от Vision
+     * ЗАКОММЕНТИРОВАНО: Динамически обновляет Hood на основе расстояния от Vision
      * Вызывать в loop() для автоматической настройки
+     *
+     * СЕЙЧАС ИСПОЛЬЗУЕТСЯ ТОЛЬКО ODOMETRY в Robot.java
      */
+    /*
     public void updateHoodDynamic(Vision vision) {
         double distance = 0;
 
@@ -301,6 +304,7 @@ public class Shooter {
             updateHood(distance);
         }
     }
+    */
 
     public void startShoot() {
         if (currentState == ShooterState.IDLE) {

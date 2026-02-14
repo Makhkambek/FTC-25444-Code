@@ -132,9 +132,77 @@ public class BlueAutoFar extends OpMode {
             case 2: //стреляет 6й
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
                     shooter.startShoot();
-                    setPathState(3);
+                    setPathState(50);
                 }
                 break;
+
+
+            case 33: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0 && shooter.isIdle()) {
+                    intake.on();
+                    follower.followPath(path1,0.6, true);
+                    setPathState(1333);
+                }
+                break;
+
+
+            case 1333: // едет брать 6
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
+                    turret.setTargetAngle(70);
+                    intake.off();
+                    follower.followPath(path2,0.8, true);
+                    setPathState(1133);
+                }
+                break;
+
+            case 1133: //стреляет 6й
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
+                    shooter.startShoot();
+                    setPathState(333);
+                }
+                break;
+
+            case 333: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0 && shooter.isIdle()) {
+                    intake.on();
+                    follower.followPath(path1,0.6, true);
+                    setPathState(1113);
+                }
+                break;
+
+            case 1113: // едет брать 6
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2) {
+                    turret.setTargetAngle(70);
+                    intake.off();
+                    follower.followPath(path2,0.8, true);
+                    setPathState(1111);
+                }
+                break;
+
+            case 1111: //стреляет 6й
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 1.0) {
+                    shooter.startShoot();
+                    setPathState(3333);
+                }
+                break;
+
+
+            case 3333: // Запуск Path 3
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0 && shooter.isIdle()) {
+                    intake.on();
+                    follower.followPath(path1,0.6, true);
+                    setPathState(33333);
+                }
+                break;
+
+
+
+
+
+
+
+
+
 
             case 3: // Запуск Path 3
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 2.0 && shooter.isIdle()) {
